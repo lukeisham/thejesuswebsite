@@ -33,16 +33,14 @@ _Part of the [Style Guide](INDEX.md) — §8: core components._
 - **Print**: border removed, `9pt` italic, inline at full width — consistent with the academic paper print rules in §12
 
 #### Standard figure box (`.figure-standard`)
-A predictable display box for a figure's rendered size, currently opted into by the Evidence module only (see §9):
+A predictable display box for a figure's rendered size. The Evidence module uses it (see §9).
 
 - **Tokens**: `--figure-standard-width: 720px`, `--figure-standard-height: 480px`, `--figure-mobile-max-height: 70vh` (`variables.css`)
-- **The box**: `720 × 480` maximum. A 3:2 landscape lands exactly on `720 × 480`; a 2:3 portrait is height-bound and lands on `320 × 480` — both orientations occupy a similar vertical footprint rather than one towering over the other.
-- **How orientation is resolved without JS**: `width: auto` + `max-width: 720px` together with `height: auto` + `max-height: 480px` *is* the orientation check. With both dimensions `auto`, the browser picks whichever cap is binding (width or height) and derives the other dimension from the intrinsic ratio, so landscape and portrait both size correctly — before any JS runs, or if JS fails entirely (progressive enhancement, JS-2). This only works because *both* dimensions are `auto`: giving `width` a definite value (e.g. `min(100%, 720px)`) instead of `max-width` breaks it — the browser clips the used height to the cap without recomputing width, and the image's default `object-fit: fill` then stretches it to fit the mismatched box.
-- **Explicit orientation classes**: `figure-orientation.js`'s `applyFigureOrientation()` reads the loaded image's `naturalWidth`/`naturalHeight` and stamps `figure--landscape` / `figure--portrait` / `figure--square` on the parent `<figure>`. Squares size like portraits. The mobile rule below hooks onto these classes.
-- **Mobile** (`≤767px`): the `720px` width cap is irrelevant once the column itself is narrower, so portraits (and squares) instead get the `--figure-mobile-max-height: 70vh` viewport-relative cap — a tall picture can never fill an entire phone screen.
-- **Mutually exclusive with side-floats**: `.figure-standard` and the breakout/align float classes (`.figure-align-left/-right`, `.figure-breakout-left/-right`) are never combined on the same `<figure>` — a figure is either a standard box or a floated aside, never both.
-- **Print**: the standard box is screen-only. Print output uses `width: auto; max-width: 100%; max-height: none` so paged figures are unconstrained by the display box (print.css loads before figures.css, so this rule must target `.figure-standard img` specifically — an unqualified `img` rule would lose the cascade).
-- **Upload standard**: see §12 — every image accepted through `/uploads` is standardised server-side to a `1440 × 960` bounding box (2× the display box, for retina sharpness) before it ever reaches this component.
+- **The box**: `720 × 480` maximum. A 3:2 landscape fills `720 × 480`. A 2:3 portrait is height-bound at `320 × 480`, so both orientations take a similar vertical space. The box works without JS — `figures.css` explains how.
+- **Mobile** (`≤767px`): the width cap no longer matters, so portraits and squares get the `70vh` height cap. A tall picture never fills a whole phone screen.
+- **Never combined with side-floats**: a figure is either a standard box or a floated aside (`.figure-align-*`, `.figure-breakout-*`), never both.
+- **Print**: the box is screen-only. Printed figures are unconstrained, up to the page width.
+- **Upload standard**: see §12 — every image accepted through `/uploads` is standardised server-side to a `1440 × 960` bounding box (2× the display box, for retina sharpness) before it reaches this component.
 
 ### News & Blog Row Layout
 The landing page and both endless-feed pages (News, Blog) share a consistent horizontal row layout. Each row is an `<a>` link containing an 80×80px thumbnail on the left and a text body on the right.
@@ -115,7 +113,7 @@ Used on evidence cards and detail pages to label category, timeline period, and 
   - Desktop: transform-based zoom (buttons) and pan (mouse/touch drag), no horizontal scrollbar or `overflow-x: auto`
 - **Scrolling**: zoom/pan transform is disabled entirely below 768px; the timeline instead flows with natural vertical page scroll like the rest of the page
 - **Empty state**: if no events in selected era, show centered message "No events in this period"
-- **Line stability (desktop only)**: spine and era-marker lines hold a constant apparent thickness (2px spine / 1px marker) across all zoom levels. `.timeline-world`'s `scale()` transform inflates declared thickness along with everything else; `timeline/timeline-line-stability.css` cancels that by dividing declared thickness by a live `--timeline-zoom-scale` custom property that `timeline-zoom.js` sets on every transform update, floored with `max(1px, ...)` so zoomed-out lines never vanish. Drag-pan also adds a `.timeline-world--panning` class that suppresses the 150ms button-zoom transition, so panning tracks the pointer immediately while zoom buttons keep their smooth animation. Mobile (<768px) disables the transform entirely (`timeline-responsive.css`), so this behaviour is desktop-only. Mirrored in the admin diagram editor for era dividers (`admin/assets/js/admin-timeline/timeline-zoom.js`, `admin-diagrams/timeline-canvas.css`); the admin spine is a viewport pseudo-element outside the scaled `.admin-timeline-world` wrapper and needs no counter-scaling. Admin drag-pan now also rounds `panX`/`panY` to a 0.5px grid and suppresses the button-zoom transition during an active drag via `.admin-timeline-world--panning` (both added to the shared `AdminCanvasZoom` module), achieving full parity with the frontend behaviour.
+- **Line stability (desktop only)**: spine and era-marker lines keep a constant apparent thickness (2px spine / 1px marker) at every zoom level, and never go below `1px`. Drag-pan follows the pointer with no transition. Zoom buttons keep the `--duration-fast` transition. The admin diagram editor matches this. `timeline/timeline-line-stability.css` explains how.
 
 ### Map
 - Clean base map

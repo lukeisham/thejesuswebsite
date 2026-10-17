@@ -40,7 +40,7 @@ figcaption {
 
 /* -------------------------------------------------------------------------
    Figure Numbering
-   Injected by JS — "Fig. 1", "Fig. 2", etc. per page.
+   The prefix span comes from utils/figures.js.
    ------------------------------------------------------------------------- */
 
 figcaption .fig-number {
@@ -81,28 +81,21 @@ figure.figure-full img {
 }
 
 /* -------------------------------------------------------------------------
-   Standard figure box (Evidence module — Style Guide §8)
-   A predictable 720 × 480 display box, orientation-aware: landscape fills
-   the width, portrait is height-bound and comes out narrower. The figure
-   container shrink-wraps to the image's intrinsic width via `fit-content`
-   while clipping excess height with `max-height` + `overflow: hidden`.
-   The image renders at natural aspect ratio constrained only by
-   `max-width: 720px`, and `fit-content` on the figure resolves to the
-   image's intrinsic width (aided by explicit width/height attributes set
-   by figure-orientation.js on load), so captions always match the rendered
-   image width.
-   figure-orientation.js stamps figure--portrait/--landscape/--square on
-   top so the mobile rule below can target orientation directly.
+   Standard figure box (Style Guide §8)
+   Orientation is resolved without JS, so the box works before
+   figure-orientation.js runs or if it fails (JS-2). Keep both img
+   dimensions `auto` with only max-width/max-height caps: the browser then
+   picks the cap that binds and derives the other side from the image's
+   ratio. A definite `width` breaks this. The browser clips the height to
+   the cap but keeps the width, and `object-fit: fill` stretches the image.
 
-   Mutually exclusive with the side-float/breakout classes above
-   (.figure-align-left/-right, .figure-breakout-left/-right) — a figure is
-   either a standard box or a floated aside, never both.
+   figure-orientation.js adds figure--portrait/--landscape/--square only
+   for the mobile rule below. Never combine this box with the
+   .figure-align-* or .figure-breakout-* floats on one figure.
    ------------------------------------------------------------------------- */
 
-/* Aligned figures (.figure-align-left/-right) have no dedicated img sizing
-   rule elsewhere — they rely on the generic `figure img` max-width/height:auto
-   above plus the raw 720×480 width/height attributes. Reserve the same box
-   here too, and cap width so they can't overflow a narrow mobile viewport. */
+/* Aligned figures have no other img sizing rule, so reserve the same box
+   to prevent layout shift, and cap the width for narrow screens. */
 .figure-align-left img,
 .figure-align-right img {
   max-width: 100%;
@@ -121,22 +114,14 @@ figure.figure-standard {
   width: auto;
   max-width: var(--figure-standard-width);
   height: auto;
-  /* Reserves the 720×480 box the width/height attributes already imply,
-     preventing CLS while the image loads. The "auto" prefix means this
-     ratio is only a fallback — once the real (possibly portrait/square)
-     image loads, its natural ratio wins instead, so this never distorts
-     non-landscape figures. */
+  /* Prevents layout shift while the image loads. The `auto` prefix lets the
+     loaded image's own ratio win, so portraits and squares never distort. */
   aspect-ratio: auto 720 / 480;
 }
 
-/* figcaption is a block auto-width child, so its own max-content
-   contribution (the caption text laid out on one unbroken line) feeds
-   into the figure's `fit-content` sizing just like the image's does —
-   a long caption can out-size a narrow portrait image and drag the
-   figure wider than the picture it describes. Capping it at the same
-   standard width keeps the figure's fit-content driven by whichever
-   child is actually widest at that cap, never by the caption's
-   unwrapped length. */
+/* The caption's unwrapped width also feeds the figure's `fit-content`
+   width. Without this cap, a long caption makes a portrait figure wider
+   than its picture. */
 .figure-standard figcaption {
   max-width: var(--figure-standard-width);
 }
@@ -167,7 +152,8 @@ figure.figure-standard {
     max-width: 100%;
   }
 
-  /* Paged output is unconstrained by the 720x480 display box above. */
+  /* Paged output ignores the screen display box. The selector must stay as
+     specific as the screen `.figure-standard img` rule, or that rule wins. */
   .figure-standard img {
     width: auto;
     max-width: 100%;
@@ -180,7 +166,6 @@ figure.figure-standard {
     page-break-inside: avoid;
   }
 
-  /* Floated figures — unfloat so they span full page width on print */
   .figure-align-left,
   .figure-align-right {
     float: none;
