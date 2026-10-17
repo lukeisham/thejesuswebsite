@@ -22,7 +22,7 @@ serves a live vector-classification endpoint alongside it.
 - **The skill** (`setup/SKILLS/!TheJesusWebsite-Wikipedia/skill.md`) is the only supported entry point — it documents its own trigger phrases, step order, and command set (`check`/`add`/`remove`/`exclude`/`rescore` in `rank_engine.py`). Don't hand-invoke the scripts from memory; the skill's gate logic (e.g. "check never chains into add") is part of the contract.
 - **`ALGORITHM_GUIDE_the_what.md`** (pool/selection criteria, weights table) and **`ALGORITHM_GUIDE_the_how.md`** (technical pipeline, per-signal detection) in `Wikipedia algorithm/` are the rubric's canonical spec — this doc does not restate signal weights or thresholds.
 - **Export → import**: `rank_engine.py export` writes `database/scoring-export.json`; `api/scripts/import-wikipedia-scoring.js` validates every signal key against an allowlist, checks the sum invariant, and upserts into `wikipedia_articles` + `wikipedia_article_signals` at deploy time.
-- **Serving**: `GET /api/wikipedia` feeds the 5×5 grid widget (`frontend/assets/js/wikipedia.js`); `POST /api/wikipedia/signal-check` proxies live text through `api/lib/vector-sidecar-client.js` to the Python FAISS sidecar (`127.0.0.1`-only, never public directly).
+- **Serving**: `GET /api/wikipedia` feeds the grid widget (`wikipedia-quality-grid.md`); `POST /api/wikipedia/signal-check` proxies live text through `api/lib/vector-sidecar-client.js` to the Python FAISS sidecar (`127.0.0.1`-only, never public directly).
 
 ## Extending it
 

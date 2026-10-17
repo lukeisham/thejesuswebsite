@@ -60,13 +60,12 @@
 
 /* -------------------------------------------------------------------------
    Reduced Motion
-   Wraps all transitions — serves instant states when user prefers
-   reduced motion (accessibility, §11).
+   The only reduced-motion rule: components add none of their own, so every
+   page that sets a duration must load this file. It uses !important so that it
+   beats any component duration (CSS-5 exception).
    ------------------------------------------------------------------------- */
 
 @media (prefers-reduced-motion: reduce) {
-  /* !important is intentional here: this accessibility override must win
-     over any component-level animation/transition duration. */
   *,
   *::before,
   *::after {

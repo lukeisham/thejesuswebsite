@@ -5,7 +5,7 @@
  * (contribution, cap); this module supplies the display name, polarity, and
  * plain-English statement logic.
  *
- * Order: exactly the §9 row order of
+ * Order: exactly the signal row order of
  * `Wikipedia algorithm/ALGORITHM_GUIDE_the_what.md` §9 — strongest
  * positive signal first, strongest negative signal last. This is the same
  * order the 5×5 grid renders in (row-major, left to right, top to bottom) and
@@ -29,7 +29,7 @@
 
 /** @type {SignalDictEntry[]} */
 export const SIGNAL_DICTIONARY = [
-  // ─── §9 row order — do not re-sort ──────────────────────────────────────
+  // ─── Row order of ALGORITHM_GUIDE_the_what.md §9 — do not re-sort ───────
   { key: 'manuscripts', name: 'Named manuscripts', capMagnitude: 8, polarity: 'positive' },
   { key: 'bible_verses', name: 'Bible verses cited', capMagnitude: 12, polarity: 'positive' },
   // Bidirectional (+10 clear split / -5 muddled / 0 one-sided / 0 unclassifiable,
@@ -89,9 +89,8 @@ export function fulfilmentRatio(contribution, cap) {
 
 /**
  * Build the plain-English sentence describing whether and how far a signal
- * applied to an article, calibrated in tone against the approved mockup
- * (e.g. "Cites Bible verses (maximum credit)") but templated so it works for
- * any signal/contribution/cap combination rather than hardcoded per key.
+ * applied to an article. It is templated so it works for any
+ * signal/contribution/cap combination rather than hardcoded per key.
  *
  * @param {SignalDictEntry} signalDictEntry
  * @param {number} contribution - Points earned for this article (can be negative).
@@ -99,7 +98,10 @@ export function fulfilmentRatio(contribution, cap) {
  * @returns {string}
  */
 export function buildStatement(signalDictEntry, contribution, cap) {
-  if (!signalDictEntry) return '';
+  if (!signalDictEntry) {
+    console.warn('buildStatement called without a dictionary entry');
+    return '';
+  }
 
   const { name, polarity } = signalDictEntry;
   const label = name.charAt(0).toLowerCase() + name.slice(1);

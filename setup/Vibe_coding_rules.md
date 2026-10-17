@@ -349,6 +349,11 @@ deep for states and pseudo-elements (`&:hover`, `&::before`, `&[aria-expanded="t
 for descendant chains. Use current CSS instead of JavaScript or extra markup where it does the
 job: `:has()`, container queries, `color-mix()`, logical properties, `clamp()`.
 
+Exception: the global `@media (prefers-reduced-motion: reduce)` rule in
+`frontend/assets/css/base/animations.css` uses `!important` on the two duration properties. It
+must beat every component-level duration, or a new component can bring back motion for a reader
+who turned it off. No other rule gets this exception.
+
 **CSS-6** — CSS Comments
 Use large clear section headings and subheadings. Any other comment follows CORE-2.
 

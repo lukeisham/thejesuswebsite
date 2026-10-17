@@ -45,7 +45,7 @@
 
 .wikipedia-header-row {
   display: grid;
-  grid-template-columns: 2.5rem 1fr auto auto 34px;
+  grid-template-columns: var(--wikipedia-rank-col) 1fr auto auto var(--signal-btn-size);
   gap: var(--space-lg);
   align-items: end;
   padding-bottom: var(--space-xs);
@@ -59,7 +59,7 @@
 
 @media (max-width: 1023px) {
   .wikipedia-header-row {
-    grid-template-columns: 1.5rem 1fr auto auto 34px;
+    grid-template-columns: var(--wikipedia-rank-col-sm) 1fr auto auto var(--signal-btn-size);
   }
 }
 
@@ -75,7 +75,7 @@
 
 .wikipedia-rank-card {
   display: grid;
-  grid-template-columns: 2.5rem 1fr auto auto 34px;
+  grid-template-columns: var(--wikipedia-rank-col) 1fr auto auto var(--signal-btn-size);
   gap: var(--space-lg);
   align-items: center;
   padding: var(--space-md) 0;
@@ -84,12 +84,12 @@
 
 @media (max-width: 1023px) {
   .wikipedia-rank-card {
-    grid-template-columns: 1.5rem 1fr auto auto 34px;
+    grid-template-columns: var(--wikipedia-rank-col-sm) 1fr auto auto var(--signal-btn-size);
   }
 }
 
 .wikipedia-rank-number {
-  font-size: 2rem;
+  font-size: var(--wikipedia-rank-number-size);
   font-weight: 300;
   color: var(--text-muted);
   text-align: right;
@@ -111,6 +111,11 @@
   color: var(--link-hover);
 }
 
+.wikipedia-rank-title-icon {
+  display: inline;
+  vertical-align: middle;
+}
+
 /* .wikipedia-rank-meta wraps the grid + score panel + copy button so mobile
    can lay them out as one flex line. At >=768px it stays `display: contents`
    so its three children act as direct grid items in .wikipedia-rank-card's
@@ -127,7 +132,7 @@
 
 @media (max-width: 767px) {
   .wikipedia-rank-card {
-    grid-template-columns: 1.5rem 1fr;
+    grid-template-columns: var(--wikipedia-rank-col-sm) 1fr;
     grid-template-areas:
       'rank title'
       'rank meta';

@@ -254,7 +254,7 @@ A single ranked list page (`debate/wikipedia.html`) showing Wikipedia articles a
 - **Ranked list**: five-column row layout, max-width `1100px`, centred, with responsive stacking below `768px` (§9.1). Each row:
   - **Rank number**: `2rem`, `--text-muted`, `font-weight: 300`, right-aligned
   - **Article title** (`h3`), linked to the external Wikipedia URL with a Feather `external-link` icon inline
-  - **5×5 signal grid and document score panel** (§9.1, §6 "Wikipedia Quality Grid") for articles that have signal data, plus a copy button
+  - **5×5 signal grid and document score panel** (§9.1) for articles that have signal data, plus a copy button
   - No per-article date is shown — see the page-level line above
   - Rank 1 renders with no visual emphasis — identical markup and styling at every rank
 - **Infinite scroll**: standard (§8)
@@ -262,12 +262,12 @@ A single ranked list page (`debate/wikipedia.html`) showing Wikipedia articles a
 
 ### 9.1 Wikipedia Grid Details
 
-Full spec for the 5×5 signal grid introduced above. See §6 "Wikipedia Quality Grid" for the tooltip/motion spec and colour tokens.
+Full spec for the 5×5 signal grid introduced above. The tooltip motion is in §6. How the page, script and style sheet must agree is in `setup/ARCHITECTURE/wikipedia-quality-grid.md`.
 
 **Layout**
 
-- Fixed 5×5 CSS Grid (`grid-template-columns: repeat(5, 1fr)`), never reflows to a different column count at any viewport.
-- Cell size: `26px` square, `3px` gap at `≥768px`; `22px` square, `2px` gap below `768px`. Only cell/gap size changes across breakpoints — column count is constant.
+- Fixed 5×5 CSS Grid (`grid-template-columns: repeat(5, var(--grid-cell-size))`), never reflows to a different column count at any viewport.
+- Cell size: `--grid-cell-size` square with `--grid-cell-gap` gap at `≥768px`; `--grid-cell-size-sm` square with `--grid-cell-gap-sm` gap below `768px`. Only cell/gap size changes across breakpoints — column count is constant.
 - **Cell order** comes from `SIGNAL_DICTIONARY` in `frontend/assets/js/utils/wikipedia-signals.js`, row-major. The grid reads as a gradient: top-left cells earn score, bottom-right cells lose it.
 - All 25 cells always render for every scored article, even when a signal never fired for that article — an unfired signal renders as an empty cell, not a missing one (JS-2).
 
@@ -277,13 +277,15 @@ Full spec for the 5×5 signal grid introduced above. See §6 "Wikipedia Quality 
 - **Negative, fired**: `--error` text, bold, contribution shown with its minus sign — negative signals get one visual treatment regardless of magnitude, not four tiers.
 - **Empty** (`contribution: 0`, whether or not the signal was applicable): `--bg-surface` fill with a faint `--border` outline — visually present but clearly inert.
 - **No inline styles, no per-cell SVG.** Colour is applied as a class (`.wikipedia-cell--blue-1`…`--blue-4`, `--negative`, `--empty`) — see SR-3, CSS-2.
-- **Tooltips**: hover/focus on a cell shows `"<signal name>: <contribution>"` or `"<signal name>: not scored"` via the single shared tooltip element (§6). Pointer devices only.
+- **Tooltips**: hover/focus on a cell shows `"<signal name>: <contribution>"` or `"<signal name>: not scored"` via the single shared tooltip element (§6). Pointer devices only; the tooltip text is also each cell's `aria-label`.
 
 **Score panel**
 
 - One `.wikipedia-score-panel` per article, right of the grid: `net_score` in a solid colour band — green `≥ 50`, yellow `25–49`, red `≤ 24`. No suffix, no "/100" — the number and its band colour are the whole signal.
 
-**Copy format** (§6 "Wikipedia Quality Grid" for the button; format below)
+**Copy button and format**
+
+The button sits right of the score panel, `--signal-btn-size` square. It reads the article's JSON block when you click and writes the text below with `navigator.clipboard.writeText`. A failed copy shows a `showToast` error, never silence (JS-5). The format:
 
 ```
 <Article title> — reliability score <net_score>

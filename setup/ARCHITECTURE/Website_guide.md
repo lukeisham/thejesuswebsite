@@ -129,6 +129,7 @@ reach GitHub or the VPS at all. `.gitignore` lists the `setup/` files that are t
 | `node-cluster-logic.md` | Timeline/map/arbor cluster placement, labels, edge routing |
 | `error-notification.md` | The 4-category error code system and the error toast |
 | `wikipedia-ranking-pipeline.md` | Vector-embedding scoring pipeline, import path, VPS sidecar |
+| `wikipedia-quality-grid.md` | Signal grid, score panel, tooltip and copy button on the Wikipedia list |
 
 ---
 

@@ -489,3 +489,24 @@ local-only.
 guides local-only.
 
 **Where it lives:** `.gitignore`; the note under "Keeping it true" in `setup/ARCHITECTURE/INDEX.md`.
+
+### D-021 — The reduced-motion override can use `!important`
+
+- **Type:** Permission
+- **Date:** 2026-10-17
+- **By:** Luke, in chat
+- **Applies to:** `frontend/assets/css/base/animations.css`
+- **Rule:** CSS-5
+- **Status:** Active
+
+**Decision:** The one global `@media (prefers-reduced-motion: reduce)` rule can use `!important` on
+`animation-duration` and `transition-duration`. No other rule gets this exception.
+
+**Why:** The override must win over every component-level duration, including ones with higher
+specificity and inline styles. Without `!important`, each new component could silently bring back
+motion for a reader who asked for none (WCAG 2.2 AA).
+
+**Rejected:** Raising the specificity of the override, and a reduced-motion rule in each component
+file. Both leave a gap for the next component that sets a duration.
+
+**Where it lives:** CSS-5 in `setup/Vibe_coding_rules.md`; `setup/STYLE_GUIDE/animation.md` §6.
