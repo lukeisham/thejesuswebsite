@@ -11,6 +11,17 @@ function securityHeaders(req, res, next) {
   // Individual middleware (e.g. requireAuth) may override this per-route.
   if (req.method === "GET" || req.method === "HEAD") {
     res.setHeader("Cache-Control", "public, max-age=60");
+
+    // A shared cache (Cloudflare) must not store an error for 60 seconds, or
+    // one visitor's 429 or 500 would be served to every visitor. 404 stays
+    // cacheable: bots that probe random slugs would otherwise reach Node each time.
+    const writeHead = res.writeHead;
+    res.writeHead = function (statusCode, ...args) {
+      if (statusCode >= 400 && statusCode !== 404) {
+        res.setHeader("Cache-Control", "no-store");
+      }
+      return writeHead.call(this, statusCode, ...args);
+    };
   } else {
     res.setHeader("Cache-Control", "no-store");
   }
