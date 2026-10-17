@@ -1,18 +1,14 @@
-// File-system operation wrappers.
-// Every fs call is wrapped so raw system errors (ENOENT, EACCES, ENOSPC)
-// are caught and mapped to Category 3 error codes instead of crashing the
-// request or leaking internal paths.
+// File-system wrappers that return `{ ok, ... }` outcomes instead of throwing.
+// Callers: routes/uploads.js and services/page-generator.js. A caller picks its
+// own E-* code or message instead of forwarding the code from here, which keeps
+// raw errno values and file paths out of client responses.
 //
-// The write helper uses a temp-file-then-rename strategy so partial writes
-// from a mid-write crash never leave corrupted files at the target path.
-//
-// JS-2: defensive — validate inputs, handle every errno, clean up temp files.
-// JS-3: focused functions, no unnecessary class abstractions.
+// safeWriteFile writes to a sibling temp file and renames it over the target,
+// so a crash mid-write never leaves a half-written file at the target path.
 
 const fs = require("fs");
 const path = require("path");
-const ERRORS = require("./error-codes");
-const { lookup, responseBody, httpStatus } = require("./error-codes");
+const { httpStatus, responseBody } = require("./error-codes");
 
 /**
  * Safely read a file synchronously.
@@ -35,13 +31,11 @@ function safeReadFile(filePath) {
 }
 
 /**
- * Safely write data to a file using a temp-file-then-atomic-rename pattern.
+ * Safely write data to a file with a temp-file-then-rename.
  *
- * Data is first written to a `.tmp-<timestamp>` sibling file. Only after the
- * write completes is the temp file renamed over the target — so a crash
- * between write and rename leaves a stale temp file instead of a corrupted
- * target. Stale temp files are cleaned up on the next successful write to
- * the same path.
+ * The temp file is a `.<name>.tmp-<timestamp>` sibling in the same directory,
+ * because rename is atomic only inside one file system. A crash between write
+ * and rename leaves that temp file behind. Nothing removes it later.
  *
  * @param {string} filePath — target file path
  * @param {string | Buffer} data — content to write
@@ -63,13 +57,10 @@ function safeWriteFile(filePath, data) {
     fs.renameSync(tmpPath, filePath);
     return { ok: true };
   } catch (err) {
-    // Best-effort cleanup: if rename failed after a successful write, the
-    // temp file is orphaned — remove it so it doesn't accumulate.
+    // A failed cleanup must not hide the original write error.
     try {
       if (fs.existsSync(tmpPath)) fs.unlinkSync(tmpPath);
-    } catch (_cleanupErr) {
-      // Swallow cleanup errors — the primary failure is what matters.
-    }
+    } catch (_cleanupErr) {}
 
     console.error(`Failed to write "${filePath}":`, err.message);
     return { ok: false, code: mapFsError(err) };
@@ -97,8 +88,7 @@ function safeMkdir(dirPath) {
 }
 
 /**
- * Build an Express error response from a failed IO guard outcome.
- * Convenience helper — routes can write a one-liner after a guard call.
+ * Send the standard error body for a failed guard outcome.
  *
  * @param {import("express").Response} res
  * @param {string} code
@@ -115,7 +105,8 @@ function sendIoError(res, code) {
 /**
  * Map a Node.js ErrnoException to a Category 3 persistence code.
  *
- * JS-2: guards against non-ErrnoException throwables (e.g. a bare string).
+ * Not every throwable has a `.code`, so a bare string falls through to the
+ * generic code (JS-2).
  *
  * @param {NodeJS.ErrnoException & { code?: string }} err
  * @returns {string} — a stable "E-PERSIST-XXX" code
@@ -125,19 +116,18 @@ function mapFsError(err) {
 
   switch (errno) {
     case "ENOENT":
-      return "E-PERSIST-012"; // file not found
+      return "E-PERSIST-012";
     case "EACCES":
     case "EPERM":
-      return "E-PERSIST-010"; // permission denied
     case "ENOSPC":
-      return "E-PERSIST-010"; // disk full
+      return "E-PERSIST-010"; // the same code covers "cannot write" for both causes
     case "EISDIR":
-      return "E-PERSIST-009"; // expected a file, got a directory
+      return "E-PERSIST-009";
     case "ENOTDIR":
     case "EEXIST":
-      return "E-PERSIST-011"; // directory issues
+      return "E-PERSIST-011";
     default:
-      return "E-PERSIST-009"; // generic read/write failure
+      return "E-PERSIST-009";
   }
 }
 

@@ -1,19 +1,14 @@
-// Startup environment validation.
-// Fails fast with a clear message listing every missing required variable
-// instead of letting the server boot and crash later with an obscure error
-// deep inside some module. Third-party keys (e.g. ESV_API_KEY) are consumed
-// server-side only — a missing one must stop the boot here, not surface
-// mid-request.
+// Throws one error that names every missing required variable, so a bad
+// deploy fails with a full list instead of at the first read deep in a module.
 //
-// JS-2: never fail silently — throw immediately so the process manager
-// (pm2 / systemd) can restart the process and the operator sees the problem.
+// Must run after config/load-env has filled process.env from .env, and before
+// any module that reads process.env at load time (JS-2).
+//
+// Nothing in api/ calls this. Startup checks are done by
+// validateProdEnv in config/load-env.js, called from server.js.
 
 /**
- * Validate that all required environment variables are set.
- * Throws if any are missing (JS-2: fail loudly at startup).
- *
- * Intended to be called from server.js before any module that reads
- * process.env at load time (after load-env has populated it from .env).
+ * Throw if any required environment variable is unset or empty.
  *
  * @param {string[]} requiredVars — names of environment variables that must be set
  * @returns {void}

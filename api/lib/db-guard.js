@@ -1,19 +1,17 @@
-// Database operation wrappers for better-sqlite3.
-// Catches raw SQLite errors before they reach route handlers and maps them to
-// structured error codes. The raw error is always logged to stderr so operators
-// can diagnose, but callers only see the stable error code.
+// Wrappers that turn better-sqlite3 exceptions into `{ ok, ... }` outcomes with
+// a stable E-PERSIST-* code. The raw error goes to stderr for operators; the
+// caller only sees the code. better-sqlite3 is synchronous, so these are too
+// (JS-5).
 //
-// JS-2: every db operation is wrapped — raw errors never propagate.
-// JS-5: better-sqlite3 is synchronous, so these helpers are synchronous too.
+// Only api/tests/db-guard.test.js calls these. Routes call the model
+// functions directly and handle errors with sendError() from error-handler.js.
 
-const { lookup, responseBody, httpStatus } = require("./error-codes");
-const ERRORS = require("./error-codes");
+const { responseBody, httpStatus } = require("./error-codes");
 
 /**
  * Execute a single database operation inside a safety net.
  *
- * Returns `{ ok: true, result }` on success. On failure logs the raw error,
- * maps it to a Category 3 code, and returns `{ ok: false, code }`.
+ * Returns `{ ok: true, result }`, or `{ ok: false, code }` with a Category 3 code.
  *
  * @template T
  * @param {import("better-sqlite3").Database} db — active database handle
@@ -31,10 +29,8 @@ function safeQuery(db, operation) {
 }
 
 /**
- * Wrap multiple operations in a transaction with automatic rollback on failure.
- *
- * Uses better-sqlite3's `db.transaction()` which rolls back if the callback
- * throws — no manual BEGIN/COMMIT/ROLLBACK needed.
+ * Run several operations in one transaction. `db.transaction()` rolls back
+ * when the callback throws, so there is no manual BEGIN/COMMIT/ROLLBACK.
  *
  * @template T
  * @param {import("better-sqlite3").Database} db
@@ -53,9 +49,7 @@ function safeTransaction(db, operations) {
 }
 
 /**
- * Build an Express error response from a failed safeQuery/safeTransaction outcome.
- * Convenience helper so routes can write a one-liner:
- *   if (!outcome.ok) return sendDbError(res, outcome.code);
+ * Send the standard error body for a failed safeQuery/safeTransaction outcome.
  *
  * @param {import("express").Response} res
  * @param {string} code
@@ -72,8 +66,8 @@ function sendDbError(res, code) {
 /**
  * Map a SQLite Error (or generic Error) to a Category 3 persistence code.
  *
- * JS-2: guard against malformed error objects — not every throwable has a
- * `.message` or `.code` property.
+ * Not every throwable has a `.message` or `.code`, so both are read defensively
+ * (JS-2).
  *
  * @param {Error & { code?: string, message?: string }} err
  * @returns {string} — a stable "E-PERSIST-XXX" code
@@ -82,7 +76,8 @@ function mapDbError(err) {
   const msg = String(err.message || "").toLowerCase();
   const sqliteCode = String(err.code || "").toUpperCase();
 
-  // better-sqlite3 sets err.code to the raw SQLite error code (e.g. SQLITE_CONSTRAINT_UNIQUE).
+  // better-sqlite3 puts the raw SQLite code in err.code. The specific
+  // constraint codes must be checked before the generic SQLITE_CONSTRAINT.
   if (sqliteCode.includes("SQLITE_CANTOPEN")) return "E-PERSIST-001";
   if (sqliteCode.includes("SQLITE_CONSTRAINT_UNIQUE")) return "E-PERSIST-007";
   if (sqliteCode.includes("SQLITE_CONSTRAINT_FOREIGNKEY"))
@@ -90,14 +85,14 @@ function mapDbError(err) {
   if (sqliteCode.includes("SQLITE_CONSTRAINT")) return "E-PERSIST-003";
   if (sqliteCode.includes("SQLITE_READONLY")) return "E-PERSIST-001";
   if (sqliteCode.includes("SQLITE_ERROR")) {
-    // SQLITE_ERROR is a catch-all — narrow it further by message content.
+    // SQLITE_ERROR covers many causes; only the message tells them apart.
     if (msg.includes("no such table") || msg.includes("no such column"))
       return "E-PERSIST-025";
     if (msg.includes("fts5") || msg.includes("syntax error"))
       return "E-PERSIST-023";
   }
 
-  // Fallback heuristics on the error message text.
+  // An error with no usable err.code is matched by message text instead.
   if (msg.includes("foreign key")) return "E-PERSIST-006";
   if (msg.includes("unique") || msg.includes("duplicate"))
     return "E-PERSIST-007";
@@ -108,7 +103,6 @@ function mapDbError(err) {
     return "E-PERSIST-023";
   if (msg.includes("database is locked")) return "E-PERSIST-001";
 
-  // Generic query failure — the most common fallback.
   return "E-PERSIST-002";
 }
 
