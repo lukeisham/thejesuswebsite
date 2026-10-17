@@ -56,7 +56,7 @@ Pipe tables (`| A | B |`) are available in any body content rendered through `re
 - Sections in order: Description, Timeline Context, Pictures, Sources
 - **Page info row**: a full-width row above the footer containing metadata panels — related evidence, identifiers, map location, timeline period, categories. Uses a multi-column horizontal layout on desktop, stacked on mobile. Background: `--bg-surface-alt`, top border: `1px solid var(--border)`, padding: `var(--space-xl) var(--space-lg)`.
 - Arbor diagram rendered inline within the content column where relevant
-- **Pictures**: both the dedicated Pictures-section figures (primary image + non-aligned `[figure]` shortcodes) and non-aligned inline `[figure]` shortcodes within the Description use the §8 standard figure box (`.figure-standard`), centred within the `1280px` content column. Aligned figures (`align="left"`/`"right"`) keep their side-float behaviour instead and never receive the standard box. This module is currently the only content type opted into the standard box (see §8) — essays, responses, historiography, blog and challenge bodies share the same `[figure]` parser but render at their default (unboxed) size.
+- **Pictures**: both the dedicated Pictures-section figures (primary image + non-aligned `[figure]` shortcodes) and non-aligned inline `[figure]` shortcodes within the Description use the §8 standard figure box (`.figure-standard`), centred within the `1280px` content column. Aligned figures (`align="left"`/`"right"`) keep their side-float behaviour instead and never receive the standard box. Only this module uses the standard box (see §8). Essays, responses, historiography, blog and challenge bodies share the same `[figure]` parser but render at their default (unboxed) size.
 
 **Contextual Essays (Journal Article Format)**:
 Essays render as professional peer-reviewed journal articles. Every essay page uses `<article>` as its root element (HTML-1) with `schema.org/ScholarlyArticle` markup for SEO and structured data (see §11).
@@ -132,7 +132,7 @@ Essays render as professional peer-reviewed journal articles. Every essay page u
   - Clustered events: dots stack vertically at small offsets (e.g., ±8px, ±16px from center) to avoid overlap
   - Each dot is clickable; cursor becomes pointer on hover
   - Tooltip on hover shows: event title, date range, location badge
-- **Era markers**: vertical dividing lines at major era boundaries (no attached label — labelling moved to Era Headings below)
+- **Era markers**: vertical dividing lines at major era boundaries, with no label (Era Headings below carry the labels)
 - **Era Headings**: each era's name renders as an `h3` anchored at the **top-left** of that era's spatial region (not centred above the spine). Scales with zoom (`--text-h4` base, clamped `--text-small`–`--text-h3`) and nudges away from event nodes on collision, without leaving its own era's span. On mobile (<768px, vertical mode) headings reposition to the **left of the vertical spine** instead of above it. See the **Timeline** entry in `components.md` §8 for the full collision/zoom model.
 - **Bottom detail panel** (optional, revealed on hover or click):
   - Appears below the timeline as a floating card

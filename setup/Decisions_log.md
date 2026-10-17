@@ -368,3 +368,84 @@ hints, the shared learned-words list, and the same result in every browser.
 
 **Where it lives:** `AdminFormBuilder` in `admin/assets/js/admin-form-builder.js`, and the
 `spellcheck` attribute on each prose field in `admin/`.
+
+### D-015 — Admin sessions are in memory only
+
+- **Type:** Decision
+- **Date:** by 2026-07-04 (moved here from `setup/ARCHITECTURE/Website_guide.md` under D-011)
+- **By:** Luke
+- **Applies to:** `api/middleware/auth.js`
+- **Rule:** SR-2
+- **Status:** Active
+
+**Decision:** Admin sessions live in an in-memory `Map` with a 12-hour TTL. Nothing is stored on
+disk, so an API restart logs the admin out.
+
+**Why:** The site has one admin. A logout after each deploy costs little, and the design needs no
+session table, no session library and no stored tokens.
+
+**Rejected:** A persisted session store. It becomes necessary only if the site adds public
+accounts.
+
+**Where it lives:** the session comment in `api/middleware/auth.js`; "Security & auth" in
+`setup/ARCHITECTURE/Website_guide.md`.
+
+### D-016 — Admin login is passkey only
+
+- **Type:** Decision
+- **Date:** by 2026-07-04 (moved here from `setup/ARCHITECTURE/Website_guide.md` under D-011)
+- **By:** Luke
+- **Applies to:** `api/middleware/auth.js`, `api/routes/` auth and passkey routes, `admin/auth/`
+- **Rule:** none
+- **Status:** Active
+
+**Decision:** The admin signs in only with a WebAuthn passkey. There is no password and no
+password reset.
+
+**Why:** With no password, there is no password to steal, guess or leak.
+
+**Rejected:** A password login, or a password as a fallback.
+
+**Where it lives:** "Security & auth" in `setup/ARCHITECTURE/Website_guide.md`.
+
+### D-017 — Frontend and admin stay two separate systems
+
+- **Type:** Decision
+- **Date:** by 2026-07-04 (moved here from `setup/ARCHITECTURE/Website_guide.md` under D-011)
+- **By:** Luke
+- **Applies to:** `frontend/assets/`, `admin/assets/`
+- **Rule:** SR-1
+- **Status:** Active
+
+**Decision:** The frontend and the admin keep separate stylesheets and separate API clients. The
+frontend client returns `{ data, error }` and never throws. The admin client throws, and it sends
+the user to the login page on a 401. Neither side imports CSS from the other. When the two must
+look the same, each side writes the same spec in its own tokens.
+
+**Why:** The public site is tuned for reading, and the admin is tuned for dense data entry. A
+shared stylesheet would make a change on one side break the other.
+
+**Rejected:** One shared design system, and one shared API client.
+
+**Where it lives:** the `admin/` table and "Refactoring rules" in
+`setup/ARCHITECTURE/Website_guide.md`; D-009 for the `window.Admin` namespace.
+
+### D-018 — Wikipedia scoring never runs on the VPS
+
+- **Type:** Decision
+- **Date:** by 2026-07-16 (moved here from `setup/ARCHITECTURE/wikipedia-ranking-pipeline.md` under D-011)
+- **By:** Luke
+- **Applies to:** `deploy.sh`, `setup/SKILLS/!TheJesusWebsite-Wikipedia/`, `api/scripts/import-wikipedia-scoring.js`
+- **Rule:** none
+- **Status:** Active
+
+**Decision:** Wikipedia scoring runs only on the developer machine. The VPS imports the finished
+`database/scoring-export.json` at deploy time. `deploy.sh` stays Node-only, with no Python, pip
+or venv step.
+
+**Why:** A Python step in the deploy path needs a Python runtime on every VPS. A new VPS without
+it would fail with no clear error.
+
+**Rejected:** Scoring at deploy time on the VPS.
+
+**Where it lives:** "Invariants" in `setup/ARCHITECTURE/wikipedia-ranking-pipeline.md`.

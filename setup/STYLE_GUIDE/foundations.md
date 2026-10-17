@@ -53,8 +53,6 @@ _Part of the [Style Guide](INDEX.md) — §1–5, §7: color palette, typography
 `--admin-text-primary: #2C3340`
 `--admin-text-secondary: #5A6472`
 
-**Dark Mode (optional future)**: Invert palette with dark parchment tones.
-
 ---
 
 ## 2. Typography
