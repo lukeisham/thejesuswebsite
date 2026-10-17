@@ -1,7 +1,8 @@
 /* ==========================================================================
    Home Page
    Hero, site title / tagline, stacked content sections.
-   No footer. Sidebar closed by default.
+   No footer. The sidebar follows the site default (sidebar_hamburger.js):
+   open from 768px, closed below.
    ========================================================================== */
 
 /* -------------------------------------------------------------------------
