@@ -510,3 +510,26 @@ motion for a reader who asked for none (WCAG 2.2 AA).
 file. Both leave a gap for the next component that sets a duration.
 
 **Where it lives:** CSS-5 in `setup/Vibe_coding_rules.md`; `setup/STYLE_GUIDE/animation.md` §6.
+
+### D-022 — Guide tests guard the text rules of the architecture guides
+
+- **Type:** Decision
+- **Date:** 2026-10-17
+- **By:** Luke, in chat
+- **Applies to:** `api/tests/guide-*.test.js`, `setup/ARCHITECTURE/`
+- **Rule:** TEST-10 (with exceptions to TEST-2 and TEST-3)
+- **Status:** Active
+
+**Decision:** A guide rule that a text search can check gets a guide test. The test reads source
+files as text and fails, with the guide path in its message, when code breaks the rule. The
+rollout is gradual: a guide test is added only when a task adds or edits that guide row. The
+pilot is `api/tests/guide-error-notification.test.js`.
+
+**Why:** The path checker confirms only that the files a guide names exist. Nothing caught a
+guide and the code drifting apart. The pilot found a real gap on its first run: `news-detail.js`
+does not handle the not-found code that the guide requires of detail pages.
+
+**Rejected:** Prose-only guides. A full backfill of tests for every guide at once. Naming guide
+tests after a module, which hides which guide a failure belongs to.
+
+**Where it lives:** TEST-10, TEST-2 and TEST-3 in `setup/Vibe_coding_rules.md`.
