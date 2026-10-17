@@ -4,14 +4,14 @@ Route errors carry a stable machine-readable code. A failure is diagnosable from
 its code alone, and the frontend branches on the code instead of on message text.
 
 **Source of truth:** `api/lib/error-codes.js` — wins any disagreement with this doc.
-**Spans:** `api/lib/error-codes.js`, `api/lib/error-handler.js`, `api/server.js`, `api/routes/essays.js` (one of the slug routes that return it), `frontend/assets/js/api.js`, `frontend/assets/js/utils/toasts.js`, `frontend/assets/js/evidence-detail.js`, `frontend/assets/js/essay-detail.js`, `frontend/assets/js/blog-detail.js`, `frontend/assets/js/response-detail.js`, `frontend/assets/js/historiography-detail.js`, `frontend/assets/js/challenge-detail.js`, `mcp-server/server.js`.
+**Spans:** `api/lib/error-codes.js`, `api/lib/error-handler.js`, `api/server.js`, `api/routes/essays.js` (one of the slug routes that return it), `frontend/assets/js/api.js`, `frontend/assets/js/utils/toasts.js`, `frontend/assets/js/evidence-detail.js`, `frontend/assets/js/essay-detail.js`, `frontend/assets/js/blog-detail.js`, `frontend/assets/js/response-detail.js`, `frontend/assets/js/historiography-detail.js`, `frontend/assets/js/challenge-detail.js`, `frontend/assets/js/news-detail.js`, `mcp-server/server.js`.
 
 ## Invariants
 
 | Must hold | Why | Breaks silently if violated |
 |---|---|---|
 | Content and admin routes send errors through `sendError()` or `sendValidationError()` with a definition from `error-codes.js` | `sendError()` is the only place that strips `detail` in production, and it gives every error one code | A raw `res.status(500).json({ error: err.message })` shows internals to visitors and has no code to grep |
-| The six detail-page scripts compare `error.code === "E-PERSIST-004"` (`SQL_RECORD_NOT_FOUND`) to show the "not found" state | A missing slug must return that code from the route | If a route returns another code for a missing slug, the page shows a load-failure toast instead of "not found" |
+| The seven detail-page scripts compare `error.code === "E-PERSIST-004"` (`SQL_RECORD_NOT_FOUND`) to show the "not found" state | A missing slug must return that code from the route | If a route returns another code for a missing slug, the page shows a load-failure toast instead of "not found" |
 | Every consumer of an error body accepts two shapes: `{ error: "text" }` and `{ error: { code, message } }` | `sendError()` sends the object. The deploy routes, the dev-login route and the 404 fallthrough in `server.js` send text | A consumer that handles one shape shows a blank or wrong message for the other. No error appears |
 
 Rows 1 and 2 are enforced by `api/tests/guide-error-notification.test.js` (TEST-10). Row 3 is not.
