@@ -399,6 +399,7 @@
     const titleInput = document.createElement("input");
     titleInput.type = "text";
     titleInput.className = "admin-input res-title";
+    titleInput.spellcheck = true;
     titleInput.value = r.resource_title || "";
     titleInput.placeholder = isSubheading ? "Subheading" : "Title";
     titleInput.setAttribute("aria-label", isSubheading ? "Subheading text" : "Resource title");
@@ -410,6 +411,7 @@
       urlInput = document.createElement("input");
       urlInput.type = "url";
       urlInput.className = "admin-input res-url";
+      urlInput.spellcheck = false;
       urlInput.value = r.resource_url || "";
       urlInput.placeholder = "URL (optional)";
       urlInput.setAttribute("aria-label", "Resource URL");
@@ -418,6 +420,7 @@
       descInput = document.createElement("input");
       descInput.type = "text";
       descInput.className = "admin-input res-desc";
+      descInput.spellcheck = true;
       descInput.value = r.resource_description || "";
       descInput.placeholder = "Description (optional)";
       descInput.setAttribute("aria-label", "Resource description");

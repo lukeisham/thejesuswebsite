@@ -164,7 +164,6 @@
                 function render() {
                     main.innerHTML = "";
 
-                    // Header: list key selector + add button
                     var header = document.createElement("div");
                     header.className = "admin-resources-header";
 
@@ -210,7 +209,6 @@
                         return;
                     }
 
-                    // Status bar
                     var statusBar = document.createElement("div");
                     statusBar.className = "admin-save-bar";
                     statusBar.style.marginBottom = "var(--space-md)";
@@ -231,7 +229,6 @@
                     statusBar.appendChild(statusEl);
                     main.appendChild(statusBar);
 
-                    // Rankable container
                     var listContainer = document.createElement("div");
                     listContainer.id = "resource-list";
                     listContainer.setAttribute("role", "list");
@@ -256,20 +253,17 @@
 
                     main.appendChild(listContainer);
 
-                    // Bind ranking
                     AdminRanking.init("#resource-list", {
                         itemSelector: ".draggable-row",
                         handleSelector: ".drag-handle",
                         save: async function (orders) {
                             isDirty = true;
-                            // Update sort_order on each resource
                             for (var i = 0; i < orders.length; i++) {
                                 var res = resources.find(function (r) {
                                     return r.id === orders[i].id;
                                 });
                                 if (res) res.sort_order = orders[i].sort_order;
                             }
-                            // Re-sort resources array to match DOM order
                             resources.sort(function (a, b) {
                                 var aIdx = orders.findIndex(function (o) {
                                     return o.id === a.id;
@@ -333,21 +327,18 @@
                             if (!row) return;
                             var id = row.dataset.id;
 
-                            // Find the resource
                             var res = resources.find(function (r) {
                                 return String(r.id) === id;
                             });
                             if (!res) return;
 
                             if (res._isNew) {
-                                // Just remove from array and DOM
                                 resources = resources.filter(function (r) {
                                     return r.id !== id;
                                 });
                                 row.remove();
                                 isDirty = true;
                             } else {
-                                // Confirm deletion via API
                                 if (
                                     !confirm(
                                         'Delete resource "' +
@@ -385,7 +376,6 @@
                         var successCount = 0;
                         var failCount = 0;
 
-                        // Read current values from DOM for each row
                         var rows = document.querySelectorAll(".draggable-row");
                         rows.forEach(function (row, idx) {
                             var id = row.dataset.id;
@@ -394,7 +384,6 @@
                             });
                             if (!res) return;
 
-                            // Read from inputs
                             var titleInput = row.querySelector(".res-title");
                             var urlInput = row.querySelector(".res-url");
                             var descInput = row.querySelector(".res-desc");
@@ -409,7 +398,6 @@
                             res.sort_order = idx;
                         });
 
-                        // Persist each resource
                         var tempIdMap = {};
                         for (var i = 0; i < resources.length; i++) {
                             var r = resources[i];
@@ -481,7 +469,6 @@
                     row.dataset.id = r.id;
                     row.setAttribute("role", "listitem");
 
-                    // Drag handle
                     var handle = document.createElement("button");
                     handle.type = "button";
                     handle.className = "drag-handle";
@@ -490,13 +477,13 @@
                     handle.textContent = "⠿";
                     row.appendChild(handle);
 
-                    // Fields
                     var fields = document.createElement("div");
                     fields.className = "resource-fields";
 
                     var titleInput = document.createElement("input");
                     titleInput.type = "text";
                     titleInput.className = "admin-input res-title";
+                    titleInput.spellcheck = true;
                     titleInput.value = r.resource_title || "";
                     titleInput.placeholder = "Title";
                     titleInput.setAttribute("aria-label", "Resource title");
@@ -505,6 +492,7 @@
                     var urlInput = document.createElement("input");
                     urlInput.type = "url";
                     urlInput.className = "admin-input res-url";
+                    urlInput.spellcheck = false;
                     urlInput.value = r.resource_url || "";
                     urlInput.placeholder = "URL (optional)";
                     urlInput.setAttribute("aria-label", "Resource URL");
@@ -513,6 +501,7 @@
                     var descInput = document.createElement("input");
                     descInput.type = "text";
                     descInput.className = "admin-input res-desc";
+                    descInput.spellcheck = true;
                     descInput.value = r.resource_description || "";
                     descInput.placeholder = "Description (optional)";
                     descInput.setAttribute(
@@ -523,7 +512,6 @@
 
                     row.appendChild(fields);
 
-                    // Actions
                     var actions = document.createElement("div");
                     actions.className = "resource-actions";
 
@@ -537,7 +525,6 @@
 
                     row.appendChild(actions);
 
-                    // Mark dirty on input change
                     [titleInput, urlInput, descInput].forEach(function (inp) {
                         inp.addEventListener("input", function () {
                             isDirty = true;

@@ -1,6 +1,6 @@
-// Admin news modal — structure test for the migration onto the shared modal
-// component (issue #222). No DOM library is available, so this test reads the
-// page source and the CSS files and checks them as text.
+// Admin news modal — structure test for the shared modal component. No DOM
+// library is available, so this test reads the page source and the CSS files
+// and checks them as text.
 // Run with: node --test admin/tests/news-modal.test.js
 
 const { test } = require("node:test");
@@ -41,4 +41,10 @@ test("modals.css holds the form-group and checkbox-group rules", () => {
 test("the modal has two dismiss paths: Cancel button and backdrop click", () => {
   assert.match(html, /cancelBtn\.addEventListener\('click', function \(\) \{ modalOverlay\.style\.display = 'none'; \}\)/);
   assert.match(html, /modalOverlay\.addEventListener\('click', function \(e\) \{\s*if \(e\.target === modalOverlay\) modalOverlay\.style\.display = 'none';/);
+});
+
+test("only the title field of the modal has spellcheck on", () => {
+  assert.match(html, /input\.spellcheck = spellcheck === true;/);
+  assert.match(html, /field\('Title', 'modal-title', 'text', [^\n]*, true\)\);/);
+  assert.doesNotMatch(html, /field\('Slug', 'modal-slug'[^\n]*, true\)\);/);
 });

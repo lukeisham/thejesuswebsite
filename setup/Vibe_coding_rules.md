@@ -154,7 +154,7 @@ the signature of an API.
 Only combine functions in the same file if they form a single linear sequence **or** are tightly related by type/purpose.
 
 **SR-2** — Dependencies Are Case-by-Case, Never Default
-Write it yourself unless the case is already approved. Approved: visual/display libraries; client-side spell/grammar checkers (`nspell`, `typo.js`, `retext`) inside `admin/` only, never shipped to `frontend/`. Anything else needs explicit sign-off before it enters the repo — and never for something the stdlib or a short module already does.
+Write it yourself unless the case is already approved. Approved: visual/display libraries. Anything else needs explicit sign-off before it enters the repo — and never for something the stdlib or a short module already does.
 
 **SR-3** — Performance First
 Loading speed is non-negotiable. Ship no blocking script, no unused CSS, no unbounded query. If a change adds bytes to `frontend/`, it must justify them.
@@ -186,7 +186,7 @@ Browser JavaScript targets current Safari and Chrome. `api/`, tests and tools ta
 installed Node (26).
 
 **JS-2** — Robust & Predictable > Clever
-Validate inputs, handle errors explicitly, prefer early returns. Never fail silently: a guard against a "shouldn't happen" state must `console.warn` with enough context to locate the call site. Only genuinely optional absences may return quietly (the spellcheck `invalidateRange()` no-op hid a real bug this way).
+Validate inputs, handle errors explicitly, prefer early returns. Never fail silently: a guard against a "shouldn't happen" state must `console.warn` with enough context to locate the call site. Only genuinely optional absences may return quietly.
 
 **JS-3** — Modern & Simple > Over-engineered
 Use current JS features. Keep functions small and focused. Avoid unnecessary classes, abstractions, or layers.

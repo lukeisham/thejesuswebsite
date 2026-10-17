@@ -5,7 +5,6 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>New Response — Admin</title>
         <link rel="stylesheet" href="../assets/css/admin.css" />
-        <link rel="stylesheet" href="../assets/css/admin-components/spellcheck.css" />
         <link rel="stylesheet" href="/assets/css/components/toasts.css" />
         <link rel="stylesheet" href="../assets/css/admin-components/toasts.css" />
         <link rel="stylesheet" href="../assets/css/admin-components/admin-editor-new-forms.css" />
@@ -16,10 +15,6 @@
         <script defer src="../assets/js/admin-figure-captions.js"></script>
         <script defer src="../assets/js/admin-insert-image.js"></script>
         <script defer src="../assets/js/admin-mla-sources.js"></script>
-        <script defer src="../assets/js/admin-spellcheck/spellcheck-overlay-render.js"></script>
-        <script defer src="../assets/js/admin-spellcheck/spellcheck-dictionary-client.js"></script>
-        <script defer src="../assets/js/admin-spellcheck/spellcheck-context-menu.js"></script>
-        <script defer src="../assets/js/admin-spellcheck/spellcheck-controller.js"></script>
         <script type="module" src="../assets/js/admin-toasts.js"></script>
     </head>
     <body>
@@ -154,6 +149,7 @@
                                 <input
                                     class="admin-input"
                                     id="response-title"
+                                    spellcheck="true"
                                     name="response_title"
                                     type="text"
                                     required
@@ -185,6 +181,7 @@
                                 <input
                                     class="admin-input"
                                     id="response-slug"
+                                    spellcheck="false"
                                     name="slug"
                                     type="text"
                                     required
@@ -215,6 +212,7 @@
                                 <textarea
                                     class="admin-textarea"
                                     id="response-content"
+                                    spellcheck="true"
                                     name="response_content"
                                     rows="20"
                                     aria-describedby="content-hint"
@@ -272,6 +270,7 @@
                                 <input
                                     class="admin-input"
                                     id="response-keywords"
+                                    spellcheck="false"
                                     name="metadata_keywords"
                                     type="text"
                                     aria-describedby="kw-hint"
@@ -291,6 +290,7 @@
                                 <input
                                     class="admin-input"
                                     id="response-evidence"
+                                    spellcheck="false"
                                     name="evidence_ids"
                                     type="text"
                                     aria-describedby="ev-hint"
@@ -381,9 +381,6 @@
                 var ok = await AdminAuth.requireSession();
                 if (!ok) return;
 
-                // Wire Insert Image widget — this page's #insert-image-btn
-                // markup existed with no wiring behind it until now, so
-                // authors could not add an image before first save.
                 if (typeof AdminInsertImage !== "undefined") {
                     AdminInsertImage.wire(
                         "#insert-image-btn",
@@ -400,7 +397,6 @@
                     );
                 }
 
-                // Populate the challenge picker from both kinds
                 var challengeSelect =
                     document.getElementById("response-challenge");
                 try {
@@ -425,10 +421,6 @@
                 var formError = document.getElementById("form-error");
                 var submitStatus = document.getElementById("submit-status");
 
-                // Spellcheck: init the system and attach to the content textarea
-                await SpellcheckController.init();
-                SpellcheckController.attach(contentInput);
-
                 var titleError = document.getElementById("response-title-error");
                 var slugError = document.getElementById("slug-error");
 
@@ -447,7 +439,6 @@
                     slugAuto = false;
                 });
 
-                // MLA Bibliography panel (new record starts with no sources)
                 var mlaSourcesPanel = AdminMlaSources.mount(
                     document.getElementById("mla-sources-mount"),
                     { initialSourceIds: [] },

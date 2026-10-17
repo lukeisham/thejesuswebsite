@@ -3,7 +3,7 @@
 **Module(s):** <Frontend / Admin / API / Database / MCP Server / Shared>
 **Date:** <YYYY-MM-DD>
 **Status:** Drafting
-**Live site:** https://thejesuswebsite.org <!-- Canonical production origin. NOT thejesuswebsite.com — that is an unrelated, dead domain (see setup/ISSUES/Issues_30_to_110.md #78). Use this exact origin in every live-testing task URL. -->
+**Live site:** https://thejesuswebsite.org <!-- Canonical production origin. NOT thejesuswebsite.com — that is an unrelated, dead domain. Use this exact origin in every live-testing task URL. -->
 
 ## Goal
 One or two sentences describing what this plan delivers and why.
@@ -64,25 +64,25 @@ Tier 3 supersedes Tier 2 *for the same page*, but a plan touching both public an
 1. **Run against the local dev server, not production.** `preview_start {name: "frontend"}` (port 4179; `admin` and `api` configs also exist in `.claude/launch.json`). Note the returned `tabId` and pass it explicitly to every subsequent `navigate` / `read_page` / `javascript_tool` / `read_console_messages` call. Never call `navigate` before a successful `preview_start`.
 2. **The local database is empty** (see `CLAUDE.local.md`) — local pages render without real content. If your check depends on real records, it is a Tier 3 check, not Tier 2.
 3. **Verify via DOM, not screenshots.** Prove the change with `read_page` or a `javascript_tool` query (`document.querySelector(...)?.textContent`, `getBoundingClientRect()`, computed styles) plus `read_console_messages`. Screenshots are optional supporting evidence — they can render blank after a JS-driven scroll and must never be the sole proof.
-4. **Never use this tool family on `/admin/` or any logged-in page** — it cannot authenticate. That is Tier 3. (— `setup/ISSUES/Issues_30_to_110.md` #99)
+4. **Never use this tool family on `/admin/` or any logged-in page** — it cannot authenticate. That is Tier 3.
 5. If `preview_start` times out, fix the server/URL and call `preview_start` again fresh — don't salvage a half-initialized pane with `navigate`.
-6. **Front the tab before asserting on rendered DOM.** Diagram/canvas pages (timeline, arbor, maps) build their DOM inside `batchWrite()` (`frontend/assets/js/utils/dom.js`), which schedules the write via `requestAnimationFrame` — browsers throttle rAF to near-zero in a backgrounded or hidden tab, so the page can sit in its pre-render state indefinitely even though nothing is wrong. Confirm the tab is actually visible (`tabs_select`, or check `document.visibilityState !== "hidden"` via `javascript_tool`) before treating "nothing rendered yet" as a bug — otherwise a correctly-working page reads as a stalled `init()`. (— `setup/ISSUES/Issues_111_to_200.md` #184, the root cause behind #182 being misdiagnosed as a live outage)
+6. **Front the tab before asserting on rendered DOM.** Diagram/canvas pages (timeline, arbor, maps) build their DOM inside `batchWrite()` (`frontend/assets/js/utils/dom.js`), which schedules the write via `requestAnimationFrame` — browsers throttle rAF to near-zero in a backgrounded or hidden tab, so the page can sit in its pre-render state indefinitely even though nothing is wrong. Confirm the tab is actually visible (`tabs_select`, or check `document.visibilityState !== "hidden"` via `javascript_tool`) before treating "nothing rendered yet" as a bug — otherwise a correctly-working page reads as a stalled `init()`.
 
 ### Tier 3 playbook — live check in real Chrome
 
 <!-- Keep verbatim in plans with a Tier 3 task; delete otherwise. -->
 
-1. **Use the origin from the header's `Live site:` field** (`https://thejesuswebsite.org`) — never `.com`, never a URL copied unverified from a bug report. (— `setup/ISSUES/Issues_30_to_110.md` #78)
+1. **Use the origin from the header's `Live site:` field** (`https://thejesuswebsite.org`) — never `.com`, never a URL copied unverified from a bug report.
 2. **Curl before browser.** `curl -s -o /dev/null -w "%{http_code}" --max-time 10 https://thejesuswebsite.org/<page>` must return `200` or an expected redirect. A dead URL hangs the browser for minutes — diagnose DNS/deploy first.
 3. **Curl-first triage.** Prove what curl can prove before opening a browser: response headers (`cf-cache-status`, `last-modified`, `cache-control`), JSON endpoints (`/api/...`, `/assets/data/*.json`), and asset freshness (fetch the deployed JS/CSS and `diff` against local). The browser is only needed for client-side rendering and console/network errors.
 4. **Cloudflare staleness:** a check within ~60s of deploy can hit a stale edge cache. Wait ~30–60s and re-check `cf-cache-status` before concluding the deploy failed.
-5. **Use `mcp__claude-in-chrome__*` — the user's real Chrome. Not the Browser pane.** WebAuthn platform authenticators are bound to the browser app they were registered in, so only real Chrome can present Touch ID; the sandboxed pane has no access to that credential and no way to sign in. The agent also cannot reuse a tab the user already has open — `claude-in-chrome` sees only its own tab-group, and `sameSite:strict` blocks inherited sessions. (This is extension isolation, **not** a cookie-domain bug — verified 2026-07-20; do not re-diagnose or log it. — `setup/ISSUES/Issues_30_to_110.md` #33/#76/#99)
+5. **Use `mcp__claude-in-chrome__*` — the user's real Chrome. Not the Browser pane.** WebAuthn platform authenticators are bound to the browser app they were registered in, so only real Chrome can present Touch ID; the sandboxed pane has no access to that credential and no way to sign in. The agent also cannot reuse a tab the user already has open — `claude-in-chrome` sees only its own tab-group, and `sameSite:strict` blocks inherited sessions. (This is extension isolation, **not** a cookie-domain bug — do not re-diagnose or log it.)
 6. **The flow — agent opens the tab, user signs in once, agent drives it:**
    1. **Pause and tell the user** you're opening a tab in their real Chrome for them to authenticate. Never proceed silently.
    2. `tabs_context_mcp {createIfEmpty: true}`, then `navigate` to the target page (admin pages redirect to `/admin/auth/login.html`; a pre-redirect flash of admin UI is **not** proof of a session).
    3. **Ask the user to sign in with their passkey in that tab and reply when they're in.** Wait.
    4. Re-navigate to the target page and verify via `javascript_tool` / `read_page` DOM queries + `read_console_messages`.
-   5. **Clean up:** clear anything typed into a form, never click Save, and avoid actions that mutate persistent state (e.g. spellcheck Ignore/Learn). Leave no test records in production.
+   5. **Clean up:** clear anything typed into a form, never click Save, and avoid actions that mutate persistent state (e.g. publishing a draft or deleting a record). Leave no test records in production.
 7. **If the user is unavailable or declines:** run the non-interactive checks anyway (curl, asset diffs, test suite), then leave the Tier 3 box **unchecked and annotated** with what was and wasn't verified. The plan stays in `PLANS/New/`. Do **not** log a row in `setup/ISSUES/issues.md` — the passkey constraint is a known environment fact, not a defect.
 
 ## Files touched

@@ -41,6 +41,7 @@ function makeDocument() {
       disabled: false,
       textContent: "",
       placeholder: "",
+      spellcheck: undefined,
       src: "",
       attrs: {},
       children: [],
@@ -132,6 +133,25 @@ function findCaptionInput(root) {
     return c.tag === "input";
   });
 }
+
+// ── Spellcheck ─────────────────────────────────────────────────────────────
+
+describe("AdminImagePicker: spellcheck", () => {
+  test("alt-text and caption inputs have spellcheck on", () => {
+    var { AdminImagePicker, document } = makeSandbox();
+    var container = makeContainer(document);
+    AdminImagePicker.mount(container, { captionField: true });
+    var root = container.children[0];
+    var groups = root.children.filter(function (c) {
+      return c.className === "admin-form-group";
+    });
+    var altInput = groups[0].children.find(function (c) {
+      return c.tag === "input";
+    });
+    assert.equal(altInput.spellcheck, true);
+    assert.equal(findCaptionInput(root).spellcheck, true);
+  });
+});
 
 // ── Default (thumbnail) shape — captionField absent ────────────────────────
 

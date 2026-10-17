@@ -22,7 +22,7 @@ var FIELD_GROUPS = [
     label: "Book (ISBN)",
     fields: [
       { name: "isbn", label: "ISBN" },
-      { name: "isbn_book_title", label: "Book title" },
+      { name: "isbn_book_title", label: "Book title", spellcheck: true },
       { name: "isbn_book_author", label: "Book author" },
     ],
   },
@@ -55,7 +55,7 @@ var FIELD_GROUPS = [
     key: "source",
     label: "Source",
     fields: [
-      { name: "source_title", label: "Source title" },
+      { name: "source_title", label: "Source title", spellcheck: true },
       { name: "source_author", label: "Source author" },
       { name: "source_date", label: "Source date" },
       { name: "source_location", label: "Source location" },
@@ -74,7 +74,7 @@ var FIELD_GROUPS = [
     label: "Manuscript",
     fields: [
       { name: "manuscript_number", label: "Manuscript number" },
-      { name: "manuscript_title", label: "Manuscript title" },
+      { name: "manuscript_title", label: "Manuscript title", spellcheck: true },
       { name: "manuscript_location", label: "Manuscript location" },
     ],
   },
@@ -142,6 +142,7 @@ function buildFormGroup(field) {
   var input = document.createElement("input");
   input.className = "admin-input";
   input.type = "text";
+  input.spellcheck = field.spellcheck === true;
   input.id = fieldInputId(field.name);
   input.name = field.name;
   wrap.appendChild(input);

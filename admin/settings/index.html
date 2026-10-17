@@ -123,7 +123,6 @@
             document.addEventListener("DOMContentLoaded", async function () {
                 const main = document.getElementById("settings-content");
 
-                // Guard
                 const ok = await AdminAuth.requireSession();
                 if (!ok) {
                     main.innerHTML =
@@ -132,17 +131,14 @@
                 }
 
                 try {
-                    // Load current settings
                     var settings = (await Admin.api.get("/site-settings")) || {};
 
                     main.innerHTML = "";
 
-                    // Build the settings form
                     const form = document.createElement("form");
                     form.className = "settings-form";
                     form.addEventListener("submit", saveSettings);
 
-                    // Site Title
                     form.appendChild(
                         buildFormGroup(
                             "Site Title",
@@ -195,7 +191,6 @@
                     });
                     form.appendChild(ogGroup);
 
-                    // Save button
                     var btnGroup = document.createElement("div");
                     btnGroup.className = "admin-form-group";
                     btnGroup.style.marginTop = "var(--space-lg)";
@@ -209,7 +204,6 @@
 
                     form.appendChild(btnGroup);
 
-                    // Message area
                     var msg = document.createElement("div");
                     msg.id = "settings-message";
                     msg.className = "settings-message";
@@ -244,10 +238,12 @@
                         }, 50);
                     }
                 } catch (err) {
-                    main.innerHTML =
-                        '<div class="admin-error" role="alert">' +
-                        err.message +
-                        "</div>";
+                    var loadError = document.createElement("div");
+                    loadError.className = "admin-error";
+                    loadError.setAttribute("role", "alert");
+                    loadError.textContent = err.message;
+                    main.textContent = "";
+                    main.appendChild(loadError);
                 }
 
                 /* ── Helpers ─────────────────────────────────────────────────────── */
@@ -268,10 +264,12 @@
                         el = document.createElement("textarea");
                         el.className = "admin-textarea";
                         el.rows = 4;
+                        el.spellcheck = true;
                     } else {
                         el = document.createElement("input");
                         el.className = "admin-input";
                         el.type = "text";
+                        el.spellcheck = id === "siteTitle";
                     }
                     el.id = "field-" + id;
                     el.name = id;

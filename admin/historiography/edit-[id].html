@@ -5,7 +5,6 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Edit Historiography Article — Admin</title>
         <link rel="stylesheet" href="../assets/css/admin.css" />
-        <link rel="stylesheet" href="../assets/css/admin-components/spellcheck.css" />
         <link rel="stylesheet" href="/assets/css/components/toasts.css" />
         <link rel="stylesheet" href="../assets/css/admin-components/toasts.css" />
         <link rel="stylesheet" href="../assets/css/admin-components/admin-editor-shared-forms.css" />
@@ -21,10 +20,6 @@
         <script defer src="../assets/js/admin-insert-image.js"></script>
         <script defer src="../assets/js/admin-mla-sources.js"></script>
         <script defer src="../assets/js/admin-shortcode-help.js"></script>
-        <script defer src="../assets/js/admin-spellcheck/spellcheck-overlay-render.js"></script>
-        <script defer src="../assets/js/admin-spellcheck/spellcheck-dictionary-client.js"></script>
-        <script defer src="../assets/js/admin-spellcheck/spellcheck-context-menu.js"></script>
-        <script defer src="../assets/js/admin-spellcheck/spellcheck-controller.js"></script>
         <script type="module" src="../assets/js/admin-toasts.js"></script>
     </head>
     <body>
@@ -71,7 +66,6 @@
                         form.setAttribute("novalidate", "");
                         main.appendChild(form);
 
-                        // Left column
                         var mainCol = document.createElement("div");
                         mainCol.className = "admin-form-grid__main";
                         form.appendChild(mainCol);
@@ -87,6 +81,7 @@
 
                         AdminFormBuilder.addField(contentCard, {
                             id: "historiography-title",
+                            spellcheck: true,
                             label: "Title",
                             required: true,
                             placeholder: "e.g. The Historical Jesus",
@@ -138,7 +133,6 @@
                             value: data.essay_content || "",
                         });
 
-                        // Right column
                         var sidebar = document.createElement("div");
                         sidebar.className = "admin-form-grid__sidebar";
                         form.appendChild(sidebar);
@@ -218,7 +212,6 @@
                                     : "",
                         });
 
-                        // Two-Column Layout checkbox
                         var twoColWrap = document.createElement("div");
                         twoColWrap.className = "admin-checkbox-group";
                         twoColWrap.style.marginTop = "var(--space-md)";
@@ -256,25 +249,18 @@
                             value: data.author_bio || "",
                         });
 
-                        // Bibliography card
                         var mlaSourcesPanel = AdminEditorUtils.mountMlaPanel(
                             sidebar,
                             data.mla_sources,
                         );
 
-                        // Formatting reference panel
                         AdminShortcodeHelp.mountFormattingReference(sidebar);
 
-                        // Actions
                         var actions = document.createElement("div");
                         actions.className = "admin-form-actions";
                         main.appendChild(actions);
 
-                        // Insert Image button
                         AdminEditorUtils.wireInsertImageButton(
-                            "historiography-content",
-                        );
-                        var contentField = document.getElementById(
                             "historiography-content",
                         );
 
@@ -284,10 +270,6 @@
                             sidebar,
                             "historiography-content",
                         );
-
-                        // Spellcheck: init the system and attach to the content textarea
-                        await SpellcheckController.init();
-                        SpellcheckController.attach(contentField);
 
                         var saveBtn = document.createElement("button");
                         saveBtn.type = "button";
@@ -317,7 +299,6 @@
                             "margin-top:var(--space-md);text-align:center;";
                         main.appendChild(submitStatus);
 
-                        // Delete section
                         var deleteSection = document.createElement("div");
                         deleteSection.className = "admin-delete-section";
                         var deleteBtn = document.createElement("button");

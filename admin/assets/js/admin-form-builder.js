@@ -1,8 +1,7 @@
-// Shared field-rendering helpers, generalized from the hand-rolled
-// formGroup()-style DOM construction repeated across all five record
-// editors' form-rendering sections. Callback-based per-type config only —
-// no JSON-driven generic assembly (that's Phase 3, explicitly out of scope).
-// Built via DOM factories (JS-6), never innerHTML with server data.
+// Field-rendering helpers for the record edit pages. Each field is built by hand
+// from a per-field options object. The builder has no generic assembly from a
+// schema, because each editor needs its own field order and callbacks.
+// Labels come from the calling page, never from server data (JS-6).
 //
 // Used by: admin/{evidence,essays,blog,debate,historiography}/edit-[id].html
 
@@ -48,11 +47,12 @@ function appendHintAndError(div, opts) {
 }
 
 /**
- * Append a labeled text/url/date/number input field.
+ * Append a labeled text/url/date/number input field. The browser checks the
+ * spelling only when `spellcheck` is true.
  *
  * @param {HTMLElement} container
  * @param {{id: string, label: string, type?: string, required?: boolean,
- *   placeholder?: string, hint?: string, value?: string}} opts
+ *   placeholder?: string, hint?: string, value?: string, spellcheck?: boolean}} opts
  * @returns {HTMLElement|null} the field's wrapping div
  */
 AdminFormBuilder.addField = function (container, opts) {
@@ -80,6 +80,7 @@ AdminFormBuilder.addField = function (container, opts) {
           : "text";
   input.id = opts.id;
   input.placeholder = opts.placeholder || "";
+  input.spellcheck = opts.spellcheck === true;
   input.setAttribute("aria-describedby", hintId + " " + errId);
   if (opts.value !== undefined && opts.value !== null) input.value = opts.value;
   div.appendChild(input);
@@ -115,6 +116,7 @@ AdminFormBuilder.addTextarea = function (container, opts) {
   textarea.rows = opts.rows || 20;
   textarea.id = opts.id;
   textarea.placeholder = opts.placeholder || "";
+  textarea.spellcheck = true;
   textarea.setAttribute("aria-describedby", hintId + " " + errId);
   if (opts.value !== undefined && opts.value !== null)
     textarea.value = opts.value;

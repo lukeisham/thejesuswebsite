@@ -71,6 +71,7 @@ AdminInsertImage.wire = function (buttonSelector, textareaSelector) {
   var captionInput = document.createElement("input");
   captionInput.type = "text";
   captionInput.className = "admin-input";
+  captionInput.spellcheck = true;
   captionInput.id = "aimg-insert-caption";
   captionInput.placeholder = "e.g. The earliest known manuscript fragment";
 
