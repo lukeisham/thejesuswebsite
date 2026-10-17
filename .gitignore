@@ -11,6 +11,8 @@ node_modules/
 !/setup/Decisions_log.md
 !/setup/STYLE_GUIDE
 !/setup/STYLE_GUIDE/**
+!/setup/ARCHITECTURE
+!/setup/ARCHITECTURE/**
 !/setup/plan_template.md
 /scratchpad.md
 /CLAUDE.local.md
@@ -25,8 +27,7 @@ __pycache__/
 # scripts/fetch-classifier-model.sh) is the only excluded asset. FAISS indexes
 # and JSONL sidecars in vector-stores/ (~700 KB) are tracked in git. The ONNX
 # model ships to the VPS via rsync (scripts/sync-vector-stores.sh), never via
-# git, to keep the 87 MB blob out of repository history permanently
-# (wikipedia-v2-04/05/09).
+# git, to keep the 87 MB blob out of repository history permanently.
 /Wikipedia algorithm/classifier/model/model.onnx
 
 # Environment

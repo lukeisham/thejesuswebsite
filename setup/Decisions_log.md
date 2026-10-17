@@ -448,3 +448,22 @@ it would fail with no clear error.
 **Rejected:** Scoring at deploy time on the VPS.
 
 **Where it lives:** "Invariants" in `setup/ARCHITECTURE/wikipedia-ranking-pipeline.md`.
+
+### D-019 — The architecture guides are tracked in git
+
+- **Type:** Decision
+- **Date:** 2026-10-17
+- **By:** Luke, in chat
+- **Applies to:** `setup/ARCHITECTURE/`, `.gitignore`
+- **Rule:** CORE-3
+- **Status:** Active
+
+**Decision:** `setup/ARCHITECTURE/` is a `.gitignore` exception, like `setup/STYLE_GUIDE/`. The
+guides are on GitHub, which is public, and on the VPS.
+
+**Why:** The rules make these guides binding, but they existed only on this machine. A lost copy
+meant lost cross-module knowledge, and agents on any other copy of the repo could not read them.
+
+**Rejected:** Keeping them local-only. The checker in `setup/scripts/` stays gitignored for now.
+
+**Where it lives:** `.gitignore`; the note under "Keeping it true" in `setup/ARCHITECTURE/INDEX.md`.
