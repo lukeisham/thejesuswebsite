@@ -456,7 +456,7 @@ it would fail with no clear error.
 - **By:** Luke, in chat
 - **Applies to:** `setup/ARCHITECTURE/`, `.gitignore`
 - **Rule:** CORE-3
-- **Status:** Active
+- **Status:** Superseded by D-020
 
 **Decision:** `setup/ARCHITECTURE/` is a `.gitignore` exception, like `setup/STYLE_GUIDE/`. The
 guides are on GitHub, which is public, and on the VPS.
@@ -465,5 +465,27 @@ guides are on GitHub, which is public, and on the VPS.
 meant lost cross-module knowledge, and agents on any other copy of the repo could not read them.
 
 **Rejected:** Keeping them local-only. The checker in `setup/scripts/` stays gitignored for now.
+
+**Where it lives:** `.gitignore`; the note under "Keeping it true" in `setup/ARCHITECTURE/INDEX.md`.
+
+### D-020 — The architecture guides and their checker are tracked in git
+
+- **Type:** Decision
+- **Date:** 2026-10-17
+- **By:** Luke, in chat
+- **Applies to:** `setup/ARCHITECTURE/`, `setup/scripts/check-architecture-docs.js`, `.gitignore`
+- **Rule:** CORE-3
+- **Status:** Active
+
+**Decision:** `setup/ARCHITECTURE/` and `setup/scripts/check-architecture-docs.js` are
+`.gitignore` exceptions. They are on GitHub, which is public, and on the VPS. The other scripts in
+`setup/scripts/` stay local-only.
+
+**Why:** The rules make the guides binding, and the guides tell agents to run the checker. Both
+existed only on this machine. The other scripts are one-off jobs whose target files are gone or
+local-only.
+
+**Rejected:** Tracking all of `setup/scripts/`, which publishes dead one-off scripts. Keeping the
+guides local-only.
 
 **Where it lives:** `.gitignore`; the note under "Keeping it true" in `setup/ARCHITECTURE/INDEX.md`.

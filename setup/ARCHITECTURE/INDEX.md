@@ -122,9 +122,9 @@ point — not a calendar reminder.
 not marked deprecated or moved to a history section. There is no archive here;
 git already is one.
 
-> **Tracked docs, local checker.** These docs are a `.gitignore` exception, so
-> they are on GitHub and the VPS. The checker in `setup/scripts/` is still
-> gitignored, so it cannot run in CI. Enforcement is a local habit.
+> **Not in CI.** These docs and the checker are `.gitignore` exceptions, so
+> they are on GitHub and the VPS. No CI job runs the checker. The Definition
+> of done is the only enforcement point.
 
 ---
 
