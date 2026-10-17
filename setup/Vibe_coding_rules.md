@@ -28,12 +28,13 @@ Here* at the end.
 | 12 | A schema change updates `schema.sql` in the same commit. | MIG-4 |
 | 13 | Smoke tests only, and run them. | TEST-2, TEST-2a |
 | 14 | A guide row you edit that a text search can check has a guide test. | TEST-10 |
+| 15 | Each file you edit: comments give the *why* and the links to other files. Its cross-app behaviour is in a guide or README, and the file matches it. | CORE-5 |
 
 ---
 
 ## Core Rules
 
-These four rules apply without exception. A breach is a defect.
+These five rules apply without exception. A breach is a defect.
 
 **Touch rule.** When you edit a file (code, guide, style guide or README), bring that whole file
 into line with the Core Rules in the same change. Do not open or edit a file only to clean it.
@@ -116,6 +117,28 @@ definition of a standing permission.
 A rule exception or a permission needs Luke's explicit sign-off. Until it is granted and logged,
 a break from a rule is a defect. After it is logged, code that matches it is intentional. Before
 you "fix" a rule break, read the rule's exceptions and search the decisions log.
+
+**CORE-5 — Bring each file you edit up to the comment and guide rules.**
+The codebase meets CORE-2 and CORE-3 one file at a time. Each file that you edit for a task
+must meet both rules when the change is complete. Do not open a file only to do this work
+(Touch rule). For each file that you edit, do these steps:
+
+1. **Comments.** Make sure that each comment gives the *why*, not the *what* (CORE-2). Where
+   the file calls another file, is called by another file, or depends on a shared value, add a
+   comment that names that connection and what breaks if it changes. Delete comments that only
+   restate the code.
+2. **Cross-app behaviour.** Find out whether the file takes part in behaviour that crosses a
+   module, process or file boundary (CORE-3 lists the kinds). If it does not, stop here.
+3. **Guide coverage.** Find that behaviour in `setup/ARCHITECTURE/` or in the folder
+   `README.md`. If it is not there, add it to the right guide in the same change.
+4. **Match.** Compare the file with what the guide or README says. If the code is wrong, fix
+   the code. If the guide is wrong, fix the guide. If you cannot tell which one is wrong, ask
+   Luke before you change either.
+5. **Guide test.** If you added or edited a guide row that a text search can check, add or
+   update its guide test (TEST-10).
+
+In your reply, name each file where you added a connection comment, a guide row, or a fix
+from step 4.
 
 ---
 
