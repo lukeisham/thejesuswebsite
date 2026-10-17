@@ -387,8 +387,7 @@ session table, no session library and no stored tokens.
 **Rejected:** A persisted session store. It becomes necessary only if the site adds public
 accounts.
 
-**Where it lives:** the session comment in `api/middleware/auth.js`; "Security & auth" in
-`setup/ARCHITECTURE/Website_guide.md`.
+**Where it lives:** the session comment in `api/middleware/auth.js`.
 
 ### D-016 — Admin login is passkey only
 
@@ -406,7 +405,7 @@ password reset.
 
 **Rejected:** A password login, or a password as a fallback.
 
-**Where it lives:** "Security & auth" in `setup/ARCHITECTURE/Website_guide.md`.
+**Where it lives:** `api/middleware/auth.js` and the passkey routes in `api/routes/`.
 
 ### D-017 — Frontend and admin stay two separate systems
 
@@ -427,8 +426,8 @@ shared stylesheet would make a change on one side break the other.
 
 **Rejected:** One shared design system, and one shared API client.
 
-**Where it lives:** the `admin/` table and "Refactoring rules" in
-`setup/ARCHITECTURE/Website_guide.md`; D-009 for the `window.Admin` namespace.
+**Where it lives:** "Refactoring rules" in `setup/ARCHITECTURE/Website_guide.md`; D-009 for the
+`window.Admin` namespace.
 
 ### D-018 — Wikipedia scoring never runs on the VPS
 
