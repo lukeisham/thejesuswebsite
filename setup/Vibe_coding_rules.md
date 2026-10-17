@@ -27,6 +27,7 @@ Here* at the end.
 | 11 | Every visual value comes from `variables.css`. | CSS-2 |
 | 12 | A schema change updates `schema.sql` in the same commit. | MIG-4 |
 | 13 | Smoke tests only, and run them. | TEST-2, TEST-2a |
+| 14 | A guide row you edit that a text search can check has a guide test. | TEST-10 |
 
 ---
 
@@ -160,7 +161,7 @@ Write it yourself unless the case is already approved. Approved: visual/display 
 Loading speed is non-negotiable. Ship no blocking script, no unused CSS, no unbounded query. If a change adds bytes to `frontend/`, it must justify them.
 
 **SR-4** — Share, Don't Copy-Paste
-Before adding logic to an `admin/<type>/` editor, grep the other editors for it — if it exists, extract to `admin/assets/js/` and have all of them call it. Fixing a bug in one editor means grepping the rest for the same pattern before closing it (the `mla_source_id` incident shipped one defect in five editors).
+Before adding logic to an `admin/<type>/` editor, grep the other editors for it — if it exists, extract to `admin/assets/js/` and have all of them call it. Fixing a bug in one editor means grepping the rest for the same pattern before closing it.
 
 **SR-5** — Secrets Never Enter the Repo
 Credentials, tokens, and keys live in `.env` and are read at runtime — never hardcoded, never in a test fixture, never in a comment, never in a log. Confirm `.gitignore` covers a new secret file before writing to it.
@@ -285,6 +286,9 @@ Python: stdlib scripts use `unittest`. Offline tooling under PY-1's exception
 **TEST-2** — Smoke, Not Exhaustive
 Assert three things per module: it imports cleanly, the happy path produces the right output, one guard or failure path behaves. Stop there — full branch coverage belongs in a suite this project doesn't run. Do not add tests for code that the task did not change (AG-1).
 
+Exception: a guide test (TEST-10) scans every file that its guide rule covers, including files
+that the task did not change. That scan is its purpose.
+
 **TEST-2a** — Run the Suite Before You Report
 Run the tests for each area you changed, and show the pass/fail summary (AG-2). A red test is
 reported, never hidden (AG-4).
@@ -295,6 +299,8 @@ reported, never hidden (AG-4).
 
 **TEST-3** — File Naming & Location
 One test file per source module, named after the module, not the feature. Put it in `<area>/tests/<module>.test.js` — or beside nested modules, mirroring the source tree (`frontend/assets/js/arbor/tests/arbor-render.test.js`).
+
+Exception: a guide test (TEST-10) is named after its guide, not a module.
 
 **TEST-4** — Isolated, In-Memory, No Network
 API tests build a fresh in-memory database with `createTestDb()` (`api/tests/helpers/db.js`) — never touch the real `database/thejesuswebsite.db`. No real network requests. Reset shared module state (e.g. `clearSessions()`) in `afterEach`.
@@ -317,6 +323,24 @@ Run the real source against a small hand-built fake DOM exposing only what the m
 
 **TEST-9** — Mirror the Logic, Don't Duplicate the Bug
 Import the real module whenever possible. If a test must recreate source logic (e.g. `announce.test.js`'s `arborAriaLabel`), comment which file/function it mirrors — a passing test against a stale copy proves nothing.
+
+**TEST-10** — Guide Tests Guard the Text Rules of a Guide
+A guide test reads source files as text and fails when code breaks a rule that a guide in
+`setup/ARCHITECTURE/` states. It does not test behaviour. It catches the drift that the path
+checker cannot see: one file changes, and another file that depends on it silently breaks. See
+`api/tests/guide-error-notification.test.js`.
+
+- When you add or edit a guide row whose rule a text search can check, add or update its guide
+  test in the same change. Two examples: a banned pattern, and a value that two files must
+  share. Do not add guide tests for rows that the task did not touch.
+- A rule about meaning or behaviour stays prose, or gets a real behaviour test.
+- Put all the tests for one guide in `api/tests/guide-<guide-name>.test.js`, so `npm test` runs
+  them. The test reads `frontend/` and `admin/` files by path.
+- Each failure message names the rule, the file and line, and the guide path.
+- Each allowed exception is in a named list in the test file, with a one-line reason. The test
+  fails when an exception names a file that no longer exists. Never add an exception or widen a
+  pattern only to make a red test pass (AG-4).
+- The guide names its guide test next to the rows that the test covers.
 
 ## CSS Rules
 
