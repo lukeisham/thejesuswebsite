@@ -151,9 +151,8 @@ CREATE TABLE blog_posts (
     hero_image           TEXT,
     hero_image_alt       TEXT,
     blog_thumbnail       TEXT,
-    -- Deprecated: no longer written by the admin UI or read by any query
-    -- (removed in remove-redundant-published-and-landing-page.md). Retained
-    -- for backward compatibility with existing rows only.
+    -- Deprecated: no longer written by the admin UI or read by any query.
+    -- Retained for backward compatibility with existing rows only.
     landing_page_display INTEGER DEFAULT 0,
     published_draft      INTEGER DEFAULT 0 CHECK (published_draft IN (0, 1)),
     metadata_keywords    TEXT,
@@ -679,7 +678,7 @@ CREATE INDEX idx_evidence_published        ON evidence (published_draft);
 CREATE INDEX idx_evidence_timeline_era     ON evidence (timeline_era);
 CREATE INDEX idx_evidence_timeline_period  ON evidence (timeline_period);
 CREATE INDEX idx_evidence_map_location     ON evidence (map_location);
--- Published-content filters on other content tables (migration 044, SQL-10)
+-- Published-content filters on other content tables
 CREATE INDEX idx_blog_posts_published         ON blog_posts (published_draft, created_at);
 CREATE INDEX idx_historiography_published     ON historiography (published_draft, period_sort_order, created_at);
 CREATE INDEX idx_context_essays_published     ON context_essays (published_draft, created_at);
@@ -688,7 +687,7 @@ CREATE INDEX idx_challenges_published         ON challenges (published_draft, ac
 CREATE INDEX idx_wikipedia_articles_published ON wikipedia_articles (published_draft, wikipedia_article_rank_number);
 CREATE INDEX idx_collections_published        ON collections (published_draft, created_at);
 CREATE INDEX idx_identifiers_published        ON identifiers (published_draft, id);
--- Resources listing (migration 045)
+-- Resources listing
 CREATE INDEX idx_resources_list_published_holding_sort ON resources (list_key, published_draft, in_holding_pen, sort_order, id);
 -- Arbor edges
 CREATE INDEX idx_arbor_edges_source        ON arbor_edges (source_id);
@@ -994,16 +993,3 @@ BEGIN
     INSERT INTO resources_fts(rowid, resource_title, resource_description)
     VALUES (new.id, new.resource_title, new.resource_description);
 END;
-
--- =====================
--- SPELLCHECK
--- =====================
-
-CREATE TABLE spellcheck_dictionary (
-    id         INTEGER PRIMARY KEY AUTOINCREMENT,
-    word       TEXT NOT NULL,
-    normalized TEXT NOT NULL UNIQUE,
-    status     TEXT NOT NULL CHECK (status IN ('learned', 'ignored')),
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-CREATE INDEX idx_spellcheck_dictionary_normalized ON spellcheck_dictionary (normalized);
