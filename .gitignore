@@ -13,6 +13,9 @@ node_modules/
 !/setup/STYLE_GUIDE/**
 !/setup/ARCHITECTURE
 !/setup/ARCHITECTURE/**
+!/setup/scripts
+/setup/scripts/*
+!/setup/scripts/check-architecture-docs.js
 !/setup/plan_template.md
 /scratchpad.md
 /CLAUDE.local.md
