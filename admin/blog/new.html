@@ -5,7 +5,6 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>New Blog Post — Admin</title>
         <link rel="stylesheet" href="../assets/css/admin.css" />
-        <link rel="stylesheet" href="../assets/css/admin-components/spellcheck.css" />
         <link rel="stylesheet" href="/assets/css/components/toasts.css" />
         <link rel="stylesheet" href="../assets/css/admin-components/toasts.css" />
         <link rel="stylesheet" href="../assets/css/admin-components/admin-editor-new-forms.css" />
@@ -18,10 +17,6 @@
         <script defer src="../assets/js/admin-image-picker.js"></script>
         <script defer src="../assets/js/admin-mla-sources.js"></script>
         <script defer src="../assets/js/admin-shortcode-help.js"></script>
-        <script defer src="../assets/js/admin-spellcheck/spellcheck-overlay-render.js"></script>
-        <script defer src="../assets/js/admin-spellcheck/spellcheck-dictionary-client.js"></script>
-        <script defer src="../assets/js/admin-spellcheck/spellcheck-context-menu.js"></script>
-        <script defer src="../assets/js/admin-spellcheck/spellcheck-controller.js"></script>
         <script type="module" src="../assets/js/admin-toasts.js"></script>
     </head>
     <body>
@@ -156,6 +151,7 @@
                                 <input
                                     class="admin-input"
                                     id="blog-title"
+                                    spellcheck="true"
                                     name="blog_title"
                                     type="text"
                                     required
@@ -187,6 +183,7 @@
                                 <input
                                     class="admin-input"
                                     id="blog-slug"
+                                    spellcheck="false"
                                     name="slug"
                                     type="text"
                                     required
@@ -217,6 +214,7 @@
                                 <textarea
                                     class="admin-textarea"
                                     id="blog-content"
+                                    spellcheck="true"
                                     name="blog_content"
                                     rows="20"
                                     aria-describedby="content-hint"
@@ -250,6 +248,7 @@
                                 <input
                                     class="admin-input"
                                     id="blog-keywords"
+                                    spellcheck="false"
                                     name="metadata_keywords"
                                     type="text"
                                     aria-describedby="kw-hint"
@@ -269,6 +268,7 @@
                                 <input
                                     class="admin-input"
                                     id="blog-evidence"
+                                    spellcheck="false"
                                     name="evidence_ids"
                                     type="text"
                                     aria-describedby="ev-hint"
@@ -377,10 +377,6 @@
                 var titleError = document.getElementById("title-error");
                 var slugError = document.getElementById("slug-error");
 
-                // Spellcheck: init the system and attach to the content textarea
-                await SpellcheckController.init();
-                SpellcheckController.attach(contentInput);
-
                 var slugAuto = true;
                 titleInput.addEventListener("input", function () {
                     if (slugAuto) {
@@ -396,13 +392,11 @@
                     slugAuto = false;
                 });
 
-                // MLA Bibliography panel (new record starts with no sources)
                 var mlaSourcesPanel = AdminMlaSources.mount(
                     document.getElementById("mla-sources-mount"),
                     { initialSourceIds: [], hintVariant: "blog" },
                 );
 
-                // Wire the Insert Image button
                 if (typeof AdminInsertImage !== "undefined") {
                     AdminInsertImage.wire("#insert-image-btn", "#blog-content");
                 }
@@ -416,13 +410,11 @@
                     );
                 }
 
-                // Thumbnail picker
                 var thumbnailPicker = AdminImagePicker.mount(
                     document.getElementById("blog-thumbnail-mount"),
                     { initialPath: "" },
                 );
 
-                // Formatting Reference panel
                 var formattingRefMount = document.createElement("div");
                 var sidebarEl = document.querySelector(".admin-form-grid__sidebar");
                 if (sidebarEl) {

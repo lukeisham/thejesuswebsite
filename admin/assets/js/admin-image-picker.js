@@ -79,6 +79,7 @@ AdminImagePicker.mount = function (container, opts) {
   var altInput = document.createElement("input");
   altInput.type = "text";
   altInput.className = "admin-input";
+  altInput.spellcheck = true;
   altInput.id = altLabel.getAttribute("for");
   altInput.value = currentAlt;
   altInput.placeholder = "Describe the image for screen readers";
@@ -113,6 +114,7 @@ AdminImagePicker.mount = function (container, opts) {
     captionInput = document.createElement("input");
     captionInput.type = "text";
     captionInput.className = "admin-input";
+    captionInput.spellcheck = true;
     captionInput.id = captionLabel.getAttribute("for");
     captionInput.value = currentCaption;
     captionInput.setAttribute("aria-describedby", captionInput.id + "-hint");

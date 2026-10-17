@@ -5,7 +5,6 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>New Evidence — Admin</title>
         <link rel="stylesheet" href="../assets/css/admin.css" />
-        <link rel="stylesheet" href="../assets/css/admin-components/spellcheck.css" />
         <link rel="stylesheet" href="/assets/css/components/toasts.css" />
         <link rel="stylesheet" href="../assets/css/admin-components/toasts.css" />
         <link rel="stylesheet" href="../assets/css/admin-components/admin-editor-new-forms.css" />
@@ -18,10 +17,6 @@
         <script defer src="../assets/js/admin-insert-image.js"></script>
         <script defer src="../assets/js/admin-image-picker.js"></script>
         <script defer src="../assets/js/admin-mla-sources.js"></script>
-        <script defer src="../assets/js/admin-spellcheck/spellcheck-overlay-render.js"></script>
-        <script defer src="../assets/js/admin-spellcheck/spellcheck-dictionary-client.js"></script>
-        <script defer src="../assets/js/admin-spellcheck/spellcheck-context-menu.js"></script>
-        <script defer src="../assets/js/admin-spellcheck/spellcheck-controller.js"></script>
         <script type="module" src="../assets/js/admin-toasts.js"></script>
     </head>
     <body>
@@ -164,6 +159,7 @@
                                 <input
                                     class="admin-input"
                                     id="evidence-title"
+                                    spellcheck="true"
                                     name="title"
                                     type="text"
                                     required
@@ -195,6 +191,7 @@
                                 <input
                                     class="admin-input"
                                     id="evidence-slug"
+                                    spellcheck="false"
                                     name="slug"
                                     type="text"
                                     required
@@ -236,6 +233,7 @@
                                 <textarea
                                     class="admin-textarea"
                                     id="evidence-description"
+                                    spellcheck="true"
                                     name="description"
                                     rows="10"
                                     aria-describedby="desc-hint"
@@ -264,6 +262,7 @@
                                 <input
                                     class="admin-input"
                                     id="evidence-primary-verse"
+                                    spellcheck="false"
                                     name="primary_verse"
                                     type="text"
                                     placeholder="e.g. Matthew 3:13-17"
@@ -279,6 +278,7 @@
                                 <input
                                     class="admin-input"
                                     id="evidence-secondary-verse"
+                                    spellcheck="false"
                                     name="secondary_verse"
                                     type="text"
                                     placeholder="e.g. Mark 1:9-11"
@@ -425,6 +425,7 @@
                                 <input
                                     class="admin-input"
                                     id="evidence-map-location"
+                                    spellcheck="false"
                                     name="map_location"
                                     type="text"
                                     aria-describedby="map-hint"
@@ -485,6 +486,7 @@
                                 <input
                                     class="admin-input"
                                     id="evidence-keywords"
+                                    spellcheck="false"
                                     name="metadata_keywords"
                                     type="text"
                                     aria-describedby="kw-hint"
@@ -504,6 +506,7 @@
                                 <input
                                     class="admin-input"
                                     id="evidence-link-evidence"
+                                    spellcheck="false"
                                     name="link_evidence_ids"
                                     type="text"
                                     aria-describedby="link-ev-hint"
@@ -523,6 +526,7 @@
                                 <input
                                     class="admin-input"
                                     id="evidence-link-context"
+                                    spellcheck="false"
                                     name="link_context_ids"
                                     type="text"
                                     aria-describedby="link-ctx-hint"
@@ -543,6 +547,7 @@
                                 <input
                                     class="admin-input"
                                     id="evidence-identifiers"
+                                    spellcheck="false"
                                     name="identifier_ids"
                                     type="text"
                                     aria-describedby="id-hint"
@@ -613,11 +618,9 @@
 
         <script>
             document.addEventListener("DOMContentLoaded", async function () {
-                // Guard: redirect if not authenticated
                 const ok = await AdminAuth.requireSession();
                 if (!ok) return;
 
-                // Wire Insert Image widget
                 AdminInsertImage.wire(
                     "#insert-image-btn",
                     "#evidence-description",
@@ -643,10 +646,6 @@
                 const slugError = document.getElementById("slug-error");
                 const publishCheckbox =
                     document.getElementById("evidence-publish");
-
-                // Spellcheck: init the system and attach to the description textarea
-                await SpellcheckController.init();
-                SpellcheckController.attach(descInput);
 
                 // Cascading timeline era → period dropdowns (JS-3: single
                 // taxonomy source in admin-timeline-taxonomy.js, no duplicated
@@ -686,19 +685,16 @@
                 });
                 populatePeriods(eraSelect.value);
 
-                // MLA Bibliography panel (new record starts with no sources)
                 const mlaSourcesPanel = AdminMlaSources.mount(
                     document.getElementById("mla-sources-mount"),
                     { initialSourceIds: [] },
                 );
 
-                // Primary image picker
                 const imagePicker = AdminImagePicker.mount(
                     document.getElementById("evidence-image-picker-mount"),
                     { initialPath: "", captionField: true },
                 );
 
-                // Auto-generate slug from title
                 let slugAuto = true;
                 titleInput.addEventListener("input", function () {
                     if (slugAuto) {
@@ -865,7 +861,6 @@
                         );
                         submitStatus.innerHTML =
                             '<span style="color:var(--admin-success)">Evidence saved successfully!</span>';
-                        // Redirect to edit page
                         setTimeout(function () {
                             window.location.href =
                                 "edit-[id].html?id=" + result.id;

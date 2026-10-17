@@ -1,11 +1,10 @@
 """Passive-voice detector for the anti-supernatural family's Dimension 5.
 
-Ports the two regex patterns from admin/assets/js/admin-spellcheck/spellcheck-engine.js
-(lines 607–626) to Python:
-  1. Auxiliary + past-participle-like pattern (e.g. "was discovered", "has been found")
-  2. Auxiliary + word + "by" agent-deletion pattern (e.g. "was seen by scholars")
+Two regex patterns count passive constructions:
+  1. Auxiliary + past-participle-like word (e.g. "was discovered", "has been found").
+  2. Auxiliary + word + "by", where the agent is named (e.g. "was seen by scholars").
 
-No new NLP dependency — same two patterns, same intent, no new dependency.
+The patterns are plain regex, so the module needs no NLP dependency.
 """
 
 import re
@@ -56,10 +55,8 @@ def count_passive_patterns(text: str) -> int:
     if not text or not text.strip():
         return 0
 
-    # Pattern 1: auxiliary + participle-like word.
     aux_matches = len(_AUXILIARY_PATTERN.findall(text))
 
-    # Pattern 2: auxiliary + word + "by".
     by_matches = len(_AGENT_BY_PATTERN.findall(text))
 
     total = aux_matches + by_matches

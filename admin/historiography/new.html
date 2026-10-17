@@ -5,7 +5,6 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>New Historiography Article — Admin</title>
         <link rel="stylesheet" href="../assets/css/admin.css" />
-        <link rel="stylesheet" href="../assets/css/admin-components/spellcheck.css" />
         <link rel="stylesheet" href="/assets/css/components/toasts.css" />
         <link rel="stylesheet" href="../assets/css/admin-components/toasts.css" />
         <link rel="stylesheet" href="../assets/css/admin-components/admin-editor-new-forms.css" />
@@ -16,10 +15,6 @@
         <script defer src="../assets/js/admin-figure-captions.js"></script>
         <script defer src="../assets/js/admin-insert-image.js"></script>
         <script defer src="../assets/js/admin-mla-sources.js"></script>
-        <script defer src="../assets/js/admin-spellcheck/spellcheck-overlay-render.js"></script>
-        <script defer src="../assets/js/admin-spellcheck/spellcheck-dictionary-client.js"></script>
-        <script defer src="../assets/js/admin-spellcheck/spellcheck-context-menu.js"></script>
-        <script defer src="../assets/js/admin-spellcheck/spellcheck-controller.js"></script>
         <script type="module" src="../assets/js/admin-toasts.js"></script>
     </head>
     <body>
@@ -155,6 +150,7 @@
                                 <input
                                     class="admin-input"
                                     id="historiography-title"
+                                    spellcheck="true"
                                     name="essay_title"
                                     type="text"
                                     required
@@ -186,6 +182,7 @@
                                 <input
                                     class="admin-input"
                                     id="historiography-slug"
+                                    spellcheck="false"
                                     name="slug"
                                     type="text"
                                     required
@@ -216,6 +213,7 @@
                                 <textarea
                                     class="admin-textarea"
                                     id="historiography-content"
+                                    spellcheck="true"
                                     name="essay_content"
                                     rows="20"
                                     aria-describedby="content-hint"
@@ -244,6 +242,7 @@
                                 <input
                                     class="admin-input"
                                     id="historiography-keywords"
+                                    spellcheck="false"
                                     name="metadata_keywords"
                                     type="text"
                                     aria-describedby="kw-hint"
@@ -263,6 +262,7 @@
                                 <input
                                     class="admin-input"
                                     id="historiography-evidence"
+                                    spellcheck="false"
                                     name="evidence_ids"
                                     type="text"
                                     aria-describedby="ev-hint"
@@ -403,7 +403,6 @@
                 if (!ok) return;
 
                 
-                // Wire Insert Image widget
                 AdminInsertImage.wire("#insert-image-btn", "#historiography-content");
 
                 // Images panel — mounted after the insert flow so inserts
@@ -425,10 +424,6 @@ const titleInput = document.getElementById(
                 );
                 const formError = document.getElementById("form-error");
 
-                // Spellcheck: init the system and attach to the content textarea
-                await SpellcheckController.init();
-                SpellcheckController.attach(contentInput);
-
                 const submitStatus = document.getElementById("submit-status");
                 const titleError = document.getElementById("title-error");
                 const slugError = document.getElementById("slug-error");
@@ -448,7 +443,6 @@ const titleInput = document.getElementById(
                     slugAuto = false;
                 });
 
-                // MLA Bibliography panel (new record starts with no sources)
                 var mlaSourcesPanel = AdminMlaSources.mount(
                     document.getElementById("mla-sources-mount"),
                     { initialSourceIds: [] },

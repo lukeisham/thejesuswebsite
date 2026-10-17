@@ -12,6 +12,8 @@
 
 const test = require("node:test");
 const assert = require("node:assert");
+const fs = require("fs");
+const path = require("path");
 
 /* ─────────────────────────────────────────────────────────────────────────────
    Replicated pure helpers (mirror admin/settings/index.html's inline script)
@@ -113,4 +115,13 @@ test("round-trip: fieldValuesFromSettings then payloadFromFieldValues is idempot
 
   const payload = payloadFromFieldValues(fieldValuesFromSettings(settings));
   assert.deepStrictEqual(payload, settings);
+});
+
+test("buildFormGroup turns spellcheck on for the textarea and the site title only", function () {
+  const html = fs.readFileSync(
+    path.resolve(__dirname, "..", "settings", "index.html"),
+    "utf8",
+  );
+  assert.match(html, /el\.className = "admin-textarea";\s*el\.rows = 4;\s*el\.spellcheck = true;/);
+  assert.match(html, /el\.spellcheck = id === "siteTitle";/);
 });

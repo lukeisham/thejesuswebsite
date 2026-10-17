@@ -122,6 +122,7 @@
                     <input
                         type="text"
                         id="arbor-node-title-input"
+                        spellcheck="true"
                         class="admin-arbor-panel__input"
                         maxlength="200"
                         placeholder="e.g. The Baptism of Jesus"
@@ -133,6 +134,7 @@
                     <input
                         type="text"
                         id="arbor-node-verse-input"
+                        spellcheck="false"
                         class="admin-arbor-panel__input"
                         placeholder="e.g. Matthew 3:13-17"
                         readonly
@@ -239,7 +241,6 @@
                 AdminArborNodes.init();
                 AdminArborEdges.init();
 
-                // Wire zoom buttons
                 var zoomIn = document.getElementById("arbor-zoom-in");
                 var zoomOut = document.getElementById("arbor-zoom-out");
                 if (zoomIn)
@@ -247,7 +248,6 @@
                 if (zoomOut)
                     zoomOut.addEventListener("click", AdminArborCanvas.zoomOut);
 
-                // Wire backdrop to close the panel
                 var backdrop = document.getElementById("arbor-panel-backdrop");
                 if (backdrop) {
                     backdrop.addEventListener("click", function () {
@@ -261,7 +261,6 @@
                     AdminArborPen.setupCanvasDropTarget();
                 }
 
-                // Auth guard
                 AdminAuth.requireSession().then(function (ok) {
                     if (!ok) {
                         var c = document.getElementById("arbor-canvas");
@@ -269,11 +268,9 @@
                             c.textContent = "Session required. Please sign in.";
                         return;
                     }
-                    // Load the arbor graph
                     AdminArborNodes.loadNodes();
                 });
 
-                // Sync backdrop visibility with panel state
                 var observer = new MutationObserver(function () {
                     var panel = document.getElementById("arbor-node-panel");
                     var bd = document.getElementById("arbor-panel-backdrop");

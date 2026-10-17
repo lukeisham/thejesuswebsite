@@ -344,3 +344,27 @@ no other options.
 
 **Where it lives:** the HTML `Cache-Control` comment in `deploy/nginx.conf`; the cache policy
 section of `setup/ARCHITECTURE/Website_guide.md`.
+
+### D-014 — Browser spellcheck replaces the `nspell` admin spellcheck
+
+- **Type:** Decision
+- **Date:** 2026-10-17
+- **By:** Luke
+- **Applies to:** `admin/`, `api/`
+- **Rule:** SR-2
+- **Status:** Active
+
+**Decision:** The admin uses the spellcheck that the browser already has. Prose fields set
+`spellcheck` to true. Slugs, keywords, ids, urls, verses and name fields set it to false. This ends
+the spellcheck clause of `D-001`. The custom overlay, the `nspell` library and the learned-words
+route are removed.
+
+**Why:** The custom engine needed a vendored library, a worker, a table and a route. The browser
+gives the same underline and right-click menu on every prose field with no code to maintain.
+
+**Rejected:** Keeping the custom engine. It also flagged passive voice, repeated words and a/an
+mistakes, and it kept one shared word list. Luke accepted the loss of these three things: grammar
+hints, the shared learned-words list, and the same result in every browser.
+
+**Where it lives:** `AdminFormBuilder` in `admin/assets/js/admin-form-builder.js`, and the
+`spellcheck` attribute on each prose field in `admin/`.

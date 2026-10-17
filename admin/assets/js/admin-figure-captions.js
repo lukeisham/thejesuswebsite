@@ -3,8 +3,7 @@
 // caption/alignment or remove the image, and writes changes back into the
 // textarea via the shared AdminFigureShortcodes module.
 //
-// Used by: blog editor (this plan); other editors mount it in a follow-up
-// plan (SR-4 — built generically enough for that from the start).
+// Used by: blog editor. It is generic, so other editors can mount it too (SR-4).
 //
 // Note: admin-figure-shortcodes.js MUST be loaded before this script.
 
@@ -163,6 +162,7 @@ AdminFigureCaptions.mount = function (container, opts) {
     var captionInput = document.createElement("input");
     captionInput.type = "text";
     captionInput.className = "admin-input";
+    captionInput.spellcheck = true;
     captionInput.id = viewModel.captionId;
     captionInput.value = viewModel.caption || "";
 

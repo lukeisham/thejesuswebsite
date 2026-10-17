@@ -36,6 +36,7 @@ function makeDocument() {
       checked: false,
       textContent: "",
       placeholder: "",
+      spellcheck: undefined,
       rows: undefined,
       selected: false,
       attrs: {},
@@ -163,6 +164,18 @@ describe("AdminFormBuilder.addField", () => {
     assert.match(label.innerHTML, /Title.*\*/);
   });
 
+  test("leaves spellcheck off by default and turns it on with spellcheck:true", () => {
+    var { AdminFormBuilder } = makeSandbox();
+    var plain = AdminFormBuilder.addField(makeContainer(), { id: "plain", label: "Slug" });
+    var checked = AdminFormBuilder.addField(makeContainer(), {
+      id: "checked",
+      label: "Title",
+      spellcheck: true,
+    });
+    assert.equal(plain.children.find((c) => c.tag === "input").spellcheck, false);
+    assert.equal(checked.children.find((c) => c.tag === "input").spellcheck, true);
+  });
+
   test("warns and returns null when id is missing", () => {
     var { AdminFormBuilder, warnings } = makeSandbox();
     var result = AdminFormBuilder.addField(makeContainer(), { label: "No id" });
@@ -186,6 +199,13 @@ describe("AdminFormBuilder.addTextarea", () => {
     assert.equal(textarea.id, "essay-content");
     assert.equal(textarea.rows, 20);
     assert.equal(textarea.value, "hello world");
+  });
+
+  test("turns spellcheck on for the textarea", () => {
+    var { AdminFormBuilder } = makeSandbox();
+    var div = AdminFormBuilder.addTextarea(makeContainer(), { id: "essay-body", label: "Body" });
+    var textarea = div.children.find((c) => c.tag === "textarea");
+    assert.equal(textarea.spellcheck, true);
   });
 
   test("respects a custom rows value", () => {

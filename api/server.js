@@ -73,7 +73,6 @@ app.use("/publish", require("./routes/publish"));
 app.use("/analytics", require("./routes/analytics"));
 app.use("/auth", require("./routes/auth"));
 app.use("/passkey", require("./routes/passkey"));
-app.use("/spellcheck-dictionary", require("./routes/spellcheck-dictionary"));
 app.use(
   "/deploy-webhook",
   rateLimit({ maxAttempts: 5, windowMs: 60_000 }),

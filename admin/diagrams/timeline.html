@@ -194,6 +194,7 @@
                     <input
                         type="text"
                         id="timeline-event-title-input"
+                        spellcheck="true"
                         class="admin-timeline-panel__input"
                         maxlength="200"
                         placeholder="e.g. The Last Supper"
@@ -276,7 +277,6 @@
 
                 AdminTimelineEvents.init();
 
-                // Wire backdrop to close the panel
                 var backdrop = document.getElementById(
                     "timeline-panel-backdrop",
                 );
@@ -286,7 +286,6 @@
                     });
                 }
 
-                // Init era filter
                 if (
                     typeof AdminTimelineEraFilter !== "undefined" &&
                     AdminTimelineEraFilter.init
@@ -294,7 +293,6 @@
                     AdminTimelineEraFilter.init();
                 }
 
-                // Wire the Save button
                 var saveBtn = document.getElementById("timeline-save-btn");
                 if (saveBtn) {
                     saveBtn.addEventListener("click", function () {
@@ -307,7 +305,6 @@
                     });
                 }
 
-                // Auth guard
                 AdminAuth.requireSession().then(function (ok) {
                     if (!ok) {
                         var c = document.getElementById("timeline-canvas");
@@ -315,11 +312,9 @@
                             c.textContent = "Session required. Please sign in.";
                         return;
                     }
-                    // Load timeline events
                     AdminTimelineEvents.loadEvents();
                 });
 
-                // Sync backdrop visibility with panel state
                 var observer = new MutationObserver(function () {
                     var panel = document.getElementById("timeline-event-panel");
                     var bd = document.getElementById("timeline-panel-backdrop");

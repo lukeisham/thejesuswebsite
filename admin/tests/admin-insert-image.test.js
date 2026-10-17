@@ -1,4 +1,4 @@
-// AdminInsertImage pure helper unit tests
+// AdminInsertImage unit tests (pure helpers, plus the caption input that wire() builds)
 // Run with: node --test admin/tests/admin-insert-image.test.js
 // Tests: shortcode building (via the real shared module, SR-4) and
 // insertAtCursor (replicated here — it's local to admin-insert-image.js).
@@ -90,4 +90,52 @@ test('insertAtCursor: empty insertion', function () {
     text: 'helo',
     cursorPos: 2,
   });
+});
+
+// ── wire: spellcheck ─────────────────────────────────────────────────────────
+
+test('wire: the caption input has spellcheck on', function () {
+  function FakeElement(tag) {
+    this.tag = tag;
+    this.children = [];
+    this.style = {};
+    this.parentNode = null;
+  }
+  FakeElement.prototype.appendChild = function (c) {
+    this.children.push(c);
+    return c;
+  };
+  FakeElement.prototype.insertBefore = function (c) {
+    this.children.push(c);
+    return c;
+  };
+  FakeElement.prototype.setAttribute = function () {};
+  FakeElement.prototype.addEventListener = function () {};
+
+  var parent = new FakeElement('div');
+  var button = new FakeElement('button');
+  button.parentNode = parent;
+  var textarea = new FakeElement('textarea');
+  var savedDocument = global.document;
+  global.document = {
+    body: new FakeElement('body'),
+    querySelector: function (selector) {
+      return selector === '#btn' ? button : textarea;
+    },
+    createElement: function (tag) {
+      return new FakeElement(tag);
+    },
+  };
+
+  try {
+    AdminInsertImage.wire('#btn', '#text');
+
+    var prompt = parent.children[0];
+    var captionInput = prompt.children.find(function (c) {
+      return c.id === 'aimg-insert-caption';
+    });
+    assert.strictEqual(captionInput.spellcheck, true);
+  } finally {
+    global.document = savedDocument;
+  }
 });

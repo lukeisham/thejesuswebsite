@@ -70,22 +70,22 @@ function formatCitation(source) {
 var FIELD_GROUPS = {
   website: [
     { key: "mla_website_author", label: "Author" },
-    { key: "mla_website_title", label: "Title" },
+    { key: "mla_website_title", label: "Title", spellcheck: true },
     { key: "mla_website_publisher", label: "Publisher / Site Name" },
     { key: "mla_website_date", label: "Date" },
     { key: "mla_website_url", label: "URL" },
   ],
   book: [
     { key: "mla_book_author", label: "Author" },
-    { key: "mla_book_title", label: "Title" },
+    { key: "mla_book_title", label: "Title", spellcheck: true },
     { key: "mla_book_publisher", label: "Publisher" },
     { key: "mla_book_date", label: "Date" },
     { key: "mla_book_page_reference", label: "Page Reference" },
   ],
   journal: [
     { key: "mla_journal_article_author", label: "Author" },
-    { key: "mla_journal_article_title", label: "Article Title" },
-    { key: "mla_journal_title", label: "Journal Title" },
+    { key: "mla_journal_article_title", label: "Article Title", spellcheck: true },
+    { key: "mla_journal_title", label: "Journal Title", spellcheck: true },
     { key: "mla_journal_volume", label: "Volume" },
     { key: "mla_journal_issue", label: "Issue" },
     { key: "mla_journal_date", label: "Date" },
@@ -178,7 +178,6 @@ AdminMlaSources.mount = function (container, opts) {
         : "Source #" + id + " (not found)";
       li.appendChild(text);
 
-      // Per-row marker hint: shows the exact [mla:N] marker for this source
       var markerHint = document.createElement("span");
       markerHint.className = "amla-panel__item-marker";
       markerHint.style.cssText =
@@ -332,6 +331,7 @@ AdminMlaSources.mount = function (container, opts) {
         var input = document.createElement("input");
         input.type = "text";
         input.className = "admin-input";
+        input.spellcheck = field.spellcheck === true;
         input.id = inputId;
         input.value = (existingSource && existingSource[field.key]) || "";
 

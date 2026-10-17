@@ -138,7 +138,6 @@
     function renderAll() {
       main.innerHTML = '';
 
-      // Create form section
       var createSection = document.createElement('div');
       createSection.className = 'admin-card';
       createSection.style.marginBottom = 'var(--space-lg)';
@@ -150,33 +149,29 @@
       secTitle.textContent = 'New Collection';
       createSection.appendChild(secTitle);
 
-      // Title
       var titleGroup = document.createElement('div');
       titleGroup.className = 'admin-form-group';
       titleGroup.innerHTML =
         '<label class="admin-form-group__label" for="col-title">Title <span aria-hidden="true">*</span></label>' +
-        '<input class="admin-input" id="col-title" name="title" type="text" required placeholder="Collection title" aria-describedby="col-title-error">' +
+        '<input class="admin-input" id="col-title" name="title" type="text" spellcheck="true" required placeholder="Collection title" aria-describedby="col-title-error">' +
         '<span class="admin-form-hint" id="col-title-error" style="display:none;color:var(--admin-danger)" role="alert"></span>';
       createSection.appendChild(titleGroup);
 
-      // Slug
       var slugGroup = document.createElement('div');
       slugGroup.className = 'admin-form-group';
       slugGroup.innerHTML =
         '<label class="admin-form-group__label" for="col-slug">Slug <span aria-hidden="true">*</span></label>' +
-        '<input class="admin-input" id="col-slug" name="slug" type="text" required placeholder="collection-slug" aria-describedby="col-slug-error">' +
+        '<input class="admin-input" id="col-slug" name="slug" type="text" spellcheck="false" required placeholder="collection-slug" aria-describedby="col-slug-error">' +
         '<span class="admin-form-hint" id="col-slug-error" style="display:none;color:var(--admin-danger)" role="alert"></span>';
       createSection.appendChild(slugGroup);
 
-      // Description
       var descGroup = document.createElement('div');
       descGroup.className = 'admin-form-group';
       descGroup.innerHTML =
         '<label class="admin-form-group__label" for="col-desc">Description</label>' +
-        '<textarea class="admin-textarea" id="col-desc" name="description" rows="3" placeholder="Optional description"></textarea>';
+        '<textarea class="admin-textarea" id="col-desc" name="description" rows="3" spellcheck="true" placeholder="Optional description"></textarea>';
       createSection.appendChild(descGroup);
 
-      // Publish checkbox
       var pubGroup = document.createElement('div');
       pubGroup.className = 'admin-form-group';
       pubGroup.innerHTML =
@@ -208,7 +203,6 @@
       createSection.appendChild(createActions);
       main.appendChild(createSection);
 
-      // Table
       if (!Array.isArray(collections) || collections.length === 0) {
         var emptyEl = document.createElement('div');
         emptyEl.className = 'admin-empty';
@@ -282,7 +276,6 @@
               c.published_draft = 1;
               pubBtn.textContent = 'Unpublish';
             }
-            // Update status badge
             tdStatus.innerHTML = '';
             tdStatus.appendChild(Admin.statusBadge(c.published_draft));
           } catch (err) {
@@ -371,7 +364,6 @@
 
     // ── Edit modal ────────────────────────────────────────────────────
     function openEditModal(c) {
-      // Remove any existing modal
       var existing = document.querySelector('.admin-modal-backdrop');
       if (existing) existing.remove();
 
@@ -390,19 +382,19 @@
         '<div class="admin-modal__body">' +
         '<div class="admin-form-group">' +
         '<label class="admin-form-group__label" for="edit-col-title">Title</label>' +
-        '<input class="admin-input" id="edit-col-title" value="' + (c.title || '').replace(/"/g, '&quot;') + '">' +
+        '<input class="admin-input" id="edit-col-title" spellcheck="true">' +
         '</div>' +
         '<div class="admin-form-group">' +
         '<label class="admin-form-group__label" for="edit-col-slug">Slug</label>' +
-        '<input class="admin-input" id="edit-col-slug" value="' + (c.slug || '').replace(/"/g, '&quot;') + '">' +
+        '<input class="admin-input" id="edit-col-slug" spellcheck="false">' +
         '</div>' +
         '<div class="admin-form-group">' +
         '<label class="admin-form-group__label" for="edit-col-desc">Description</label>' +
-        '<textarea class="admin-textarea" id="edit-col-desc" rows="3">' + (c.description || '') + '</textarea>' +
+        '<textarea class="admin-textarea" id="edit-col-desc" rows="3" spellcheck="true"></textarea>' +
         '</div>' +
         '<div class="admin-form-group">' +
         '<div style="display:flex;align-items:center;gap:var(--space-sm)">' +
-        '<input type="checkbox" id="edit-col-publish" value="1" style="width:18px;height:18px;accent-color:var(--admin-accent)"' + (c.published_draft ? ' checked' : '') + '>' +
+        '<input type="checkbox" id="edit-col-publish" value="1" style="width:18px;height:18px;accent-color:var(--admin-accent)">' +
         '<label for="edit-col-publish" style="font-size:14px;cursor:pointer">Published</label>' +
         '</div>' +
         '</div>' +
@@ -415,6 +407,11 @@
 
       backdrop.appendChild(modal);
       document.body.appendChild(backdrop);
+
+      document.getElementById('edit-col-title').value = c.title || '';
+      document.getElementById('edit-col-slug').value = c.slug || '';
+      document.getElementById('edit-col-desc').value = c.description || '';
+      document.getElementById('edit-col-publish').checked = !!c.published_draft;
 
       document.getElementById('btn-edit-cancel').addEventListener('click', function () { backdrop.remove(); });
       document.getElementById('btn-edit-save').addEventListener('click', async function () {

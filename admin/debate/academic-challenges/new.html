@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>New Academic Challenge — Admin</title>
   <link rel="stylesheet" href="../../assets/css/admin.css">
-  <link rel="stylesheet" href="../../assets/css/admin-components/spellcheck.css">
   <link rel="stylesheet" href="/assets/css/components/toasts.css">
   <link rel="stylesheet" href="../../assets/css/admin-components/toasts.css">
   <script defer src="../../assets/js/admin-http.js"></script>
@@ -17,10 +16,6 @@
   <script defer src="../../assets/js/admin-insert-image.js"></script>
   <script defer src="../../assets/js/admin-shortcode-help.js"></script>
   <script defer src="../../assets/js/admin-mla-sources.js"></script>
-  <script defer src="../../assets/js/admin-spellcheck/spellcheck-overlay-render.js"></script>
-  <script defer src="../../assets/js/admin-spellcheck/spellcheck-dictionary-client.js"></script>
-  <script defer src="../../assets/js/admin-spellcheck/spellcheck-context-menu.js"></script>
-  <script defer src="../../assets/js/admin-spellcheck/spellcheck-controller.js"></script>
   <script type="module" src="../../assets/js/admin-toasts.js"></script>
   <style>
     .admin-form-actions {
@@ -155,7 +150,7 @@
 
           <div class="admin-form-group">
             <label class="admin-form-group__label" for="challenge-title">Title <span aria-hidden="true">*</span></label>
-            <input class="admin-input" id="challenge-title" name="challenge_title" type="text" required
+            <input class="admin-input" id="challenge-title" spellcheck="true" name="challenge_title" type="text" required
                    aria-describedby="title-hint title-error"
                    placeholder="e.g. The Criterion of Embarrassment">
             <span class="admin-form-hint" id="title-hint">The challenge title shown in headings and search results.</span>
@@ -164,7 +159,7 @@
 
           <div class="admin-form-group">
             <label class="admin-form-group__label" for="challenge-slug">Slug <span aria-hidden="true">*</span></label>
-            <input class="admin-input" id="challenge-slug" name="slug" type="text" required
+            <input class="admin-input" id="challenge-slug" spellcheck="false" name="slug" type="text" required
                    aria-describedby="slug-hint slug-error"
                    placeholder="e.g. criterion-of-embarrassment">
             <span class="admin-form-hint" id="slug-hint">URL-friendly identifier. Auto-generated from title.</span>
@@ -173,7 +168,7 @@
 
           <div class="admin-form-group">
             <label class="admin-form-group__label" for="challenge-summary">Summary</label>
-            <textarea class="admin-textarea" id="challenge-summary" name="challenge_summary" rows="8"
+            <textarea class="admin-textarea" id="challenge-summary" spellcheck="true" name="challenge_summary" rows="8"
                       aria-describedby="summary-hint"
                       placeholder="Write a brief summary of this challenge…"></textarea>
             <span class="admin-form-hint" id="summary-hint">A short overview of the challenge.</span>
@@ -181,7 +176,7 @@
 
           <div class="admin-form-group">
             <label class="admin-form-group__label" for="challenge-body">Body</label>
-            <textarea class="admin-textarea" id="challenge-body" name="challenge_body" rows="16"
+            <textarea class="admin-textarea" id="challenge-body" spellcheck="true" name="challenge_body" rows="16"
                       aria-describedby="body-hint"
                       placeholder="Write the full challenge here…"></textarea>
             <span class="admin-form-hint" id="body-hint">The full challenge shown on the challenge's own page. Supports <code>[figure]</code> images and <code>[mla:N]</code> inline citations.</span>
@@ -224,7 +219,7 @@
 
           <div class="admin-form-group">
             <label class="admin-form-group__label" for="challenge-keywords">Keywords</label>
-            <input class="admin-input" id="challenge-keywords" name="metadata_keywords" type="text"
+            <input class="admin-input" id="challenge-keywords" spellcheck="false" name="metadata_keywords" type="text"
                    aria-describedby="kw-hint"
                    placeholder="e.g. criterion, embarrassment, historical jesus">
             <span class="admin-form-hint" id="kw-hint">Comma-separated search keywords.</span>
@@ -263,14 +258,6 @@
     var slugError = document.getElementById('slug-error');
     var challengePicker = AdminImagePicker.mount(document.getElementById('challenge-picker'), { initialPath: '', captionField: true });
 
-    // Spellcheck: init the system and attach to the summary and body textareas
-    var summaryInput = document.getElementById('challenge-summary');
-    var bodyInput = document.getElementById('challenge-body');
-    await SpellcheckController.init();
-    SpellcheckController.attach(summaryInput);
-    SpellcheckController.attach(bodyInput);
-
-    // Wire the Insert Image button into the body textarea
     AdminInsertImage.wire('#insert-image-btn', '#challenge-body');
 
     // Images panel — mounted after the insert flow so inserts and the
@@ -282,13 +269,11 @@
       );
     }
 
-    // MLA Bibliography panel (new record starts with no sources)
     var mlaSourcesPanel = AdminMlaSources.mount(
       document.getElementById('mla-sources-mount'),
       { initialSourceIds: [] }
     );
 
-    // Formatting Reference panel
     var formattingRefMount = document.createElement('div');
     var sidebarEl = document.querySelector('.admin-form-grid__sidebar');
     if (sidebarEl) {
