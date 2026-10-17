@@ -65,7 +65,7 @@ Admin browser  ──GET──▶ admin/   (static HTML/JS) ──Admin.api.*─
 AI agents ──MCP tools──▶ mcp-server/ ──HTTP──▶ api/ ───────────────────┘
 ```
 
-Both frontends fetch **relative** `/api/...` URLs. In production, nginx (`deploy/nginx.conf`) serves the static files and proxies `/api/` to Express. nginx strips the `/api` prefix, so Express mounts its routes without it. `dev-proxy.js` does the same locally. The MCP server does **not** touch the database directly. Its tools call the same public HTTP API (`API_BASE_URL`), so they obey the API's publishing rules.
+Both frontends fetch **relative** `/api/...` URLs. In production, nginx (`deploy/nginx.conf`) serves the static files and proxies `/api/` to Express. nginx strips the `/api` prefix, so Express mounts its routes without it. `dev-proxy.js` does the same locally. The MCP server does **not** touch the database directly. Its tools call the same public HTTP API (`API_BASE_URL`), so they obey the API's publishing rules. On the VPS the default `http://localhost:3000` reaches Express directly, with no `/api` prefix. A client that goes through nginx or `dev-proxy.js` must add `/api` itself.
 
 ### Cross-module patterns
 

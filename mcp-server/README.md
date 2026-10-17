@@ -131,7 +131,7 @@ node --env-file=.env server.js --stdio
 
 | Variable | Default | Description |
 |---|---|---|
-| `API_BASE_URL` | `http://localhost:3000/api` | Base URL of the thejesuswebsite JSON API. Set to `https://www.thejesuswebsite.org/api` for production. |
+| `API_BASE_URL` | `http://localhost:3000` | Base URL of the thejesuswebsite JSON API. Express has no `/api` prefix; only nginx and `dev-proxy.js` add and strip it. Use `http://localhost:4179/api` through `dev-proxy.js`, or `https://www.thejesuswebsite.org/api` through nginx. |
 | `PORT` | `3100` | Port for the Streamable HTTP server. Ignored in `--stdio` mode. |
 
 Three ways to load env vars:
@@ -213,7 +213,7 @@ during development), use stdio mode:
         "path": "node",
         "args": ["/absolute/path/to/mcp-server/server.js", "--stdio"],
         "env": {
-          "API_BASE_URL": "http://localhost:3000/api"
+          "API_BASE_URL": "http://localhost:3000"
         }
       }
     }
@@ -230,7 +230,7 @@ during development), use stdio mode:
       "command": "node",
       "args": ["/absolute/path/to/mcp-server/server.js", "--stdio"],
       "env": {
-        "API_BASE_URL": "http://localhost:3000/api"
+        "API_BASE_URL": "http://localhost:3000"
       }
     }
   }

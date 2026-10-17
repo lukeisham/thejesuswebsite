@@ -15,10 +15,10 @@
 //   exp_backoff_restart_delay 1000
 //                    wait 1s, then longer, between restarts (up to 15s)
 //
-// The API and the MCP server load their settings from the project-root .env
-// (api/config/load-env.js), so this file sets no env for the API. The MCP
-// server gets an explicit PORT so a PORT from another environment cannot move
-// it onto the API's port.
+// The API loads its settings from the project-root .env (api/config/load-env.js),
+// so this file sets no env for the API. The MCP server does not read .env: it
+// gets an explicit PORT so a PORT from another environment cannot move it onto
+// the API's port, and it uses its default API_BASE_URL (Express on localhost:3000).
 
 const fs = require("fs");
 

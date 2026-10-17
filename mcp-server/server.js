@@ -4,8 +4,10 @@
 // derives the tool list from that shape, so adding a tool never touches the
 // loop itself. Serves via Streamable HTTP transport (the 2025 MCP spec
 // addition), with a stdio mode for local development — see the --stdio flag
-// below. The API base URL is read from the API_BASE_URL environment variable
-// with a localhost default.
+// below. The API base URL is read from the API_BASE_URL environment variable.
+// The default is Express itself, which has no /api prefix. Only nginx and
+// dev-proxy.js add and strip /api, so a client that goes through them must
+// set API_BASE_URL with the /api suffix.
 
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
@@ -16,7 +18,7 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { createServer } from "node:http";
 
-const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:3000/api";
+const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:3000";
 const PORT = parseInt(process.env.PORT || "3100", 10);
 
 // --- Tool registry -----------------------------------------------------------

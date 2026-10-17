@@ -268,7 +268,7 @@ describe("HTTP server", () => {
       env: {
         ...process.env,
         PORT: String(TEST_PORT),
-        API_BASE_URL: "http://localhost:3000/api",
+        API_BASE_URL: "http://localhost:3000",
       },
       stdio: "pipe",
     });
