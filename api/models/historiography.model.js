@@ -32,6 +32,7 @@ const WRITABLE_COLUMNS = [
   "two_column",
   "doi",
   "author_bio",
+  "abstract",
   "historiography_period",
   "period_sort_order",
 ];
@@ -143,6 +144,7 @@ function getAdminById(id) {
 function assembleDetail(item) {
   return {
     ...item,
+    footnotes: getChildren("historiography_footnotes", "historiography_id", item.id),
     breakouts: getChildren(
       "historiography_breakouts",
       "historiography_id",
@@ -217,6 +219,15 @@ function createComposite(data) {
       breakouts,
       ["title", "content"],
     );
+
+    // Footnotes are replaced only when the key is present (the admin editors
+    // always send it), so a save from another client
+    // cannot wipe them. See setup/ARCHITECTURE/journal-article-fields.md.
+    if (data.footnotes !== undefined) {
+      replaceChildren("historiography_footnotes", "historiography_id", itemId, data.footnotes, [
+        "content",
+      ]);
+    }
     replaceLinks(
       "historiography_mla_sources",
       "historiography_id",
@@ -298,6 +309,15 @@ function updateComposite(id, data) {
       breakouts,
       ["title", "content"],
     );
+
+    // Footnotes are replaced only when the key is present (the admin editors
+    // always send it), so a save from another client
+    // cannot wipe them. See setup/ARCHITECTURE/journal-article-fields.md.
+    if (data.footnotes !== undefined) {
+      replaceChildren("historiography_footnotes", "historiography_id", id, data.footnotes, [
+        "content",
+      ]);
+    }
     replaceLinks(
       "historiography_mla_sources",
       "historiography_id",

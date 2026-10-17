@@ -131,6 +131,7 @@ git already is one.
 | [`Website_guide.md`](Website_guide.md) | Entry point — project map, cross-module patterns, deploy flow, workflow, caching, accessibility |
 | [`image-display.md`](image-display.md) | Figures vs thumbnails — the two image patterns, figure numbering, lazy loading |
 | [`esv-api.md`](esv-api.md) | ESV verse proxy and the `data-esv-ref` client contract |
+| [`journal-article-fields.md`](journal-article-fields.md) | Abstract, response strength and footnotes: columns, the `[fn:N]` marker, validation limits shared with the admin |
 | [`node-cluster-logic.md`](node-cluster-logic.md) | Timeline/map/arbor cluster placement, labels, edge routing |
 | [`error-notification.md`](error-notification.md) | Route error codes, the not-found code contract, and how pages show failures |
 | [`wikipedia-ranking-pipeline.md`](wikipedia-ranking-pipeline.md) | Scoring pipeline, deploy-time import, vector sidecar and store sync |

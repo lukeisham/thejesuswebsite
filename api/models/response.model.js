@@ -33,6 +33,8 @@ const WRITABLE_COLUMNS = [
   "two_column",
   "doi",
   "author_bio",
+  "abstract",
+  "strength",
 ];
 
 /**
@@ -86,6 +88,28 @@ function getById(id) {
 }
 
 /**
+ * Add the names frontend/assets/js/response-detail.js reads (title, author,
+ * body, keywords, bibliography) next to the raw column names. The raw names
+ * stay because the admin and existing callers read them. Used only by the
+ * public detail read; the admin read keeps raw names.
+ */
+function addPublicNames(detail) {
+  return {
+    ...detail,
+    title: detail.response_title,
+    author: detail.response_author,
+    body: detail.response_content,
+    keywords: detail.metadata_keywords
+      ? detail.metadata_keywords
+          .split(",")
+          .map((k) => k.trim())
+          .filter(Boolean)
+      : [],
+    bibliography: detail.mla_sources,
+  };
+}
+
+/**
  * Full detail for public consumption — the base response row plus all related
  * breakouts, pictures, mla_sources, identifiers, and internal links
  * (evidence + context). Filters to published_draft = 1 at the base level.
@@ -97,7 +121,7 @@ function getById(id) {
 function getDetailBySlug(slug) {
   const response = getBySlug(slug);
   if (!response) return undefined;
-  return assembleDetail(response);
+  return addPublicNames(assembleDetail(response));
 }
 
 /**
@@ -125,6 +149,7 @@ function getAdminById(id) {
 function assembleDetail(response) {
   return {
     ...response,
+    footnotes: getChildren("response_footnotes", "response_id", response.id),
     breakouts: getChildren("response_breakouts", "response_id", response.id),
     mla_sources: getLinkedMlaSources(
       "response_mla_sources",
@@ -181,6 +206,7 @@ function create(data) {
  *
  * Accepts the same base fields as create() plus optional arrays:
  *   breakouts: [{ title, content }]
+ *   footnotes: [{ content }]  (replaced only when the key is present)
  *   mla_source_ids: [id, ...]
  *   identifier_ids: [id, ...]
  *   link_evidence_ids: [id, ...]
@@ -205,6 +231,15 @@ function createComposite(data) {
       breakouts,
       ["title", "content"],
     );
+
+    // Footnotes are replaced only when the key is present (the admin editors
+    // always send it), so a save from another client
+    // cannot wipe them. See setup/ARCHITECTURE/journal-article-fields.md.
+    if (data.footnotes !== undefined) {
+      replaceChildren("response_footnotes", "response_id", responseId, data.footnotes, [
+        "content",
+      ]);
+    }
     replaceLinks(
       "response_mla_sources",
       "response_id",
@@ -288,6 +323,15 @@ function updateComposite(id, data) {
       "title",
       "content",
     ]);
+
+    // Footnotes are replaced only when the key is present (the admin editors
+    // always send it), so a save from another client
+    // cannot wipe them. See setup/ARCHITECTURE/journal-article-fields.md.
+    if (data.footnotes !== undefined) {
+      replaceChildren("response_footnotes", "response_id", id, data.footnotes, [
+        "content",
+      ]);
+    }
     replaceLinks(
       "response_mla_sources",
       "response_id",

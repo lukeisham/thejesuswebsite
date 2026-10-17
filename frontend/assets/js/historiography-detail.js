@@ -14,6 +14,7 @@ import { renderBadge } from "./utils/templates.js";
 import { numberFigures } from "./utils/figures.js";
 import { showToast } from "./utils/toasts.js";
 import { parseContentBody } from "./utils/content-markers.js";
+import { footnoteListHTML } from "./utils/footnotes.js";
 import { formatMlaCitation } from "./utils/mla.js";
 
 // ─── DOM refs (cached — JS-6) ───────────────────────────────────────────────
@@ -195,6 +196,7 @@ function renderBody(article) {
   const htmlContent = parseContentBody(article.body, {
     mlaSources: article.mla_sources || [],
     identifiers: article.identifiers || [],
+    footnotes: article.footnotes || [],
     citationStyle: "superscript",
     useMarkdown: true,
   });
@@ -214,9 +216,8 @@ function renderFootnotes(article) {
   }
   if ($footnotes) $footnotes.hidden = false;
   if ($footnotesList) {
-    $footnotesList.innerHTML = article.footnotes
-      .map((fn) => html`<li>${fn}</li>`)
-      .join("");
+    // Runs after renderBody(), so the helper can find the rendered fnref ids.
+    $footnotesList.innerHTML = footnoteListHTML(article.footnotes, $body);
   }
 }
 

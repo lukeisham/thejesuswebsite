@@ -23,6 +23,31 @@
   margin-bottom: var(--space-xs);
 }
 
+/* Return arrow. The id it points to (fnref-N) is created by
+   frontend/assets/js/utils/content-markers.js; the link is built by
+   frontend/assets/js/utils/footnotes.js. */
+.footnote-backref {
+  display: inline-block;
+  min-width: 36px;
+  min-height: 36px;
+  margin-left: var(--space-xs);
+  text-align: center;
+  line-height: 36px;
+  color: var(--link);
+  text-decoration: none;
+  vertical-align: middle;
+}
+
+.footnote-backref:hover {
+  color: var(--link-hover);
+}
+
+@media print {
+  .footnote-backref {
+    display: none;
+  }
+}
+
 /* -------------------------------------------------------------------------
    Bibliography / References
    ------------------------------------------------------------------------- */

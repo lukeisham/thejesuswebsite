@@ -20,6 +20,7 @@ var AdminShortcodeHelp = window.AdminShortcodeHelp;
  * - Plain [figure], floated [figure ... align="right"]
  * - [mla:N] (inline citation)
  * - [id:N] (inline identifier badge)
+ * - [fn:N] (footnote link; N is the position in the Footnotes list)
  *
  * @param {Element} container - DOM element to append the panel into
  */
@@ -62,6 +63,10 @@ AdminShortcodeHelp.mountFormattingReference = function (container) {
     {
       label: "MLA Citation (inline, superscript link to bibliography)",
       code: "...as Meyers notes[mla:7], the inscription dates to...",
+    },
+    {
+      label: "Footnote (essays, responses, historiography: N = position in the Footnotes list)",
+      code: "...the claim is disputed[fn:1], but most scholars agree...",
     },
     {
       label: "Identifier Badge (inline, shows manuscript/IAA/Pleiades label)",

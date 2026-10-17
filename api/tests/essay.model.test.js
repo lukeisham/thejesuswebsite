@@ -344,6 +344,7 @@ describe("essay: named-column reads return exactly the expected keys", () => {
     "two_column",
     "doi",
     "author_bio",
+    "abstract",
     "created_at",
     "updated_at",
   ].sort();
@@ -358,6 +359,7 @@ describe("essay: named-column reads return exactly the expected keys", () => {
     "two_column",
     "doi",
     "author_bio",
+    "abstract",
     "created_at",
     "updated_at",
     "title",

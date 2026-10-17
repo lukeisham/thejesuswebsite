@@ -1,0 +1,54 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Admin Footnotes Panel
+   CSS for the ordered footnote list widget (admin-footnotes-panel.js), used in
+   the essay, response and historiography editors. Uses --admin-* and --space-*
+   tokens only.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.afn-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.afn-panel__hint {
+    display: block;
+}
+
+.afn-panel__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+}
+
+.afn-panel__item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    padding: var(--space-sm);
+    background: var(--admin-bg);
+    border: 1px solid var(--admin-border-light);
+    border-radius: var(--admin-radius-sm);
+}
+
+.afn-panel__marker {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--admin-text-secondary);
+}
+
+.afn-panel__actions {
+    display: flex;
+    gap: var(--space-xs);
+}
+
+.afn-panel__add {
+    align-self: flex-start;
+}
+
+.afn-card {
+    margin-top: var(--space-md);
+}

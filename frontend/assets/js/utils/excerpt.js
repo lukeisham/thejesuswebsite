@@ -2,7 +2,7 @@
  * Plain-text-first excerpt builder for markdown blog bodies.
  *
  * blog_content is markdown, not HTML — stripping tags alone leaves raw
- * `##`, `**`, `|` table pipes and `[mla:N]` markers visible in summary
+ * `##`, `**`, `|` table pipes and `[mla:N]` / `[fn:N]` markers visible in summary
  * cards. renderExcerpt() removes shortcodes/block syntax, truncates the
  * remaining plain text at a word boundary, then applies **bold** / *italic*
  * formatting to what's left.
@@ -29,7 +29,7 @@ function stripToPlainText(markdown) {
 
   // Shortcode markers
   text = text.replace(/\[figure[^\]]*\]/g, "");
-  text = text.replace(/\[(?:mla|id):\d+\]/g, "");
+  text = text.replace(/\[(?:mla|id|fn):\d+\]/g, "");
   text = text.replace(/\[pullquote\]([\s\S]*?)\[\/pullquote\]/g, "$1");
 
   const lines = text.split("\n").filter((line) => {

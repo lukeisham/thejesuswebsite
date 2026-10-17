@@ -50,3 +50,19 @@
 .strength-dot.filled {
   background: var(--accent);
 }
+
+/* The global print reset clears background colour and browsers skip
+   backgrounds when printing, so the filled dots would vanish. Print them as
+   black circles: filled solid, empty outlined (Style guide §12). */
+@media print {
+  .strength-dot {
+    border: 1px solid var(--color-black);
+    background: transparent;
+  }
+
+  .strength-dot.filled {
+    background: var(--color-black);
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}

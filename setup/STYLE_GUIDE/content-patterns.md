@@ -55,7 +55,7 @@ Essays render as journal articles. The root element is `<article class="journal-
   - **Byline**: author name, `0.9375rem`, `--text-secondary`. An optional author bio sits below it: `--text-xs`, italic, `--text-muted`, at most `400px` wide.
   - **Date**: `--text-xs`, `--text-muted`, long form such as "15 June 2025". It shows the publish date, or the creation date when none exists. No "Published" prefix. No revision date.
   - **DOI line** (optional): `DOI: <value>`, `--text-2xs`, `--text-muted`. Hidden when the row has no DOI.
-  - **Abstract**: a block at most `--measure-reading` wide, `--bg-surface-alt` fill, `1px solid var(--border)`, `--radius-md`, `--space-lg` padding. Label "Abstract" at `--text-h4`, weight 600. Body `0.9375rem`, `--text-secondary`, `--leading-body`. No database column feeds the abstract today, so the block stays hidden.
+  - **Abstract**: a block at most `--measure-reading` wide, `--bg-surface-alt` fill, `1px solid var(--border)`, `--radius-md`, `--space-lg` padding. Label "Abstract" at `--text-h4`, weight 600. Body `0.9375rem`, `--text-secondary`, `--leading-body`. The text comes from the `abstract` column (plain text, at most 2000 characters). The block is hidden when the column is empty. The page description uses the abstract when one exists.
   - **Keywords**: label "Keywords:" (`--text-2xs`, weight 600, `--text-secondary`) followed by Content Badges (§8) on one wrapping line. The list comes from the `metadata_keywords` column, split on commas. Hidden when empty.
 - **Reading column**: `--measure-reading` (680px), centered, `--space-md` side padding. Body text `1rem` (`0.9375rem` below `768px`), `--leading-long` (1.7), `--text-primary`, paragraphs spaced by `--space-md`.
 - **Two-column layout** (≥1280px): set per row by the `two_column = 1` flag on essays, responses and historiography (admin checkbox). The body gets 2 columns, `--space-2xl` gap and a `1px solid var(--border)` rule between them, and it drops the column width cap. Figures and block quotes span both columns. The title block, abstract and keywords stay single column. Below `1280px` the body is one column.
@@ -70,7 +70,7 @@ Essays render as journal articles. The root element is `<article class="journal-
   - Italic, `--text-secondary`. Padding `--space-md --space-lg`. Margin `--space-lg 0`.
   - A `<footer>` or `<cite>` inside the quote shows the attribution: `--text-xs`, `--text-muted`, not italic, on its own line.
 - **Figures**: the Pictures / Figures component (§8). Numbering runs through the whole essay.
-- **Footnotes**: a `1px solid var(--border)` rule with `--space-lg` margin above and below, then an ordered list in `--text-xs`, `--text-secondary`, `--leading-small`. No content field supplies footnotes today, so the section stays hidden. Citations use `[mla:N]` markers (§14).
+- **Footnotes**: a `1px solid var(--border)` rule with `--space-lg` margin above and below, then an ordered list in `--text-xs`, `--text-secondary`, `--leading-small`. The items come from the item's footnote table (at most 100, each plain text of at most 1000 characters). The section is hidden when the item has no footnotes. A `[fn:N]` marker in the body (§14) is a superscript link to item N. Each item has a return arrow (`↩`) to the first marker that cites it, shown only when a marker cites it. Citations use `[mla:N]` markers (§14).
 - **References**: `h2.unnumbered` "References". Hanging-indent list: `--text-small`, `--text-secondary`, line height `1.6`, no bullets, `1.5rem` indent. Entries are the linked MLA sources, formatted in MLA style. An `[mla:N]` marker links to its entry. Hidden when no source is linked.
 - **Empty state**: "This essay is forthcoming." in `--text-muted`, centered.
 - **Listing page**: a `journal-header` heading block, then `.card-grid.essays-card-grid` (at most `--measure-reading` wide). Each card shows a type badge.
@@ -99,7 +99,7 @@ Two ranked list pages (`popular-challenges.html`, `academic-challenges.html`) sh
 Responses render exactly like Essays, with these additions.
 
 - **Challenge reference**: a bar below the keywords, at most `--measure-reading` wide: "In response to:" (weight 600) and a `--link` link to the challenge. `--bg-surface-alt` fill, `1px solid var(--border)`, `--radius-sm`, `--space-sm --space-md` padding, `--text-small`. Margin below: `--space-xl`.
-- **Strength indicator**: the label "Strength of response:" and 5 dots (`8px`; filled `--accent`, empty `--border`), `--text-xs`, `--text-muted`. No database column supplies the rating today, so the row stays hidden.
+- **Strength indicator**: the label "Strength of response:" and 5 dots (`8px`; filled `--accent`, empty `--border`), `--text-xs`, `--text-muted`. The rating comes from the `strength` column on responses (a whole number from 1 to 5). The row is hidden when the column is empty. The dots carry `role="img"` and an `aria-label` such as "Strength of response: 3 of 5", because colour alone shows the value.
 - **Empty state**: "This response is forthcoming."
 
 **Historiography Pages (Journal Article Format)**:

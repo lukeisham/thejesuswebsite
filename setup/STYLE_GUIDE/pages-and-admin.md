@@ -78,6 +78,7 @@ The footer's Print button calls `window.print()`.
 - No shadows, no border-radius, no background fills.
 - Breakout blocks: inline, no fill, `3px solid var(--border-strong)` left border.
 - Body tables: solid black cell borders.
+- Strength dots on response pages print as black circles: filled solid, empty outlined. Footnote return arrows (`↩`) do not print.
 - Timeline, Arbor and Maps: controls hidden; dots, nodes and pins print in black.
 
 **Page breaks**:

@@ -352,6 +352,16 @@ const CATEGORY_1 = {
     detail: "The items field must be a non-empty array of objects, each with an integer id and integer sort_order.",
     severity: "error",
   },
+
+  INVALID_BODY_FIELD: {
+    code: "E-INPUT-038",
+    category: 1,
+    httpStatus: 400,
+    message: "A field in your request has an invalid value.",
+    detail:
+      "A body field had the wrong type, was blank, or held too many items. The context field names the field.",
+    severity: "error",
+  },
 };
 
 // ── Category 2: Transformation Boundaries (Data Processing) ─────────────────

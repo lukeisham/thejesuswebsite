@@ -32,6 +32,13 @@ describe("renderExcerpt", () => {
     assert.ok(result.includes("<em>italic</em>"));
   });
 
+  test("[fn:N] markers are removed", async () => {
+    const { renderExcerpt } = await import("../../frontend/assets/js/utils/excerpt.js");
+    const result = renderExcerpt("A claim[fn:3] with a note.", 150);
+    assert.ok(!result.includes("[fn:"));
+    assert.ok(result.includes("A claim"));
+  });
+
   test("[mla:N] and [id:N] markers are removed", async () => {
     const { renderExcerpt } = await import("../../frontend/assets/js/utils/excerpt.js");
     const result = renderExcerpt("As Meyers notes[mla:7], the inscription[id:12] dates early.", 150);

@@ -119,6 +119,8 @@ CREATE TABLE responses (
     two_column         INTEGER DEFAULT 0 CHECK (two_column IN (0, 1)),
     doi                TEXT,
     author_bio         TEXT,
+    abstract           TEXT,
+    strength           INTEGER CHECK (strength IS NULL OR strength BETWEEN 1 AND 5),
     created_at         DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at         DATETIME DEFAULT CURRENT_TIMESTAMP,
     CHECK (published_draft = 0 OR challenge_id IS NOT NULL)
@@ -138,6 +140,7 @@ CREATE TABLE context_essays (
     two_column       INTEGER DEFAULT 0 CHECK (two_column IN (0, 1)),
     doi              TEXT,
     author_bio       TEXT,
+    abstract         TEXT,
     created_at       DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at       DATETIME DEFAULT CURRENT_TIMESTAMP
 );
@@ -174,6 +177,7 @@ CREATE TABLE historiography (
     two_column            INTEGER DEFAULT 0 CHECK (two_column IN (0, 1)),
     doi                   TEXT,
     author_bio            TEXT,
+    abstract              TEXT,
     historiography_period TEXT CHECK (historiography_period IN (
                               'early-church',
                               'medieval',
@@ -623,6 +627,30 @@ CREATE TABLE historiography_breakouts (
     content           TEXT
 );
 
+-- Footnote child tables. A body marker [fn:N] points to the footnote at list
+-- position N (sort_order + 1), because replaceChildren() re-inserts rows on
+-- every save and the row ids change.
+CREATE TABLE essay_footnotes (
+    id               INTEGER PRIMARY KEY AUTOINCREMENT,
+    context_essay_id INTEGER NOT NULL REFERENCES context_essays(id) ON DELETE CASCADE,
+    sort_order       INTEGER NOT NULL DEFAULT 0,
+    content          TEXT NOT NULL
+);
+
+CREATE TABLE response_footnotes (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    response_id INTEGER NOT NULL REFERENCES responses(id) ON DELETE CASCADE,
+    sort_order  INTEGER NOT NULL DEFAULT 0,
+    content     TEXT NOT NULL
+);
+
+CREATE TABLE historiography_footnotes (
+    id                INTEGER PRIMARY KEY AUTOINCREMENT,
+    historiography_id INTEGER NOT NULL REFERENCES historiography(id) ON DELETE CASCADE,
+    sort_order        INTEGER NOT NULL DEFAULT 0,
+    content           TEXT NOT NULL
+);
+
 -- =====================
 -- ARBOR DIAGRAM
 -- =====================
@@ -750,6 +778,11 @@ CREATE INDEX idx_response_breakouts        ON response_breakouts (response_id);
 CREATE INDEX idx_essay_breakouts           ON essay_breakouts (context_essay_id);
 CREATE INDEX idx_blog_breakouts            ON blog_breakouts (blog_post_id);
 CREATE INDEX idx_historiography_breakouts  ON historiography_breakouts (historiography_id);
+
+-- Footnote child tables
+CREATE INDEX idx_essay_footnotes           ON essay_footnotes (context_essay_id);
+CREATE INDEX idx_response_footnotes        ON response_footnotes (response_id);
+CREATE INDEX idx_historiography_footnotes  ON historiography_footnotes (historiography_id);
 
 -- Resource lists
 CREATE INDEX idx_resources_list_key             ON resources (list_key);

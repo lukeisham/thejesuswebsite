@@ -56,6 +56,16 @@ According to recent scholarship[mla:7], the inscription dates...
 - Blog posts: an inline `(Author)`, or `(Source N)` when the source has no author. Blogs have no footnotes.
 - A marker for a source that is not linked renders nothing.
 
+##### Footnote — `[fn:N]`
+
+```
+The date is disputed[fn:1], but most scholars agree...
+```
+
+- `N` is the **position** of the footnote in the item's footnote list (1 is the first). It is not a row id.
+- Essays, responses and historiography only. A superscript link to the list item (`#fn-N`). The first marker for each `N` carries `id="fnref-N"`, which the footnote's return arrow links to.
+- A number with no footnote renders nothing. Blog posts and other types have no footnotes, so a marker there renders nothing.
+
 ##### Identifier — `[id:N]`
 
 ```
@@ -79,10 +89,11 @@ A marker resolves only against rows linked to the same item.
 | Blog post | `blog_post_mla_sources` | `blog_post_identifiers` |
 | Challenge | `challenge_mla_sources` | `challenge_identifiers` |
 
+Footnotes are not linked rows. Each of essays, responses and historiography has its own footnote table (`essay_footnotes`, `response_footnotes`, `historiography_footnotes`), and `[fn:N]` resolves by list position within that table.
 ### Rules
 
 1. **Markers reference linked rows only.** `[mla:N]` must match an `mla_sources.id` linked to the item. `[id:N]` must match an `identifiers.id` linked to the item. Anything else renders nothing.
-2. **Markers resolve in the browser, at render time.** The database stores the body text unchanged. A marker holds a row `id`, not a position, so reordering the bibliography does not change what a marker points to.
+2. **Markers resolve in the browser, at render time.** The database stores the body text unchanged. A marker holds a row `id`, not a position, so reordering the bibliography does not change what a marker points to. The exception is `[fn:N]`: it holds a list position, because the save logic re-creates the footnote rows and their ids change. After an author moves or removes a footnote, the author must update the `[fn:N]` markers.
 3. **Figure numbering** runs after the body renders. Every `<figure>` in the container counts, including floated figures (§8 Pictures / Figures).
 
 ### Examples
@@ -94,7 +105,7 @@ The archaeological evidence for first-century Nazareth is limited but significan
 
 [figure src="/assets/images/nazareth-farm.webp" caption="Remains of a first-century farmstead near Nazareth." align="right"]
 
-Recent excavations have uncovered several structures dating to the early Roman period[id:12]. As Meyers notes[mla:7], the agricultural nature of the settlement is well-attested.
+Recent excavations have uncovered several structures dating to the early Roman period[id:12]. As Meyers notes[mla:7], the agricultural nature of the settlement is well-attested[fn:1].
 
 However, some scholars dispute the dating of these structures[mla:15], arguing for a later period of construction.
 ```

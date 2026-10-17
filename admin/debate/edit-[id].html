@@ -19,6 +19,7 @@
         <script defer src="../assets/js/admin-figure-captions.js"></script>
         <script defer src="../assets/js/admin-insert-image.js"></script>
         <script defer src="../assets/js/admin-mla-sources.js"></script>
+        <script defer src="../assets/js/admin-footnotes-panel.js"></script>
         <script defer src="../assets/js/admin-shortcode-help.js"></script>
         <script type="module" src="../assets/js/admin-toasts.js"></script>
     </head>
@@ -96,6 +97,15 @@
                             placeholder: "e.g. response-minimal-facts",
                             hint: "URL-friendly identifier.",
                             value: data.slug || "",
+                        });
+                        AdminFormBuilder.addTextarea(contentCard, {
+                            id: "response-abstract",
+                            label: "Abstract",
+                            placeholder: "A short summary of the article…",
+                            hint: "Plain text, one paragraph, up to 2000 characters. Shown in a box above the article, and used as the page description.",
+                            rows: 6,
+                            maxLength: 2000,
+                            value: data.abstract || "",
                         });
                         AdminFormBuilder.addTextarea(contentCard, {
                             id: "response-content",
@@ -184,6 +194,21 @@
                             "Render the article body in two columns on wide screens (see STYLE_GUIDE/content-patterns.md §9).";
                         metaCard.appendChild(twoColHint);
 
+                        AdminFormBuilder.addSelectField(metaCard, {
+                            id: "response-strength",
+                            label: "Strength of response",
+                            hint: "How strongly this response answers the challenge: 1 is the weakest, 5 is the strongest. Leave as Not rated to hide the dots.",
+                            options: [
+                                { value: "", label: "Not rated" },
+                                { value: "1", label: "1 (weakest)" },
+                                { value: "2", label: "2" },
+                                { value: "3", label: "3" },
+                                { value: "4", label: "4" },
+                                { value: "5", label: "5 (strongest)" },
+                            ],
+                            selected: data.strength ? String(data.strength) : "",
+                        });
+
                         AdminFormBuilder.addField(metaCard, {
                             id: "response-doi",
                             label: "DOI / Citation",
@@ -202,6 +227,11 @@
                         var mlaSourcesPanel = AdminEditorUtils.mountMlaPanel(
                             sidebar,
                             data.mla_sources,
+                        );
+
+                        var footnotesPanel = AdminFootnotesPanel.mountCard(
+                            sidebar,
+                            data.footnotes,
                         );
 
                         AdminShortcodeHelp.mountFormattingReference(sidebar);
@@ -335,6 +365,9 @@
                             var challengeVal = document
                                 .getElementById("response-challenge")
                                 .value.trim();
+                            var strengthVal = document.getElementById(
+                                "response-strength",
+                            ).value;
                             return {
                                 response_title: titleInput.value.trim(),
                                 slug: slugInput.value.trim(),
@@ -364,6 +397,14 @@
                                             "response-author-bio",
                                         )
                                         .value.trim() || undefined,
+                                abstract:
+                                    document
+                                        .getElementById("response-abstract")
+                                        .value.trim() || null,
+                                footnotes: footnotesPanel.getFootnotes(),
+                                strength: strengthVal
+                                    ? parseInt(strengthVal, 10)
+                                    : null,
                                 published_draft: data.published_draft
                                     ? 1
                                     : 0,

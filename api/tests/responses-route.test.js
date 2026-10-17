@@ -106,3 +106,66 @@ describe("POST /responses", () => {
     assert.equal(result.body.error.code, "E-INPUT-001");
   });
 });
+
+describe("/responses journal article fields validation", () => {
+  test("POST with a too-long abstract returns 400 E-INPUT-022 naming abstract", async () => {
+    const result = await request(createApp(), {
+      method: "POST",
+      path: "/responses",
+      body: { slug: "response-long", abstract: "a".repeat(2001) },
+      headers: { cookie: authCookie() },
+    });
+    assert.equal(result.status, 400);
+    assert.equal(result.body.error.code, "E-INPUT-022");
+    assert.equal(result.body.error.context.field, "abstract");
+  });
+
+  test("PUT with a blank footnote returns 400 E-INPUT-038", async () => {
+    const result = await request(createApp(), {
+      method: "PUT",
+      path: "/responses/1",
+      body: { footnotes: [{ content: "  " }] },
+      headers: { cookie: authCookie() },
+    });
+    assert.equal(result.status, 400);
+    assert.equal(result.body.error.code, "E-INPUT-038");
+    assert.equal(result.body.error.context.field, "footnotes[0].content");
+  });
+
+  test("PUT with strength 6 returns 400 E-INPUT-005 naming strength", async () => {
+    const result = await request(createApp(), {
+      method: "PUT",
+      path: "/responses/1",
+      body: { strength: 6 },
+      headers: { cookie: authCookie() },
+    });
+    assert.equal(result.status, 400);
+    assert.equal(result.body.error.code, "E-INPUT-005");
+    assert.equal(result.body.error.context.field, "strength");
+  });
+
+  test("POST with a valid abstract and footnotes returns 201 with both saved", async () => {
+    const result = await request(createApp(), {
+      method: "POST",
+      path: "/responses",
+      body: {
+        slug: "response-ok",
+        abstract: "A fine abstract.",
+        footnotes: [{ content: "Note one." }],
+      },
+      headers: { cookie: authCookie() },
+    });
+    assert.equal(result.status, 201);
+    assert.equal(result.body.abstract, "A fine abstract.");
+    assert.equal(result.body.footnotes[0].content, "Note one.");
+  });
+
+  test("POST with the same bad body and no session cookie returns 401", async () => {
+    const result = await request(createApp(), {
+      method: "POST",
+      path: "/responses",
+      body: { slug: "response-anon", abstract: "a".repeat(2001) },
+    });
+    assert.equal(result.status, 401);
+  });
+});

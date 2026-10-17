@@ -32,6 +32,7 @@ const WRITABLE_COLUMNS = [
   "two_column",
   "doi",
   "author_bio",
+  "abstract",
 ];
 
 // SQL-9: named columns instead of SELECT * — the full WRITABLE_COLUMNS set
@@ -153,6 +154,7 @@ function getAdminById(id) {
 function assembleDetail(essay) {
   return {
     ...essay,
+    footnotes: getChildren("essay_footnotes", "context_essay_id", essay.id),
     breakouts: getChildren("essay_breakouts", "context_essay_id", essay.id),
     mla_sources: getLinkedMlaSources(
       "context_essay_mla_sources",
@@ -225,6 +227,7 @@ function update(id, data) {
  *
  * Accepts the same base fields as create() plus optional arrays:
  *   breakouts: [{ title, content }]
+ *   footnotes: [{ content }]  (replaced only when the key is present)
  *   mla_source_ids: [id, ...]
  *   identifier_ids: [id, ...]
  *   link_evidence_ids: [id, ...]
@@ -246,6 +249,15 @@ function createComposite(data) {
       "title",
       "content",
     ]);
+
+    // Footnotes are replaced only when the key is present (the admin editors
+    // always send it), so a save from another client
+    // cannot wipe them. See setup/ARCHITECTURE/journal-article-fields.md.
+    if (data.footnotes !== undefined) {
+      replaceChildren("essay_footnotes", "context_essay_id", essayId, data.footnotes, [
+        "content",
+      ]);
+    }
     replaceLinks(
       "context_essay_mla_sources",
       "context_essay_id",
@@ -312,6 +324,15 @@ function updateComposite(id, data) {
       "title",
       "content",
     ]);
+
+    // Footnotes are replaced only when the key is present (the admin editors
+    // always send it), so a save from another client
+    // cannot wipe them. See setup/ARCHITECTURE/journal-article-fields.md.
+    if (data.footnotes !== undefined) {
+      replaceChildren("essay_footnotes", "context_essay_id", id, data.footnotes, [
+        "content",
+      ]);
+    }
     replaceLinks(
       "context_essay_mla_sources",
       "context_essay_id",

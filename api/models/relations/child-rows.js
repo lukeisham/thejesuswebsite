@@ -7,13 +7,18 @@ const db = require('../../config');
 
 // SQL-4: identifiers interpolated into raw SQL below must come from these
 // hardcoded whitelists. Derived from every call site of getChildren/
-// replaceChildren across the models (all four breakout tables share the
-// title/content shape).
+// replaceChildren across the models (the breakout tables share the title/content
+// shape; the footnote tables use content only). A [fn:N] body marker points to
+// a footnote by list position, so the order from getChildren() is the public
+// numbering (setup/ARCHITECTURE/journal-article-fields.md).
 const CHILD_TABLES = new Set([
   'response_breakouts',
   'essay_breakouts',
   'blog_breakouts',
   'historiography_breakouts',
+  'essay_footnotes',
+  'response_footnotes',
+  'historiography_footnotes',
 ]);
 
 const CHILD_FK_COLUMNS = new Set([

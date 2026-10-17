@@ -19,6 +19,7 @@
         <script defer src="../assets/js/admin-figure-captions.js"></script>
         <script defer src="../assets/js/admin-insert-image.js"></script>
         <script defer src="../assets/js/admin-mla-sources.js"></script>
+        <script defer src="../assets/js/admin-footnotes-panel.js"></script>
         <script defer src="../assets/js/admin-shortcode-help.js"></script>
         <script type="module" src="../assets/js/admin-toasts.js"></script>
     </head>
@@ -124,6 +125,15 @@
                                 "e.g. Introduction|Background|Analysis",
                             hint: "Pipe-separated section headings for the table of contents.",
                             value: data.essay_headings || "",
+                        });
+                        AdminFormBuilder.addTextarea(contentCard, {
+                            id: "historiography-abstract",
+                            label: "Abstract",
+                            placeholder: "A short summary of the article…",
+                            hint: "Plain text, one paragraph, up to 2000 characters. Shown in a box above the article, and used as the page description.",
+                            rows: 6,
+                            maxLength: 2000,
+                            value: data.abstract || "",
                         });
                         AdminFormBuilder.addTextarea(contentCard, {
                             id: "historiography-content",
@@ -252,6 +262,11 @@
                         var mlaSourcesPanel = AdminEditorUtils.mountMlaPanel(
                             sidebar,
                             data.mla_sources,
+                        );
+
+                        var footnotesPanel = AdminFootnotesPanel.mountCard(
+                            sidebar,
+                            data.footnotes,
                         );
 
                         AdminShortcodeHelp.mountFormattingReference(sidebar);
@@ -426,6 +441,11 @@
                                               10,
                                           )
                                         : undefined,
+                                abstract:
+                                    document
+                                        .getElementById("historiography-abstract")
+                                        .value.trim() || null,
+                                footnotes: footnotesPanel.getFootnotes(),
                                 published_draft: data.published_draft
                                     ? 1
                                     : 0,

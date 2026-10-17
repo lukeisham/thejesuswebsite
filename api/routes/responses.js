@@ -1,11 +1,13 @@
 // Responses HTTP routes. This file only handles the request/response layer:
 // parse input, call the model, shape the response. All SQL lives in the model.
+// POST and PUT run validateJournalFields() first (lib/journal-field-validation.js).
 
 const express = require("express");
 const responseModel = require("../models/response.model");
 const requireAuth = require("../middleware/auth");
 const ERRORS = require("../lib/error-codes");
 const { sendError, sendValidationError } = require("../lib/error-handler");
+const { validateJournalFields } = require("../lib/journal-field-validation");
 
 const router = express.Router();
 
@@ -58,6 +60,10 @@ router.post("/", requireAuth, (req, res) => {
     if (!req.body.slug) {
       return sendError(res, ERRORS.MISSING_BODY_FIELD, { fields: ["slug"] });
     }
+    const problem = validateJournalFields(req.body, { allowStrength: true });
+    if (problem) {
+      return sendValidationError(res, problem.field, problem.errorDef, problem.extra);
+    }
     const created = responseModel.createComposite(req.body);
     res.status(201).json(created);
   } catch (error) {
@@ -69,6 +75,10 @@ router.post("/", requireAuth, (req, res) => {
 // PUT /responses/:id — update response (admin only)
 router.put("/:id", requireAuth, (req, res) => {
   try {
+    const problem = validateJournalFields(req.body, { allowStrength: true });
+    if (problem) {
+      return sendValidationError(res, problem.field, problem.errorDef, problem.extra);
+    }
     const updated = responseModel.updateComposite(
       Number(req.params.id),
       req.body,

@@ -42,6 +42,11 @@ import { escapeHTML } from "./escape-html.js";
  * ### Inline (anywhere inside paragraph prose)
  *   [mla:N]  — superscript citation link (or parenthetical for blogs)
  *   [id:N]   — inline identifier badge
+ *   [fn:N]   — superscript link to footnote N. N is the 1-based POSITION in the
+ *              item's footnote list, not a row id (the save logic re-inserts
+ *              footnote rows, so ids change). The first marker for each N gets
+ *              id="fnref-N"; utils/footnotes.js links back to it. Markdown.js
+ *              and excerpt.js list this marker too and must stay in step.
  *
  * ## Resolution
  * Markers are resolved against the arrays passed in options. A marker whose
@@ -56,6 +61,8 @@ import { escapeHTML } from "./escape-html.js";
  * @param {object} options
  * @param {Array<{id: number, citation?: string, author?: string, title?: string, ...}>} [options.mlaSources]
  * @param {Array<{id: number, label?: string, ...}>} [options.identifiers]
+ * @param {Array<{content: string}>} [options.footnotes] - The item's footnotes in
+ *   list order. A [fn:N] marker outside 1..footnotes.length renders nothing.
  * @param {'superscript'|'parenthetical'} [options.citationStyle='superscript']
  * @param {boolean} [options.pullQuotes=false] - Enable [pullquote] shortcode (blog only)
  * @param {boolean} [options.useMarkdown=false] - Run text through renderMarkdown()
@@ -77,6 +84,7 @@ export function parseContentBody(text, options = {}) {
   const {
     mlaSources = [],
     identifiers = [],
+    footnotes = [],
     citationStyle = "superscript",
     pullQuotes = false,
     useMarkdown = false,
@@ -92,6 +100,9 @@ export function parseContentBody(text, options = {}) {
   for (const id of identifiers) {
     if (id && typeof id.id === "number") idMap.set(id.id, id);
   }
+
+  // First-use tracker so only the first [fn:N] per N gets an id (ids must be unique).
+  const seenFootnotes = new Set();
 
   let processed = useMarkdown ? renderMarkdown(text) : text;
 
@@ -154,6 +165,8 @@ export function parseContentBody(text, options = {}) {
             mlaMap,
             idMap,
             citationStyle,
+            footnotes,
+            seenFootnotes,
           );
           // An inline [figure ...] shortcode (Step 2) may have expanded to
           // raw <figure> HTML inside this <p>. <figure> is a block element
@@ -176,6 +189,8 @@ export function parseContentBody(text, options = {}) {
         mlaMap,
         idMap,
         citationStyle,
+        footnotes,
+        seenFootnotes,
       ).replace(/\n/g, "<br>");
 
       return `<p>${innerHTML}</p>`;
@@ -233,7 +248,7 @@ function splitParagraphAroundFigures(resolved) {
 // ─── Inline marker resolution ────────────────────────────────────────────────
 
 /**
- * Find and replace [mla:N] and [id:N] markers within already-escaped text.
+ * Find and replace [mla:N], [id:N] and [fn:N] markers within already-escaped text.
  * Markers whose id is not found render nothing (JS-2).
  *
  * Each marker is wrapped with invisible hair-space `.sr-only` nodes so
@@ -245,9 +260,18 @@ function splitParagraphAroundFigures(resolved) {
  * @param {Map<number, object>} mlaMap
  * @param {Map<number, object>} idMap
  * @param {'superscript'|'parenthetical'} citationStyle
+ * @param {Array<{content: string}>} footnotes
+ * @param {Set<number>} seenFootnotes - Footnote numbers already linked in this body.
  * @returns {string} HTML with markers resolved
  */
-function resolveInlineMarkers(escapedText, mlaMap, idMap, citationStyle) {
+function resolveInlineMarkers(
+  escapedText,
+  mlaMap,
+  idMap,
+  citationStyle,
+  footnotes,
+  seenFootnotes,
+) {
   // We use a regex that matches both [mla:N] and [id:N]. The text is already escaped
   // so the brackets are literal. N must be a positive integer.
   // When we replace, we re-insert the marker content as raw HTML (escaped where needed).
@@ -255,7 +279,7 @@ function resolveInlineMarkers(escapedText, mlaMap, idMap, citationStyle) {
   const SPACER = '<span class="sr-only">&hairsp;</span>';
 
   return escapedText.replace(
-    /\[(mla|id):(\d+)\]/g,
+    /\[(mla|id|fn):(\d+)\]/g,
     (match, type, numStr) => {
       const n = parseInt(numStr, 10);
 
@@ -264,6 +288,9 @@ function resolveInlineMarkers(escapedText, mlaMap, idMap, citationStyle) {
       }
       if (type === "id") {
         return resolveIdMarker(n, idMap);
+      }
+      if (type === "fn") {
+        return resolveFootnoteMarker(n, footnotes, seenFootnotes);
       }
 
       // Unknown type — render nothing
@@ -294,6 +321,24 @@ function resolveMlaMarker(n, mlaMap, citationStyle) {
   return (
     `<span class="sr-only">&hairsp;</span>` +
     `<sup class="inline-citation"><a href="#mla-${n}">${label}</a></sup>` +
+    `<span class="sr-only">&hairsp;</span>`
+  );
+}
+
+/**
+ * Resolve an [fn:N] marker to a superscript link to the footnote list item
+ * `fn-N` (built by utils/footnotes.js). Reuses the .inline-citation style.
+ * Only the first marker for each N carries id="fnref-N", which is the target of
+ * the footnote's return link. A number with no footnote renders nothing.
+ */
+function resolveFootnoteMarker(n, footnotes, seenFootnotes) {
+  if (n < 1 || n > footnotes.length) return "";
+
+  const idAttr = seenFootnotes.has(n) ? "" : ` id="fnref-${n}"`;
+  seenFootnotes.add(n);
+  return (
+    `<span class="sr-only">&hairsp;</span>` +
+    `<sup class="inline-citation"><a href="#fn-${n}"${idAttr}>${n}</a></sup>` +
     `<span class="sr-only">&hairsp;</span>`
   );
 }

@@ -14,6 +14,7 @@ import { renderBadge } from "./utils/templates.js";
 import { numberFigures } from "./utils/figures.js";
 import { showToast } from "./utils/toasts.js";
 import { parseContentBody } from "./utils/content-markers.js";
+import { footnoteListHTML } from "./utils/footnotes.js";
 import { formatMlaCitation } from "./utils/mla.js";
 import { renderCreatedEditedLine } from "./utils/date-format.js";
 
@@ -210,7 +211,14 @@ function renderChallengeReference(response) {
 }
 
 function renderStrengthIndicator(response) {
-  if (!response.strength || typeof response.strength !== "number") {
+  const strength = response.strength;
+  // The API CHECK keeps strength at 1 to 5 or null; anything else is a contract break.
+  if (strength === null || strength === undefined) {
+    if ($strength) $strength.hidden = true;
+    return;
+  }
+  if (!Number.isInteger(strength) || strength < 1 || strength > 5) {
+    console.warn("response-detail: ignoring strength outside 1-5:", strength);
     if ($strength) $strength.hidden = true;
     return;
   }
@@ -220,10 +228,16 @@ function renderStrengthIndicator(response) {
     const maxDots = 5;
     let dotsHTML = "";
     for (let i = 1; i <= maxDots; i++) {
-      const filledClass = i <= response.strength ? "filled" : "";
+      const filledClass = i <= strength ? "filled" : "";
       dotsHTML += `<span class="strength-dot ${filledClass}"></span>`;
     }
     $strengthDots.innerHTML = dotsHTML;
+    // Colour alone shows the value, so give the dots a text name (WCAG 1.4.1).
+    $strengthDots.setAttribute("role", "img");
+    $strengthDots.setAttribute(
+      "aria-label",
+      `Strength of response: ${strength} of ${maxDots}`,
+    );
   }
 }
 
@@ -238,6 +252,7 @@ function renderBody(response) {
   const htmlContent = parseContentBody(response.body, {
     mlaSources: response.mla_sources || [],
     identifiers: response.identifiers || [],
+    footnotes: response.footnotes || [],
     citationStyle: "superscript",
     useMarkdown: true,
   });
@@ -257,9 +272,8 @@ function renderFootnotes(response) {
   }
   if ($footnotes) $footnotes.hidden = false;
   if ($footnotesList) {
-    $footnotesList.innerHTML = response.footnotes
-      .map((fn) => html`<li>${fn}</li>`)
-      .join("");
+    // Runs after renderBody(), so the helper can find the rendered fnref ids.
+    $footnotesList.innerHTML = footnoteListHTML(response.footnotes, $body);
   }
 }
 

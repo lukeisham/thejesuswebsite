@@ -18,9 +18,11 @@
  *     each line its own paragraph — no nesting, no multi-line continuation)
  *   - Paragraphs (text blocks separated by blank lines)
  *
- * Shortcode markers ([figure ...], [mla:N], [pullquote], [id:N]) are
+ * Shortcode markers ([figure ...], [mla:N], [pullquote], [id:N], [fn:N]) are
  * passed through untouched so that content-markers.js can resolve them
- * afterwards.
+ * afterwards. The marker list in escapePreservingMarkers() must match the
+ * markers content-markers.js resolves and excerpt.js strips; a marker missing
+ * here is HTML-escaped and never resolves.
  *
  * Safe HTML: output is plain HTML tags only — user-supplied text is
  * HTML-escaped before being wrapped in markdown-generated tags. No raw
@@ -42,9 +44,9 @@ import { escapeHTML } from "./escape-html.js";
  */
 function escapePreservingMarkers(text) {
   const markers = [];
-  // Match: [mla:N], [id:N], [figure ...], [pullquote]...[/pullquote]
+  // Match: [mla:N], [id:N], [fn:N], [figure ...], [pullquote]...[/pullquote]
   const protected_ = text.replace(
-    /(\[(?:mla|id):\d+\]|\[figure[^\]]*\]|\[pullquote\][\s\S]*?\[\/pullquote\])/g,
+    /(\[(?:mla|id|fn):\d+\]|\[figure[^\]]*\]|\[pullquote\][\s\S]*?\[\/pullquote\])/g,
     (match) => {
       markers.push(match);
       return `\x00MARKER${markers.length - 1}\x00`;

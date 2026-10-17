@@ -95,7 +95,9 @@ AdminFormBuilder.addField = function (container, opts) {
  *
  * @param {HTMLElement} container
  * @param {{id: string, label: string, required?: boolean, placeholder?: string,
- *   hint?: string, value?: string, rows?: number}} opts
+ *   hint?: string, value?: string, rows?: number, maxLength?: number}} opts
+ *   `maxLength` stops typing at that length. Where the API also limits the field,
+ *   the number must equal the API limit (e.g. api/lib/journal-field-validation.js).
  * @returns {HTMLElement|null} the field's wrapping div
  */
 AdminFormBuilder.addTextarea = function (container, opts) {
@@ -117,6 +119,7 @@ AdminFormBuilder.addTextarea = function (container, opts) {
   textarea.id = opts.id;
   textarea.placeholder = opts.placeholder || "";
   textarea.spellcheck = true;
+  if (opts.maxLength) textarea.maxLength = opts.maxLength;
   textarea.setAttribute("aria-describedby", hintId + " " + errId);
   if (opts.value !== undefined && opts.value !== null)
     textarea.value = opts.value;

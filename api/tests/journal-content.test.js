@@ -716,3 +716,167 @@ describe("historiography: composite CRUD", () => {
     assert.ok(items.some((i) => i.published_draft === 1));
   });
 });
+
+// ── Journal article fields: abstract, strength, footnotes ──────────────────
+
+describe("journal article fields: abstract and footnotes round-trip", () => {
+  beforeEach(clearTables);
+
+  const cases = [
+    {
+      label: "essay",
+      model: essayModel,
+      footnoteTable: "essay_footnotes",
+      fkColumn: "context_essay_id",
+      base: () => ({ slug: "fields-essay", essay_title: "Fields", published_draft: 1 }),
+    },
+    {
+      label: "response",
+      model: responseModel,
+      footnoteTable: "response_footnotes",
+      fkColumn: "response_id",
+      base: () => ({
+        slug: "fields-response",
+        challenge_id: seedChallenge(),
+        published_draft: 1,
+      }),
+    },
+    {
+      label: "historiography",
+      model: historiographyModel,
+      footnoteTable: "historiography_footnotes",
+      fkColumn: "historiography_id",
+      base: () => ({ slug: "fields-hist", essay_title: "Fields", published_draft: 1 }),
+    },
+  ];
+
+  for (const c of cases) {
+    test(`${c.label}: abstract and footnotes are saved, ordered and returned`, () => {
+      const created = c.model.createComposite({
+        ...c.base(),
+        abstract: "An abstract.",
+        footnotes: [{ content: "First." }, { content: "Second." }],
+      });
+
+      const admin = c.model.getAdminById(created.id);
+      assert.equal(admin.abstract, "An abstract.");
+      assert.deepEqual(
+        admin.footnotes.map((f) => f.content),
+        ["First.", "Second."],
+      );
+      assert.deepEqual(admin.footnotes.map((f) => f.sort_order), [0, 1]);
+
+      const detail = c.model.getDetailBySlug(created.slug);
+      assert.equal(detail.abstract, "An abstract.");
+      assert.equal(detail.footnotes.length, 2);
+    });
+
+    test(`${c.label}: updateComposite replaces footnotes when the key is present`, () => {
+      const created = c.model.createComposite({
+        ...c.base(),
+        footnotes: [{ content: "Old." }],
+      });
+
+      const updated = c.model.updateComposite(created.id, {
+        footnotes: [{ content: "New A." }, { content: "New B." }],
+      });
+      assert.deepEqual(
+        updated.footnotes.map((f) => f.content),
+        ["New A.", "New B."],
+      );
+
+      const cleared = c.model.updateComposite(created.id, { footnotes: [] });
+      assert.equal(cleared.footnotes.length, 0);
+    });
+
+    test(`${c.label}: updateComposite without a footnotes key keeps them`, () => {
+      const created = c.model.createComposite({
+        ...c.base(),
+        footnotes: [{ content: "Keep me." }],
+      });
+
+      const updated = c.model.updateComposite(created.id, {
+        abstract: "Changed abstract.",
+      });
+      assert.equal(updated.abstract, "Changed abstract.");
+      assert.deepEqual(
+        updated.footnotes.map((f) => f.content),
+        ["Keep me."],
+      );
+    });
+
+    test(`${c.label}: deleting the parent removes its footnote rows`, () => {
+      const created = c.model.createComposite({
+        ...c.base(),
+        footnotes: [{ content: "Gone soon." }],
+      });
+      const count = () =>
+        db.prepare(`SELECT COUNT(*) AS n FROM ${c.footnoteTable} WHERE ${c.fkColumn} = ?`).get(created.id).n;
+
+      assert.equal(count(), 1);
+      assert.equal(c.model.remove(created.id), true);
+      assert.equal(count(), 0);
+    });
+
+    test(`${c.label}: a draft is not returned by the public read`, () => {
+      const created = c.model.createComposite({
+        ...c.base(),
+        published_draft: 0,
+        abstract: "Hidden.",
+        footnotes: [{ content: "Hidden note." }],
+      });
+      assert.equal(c.model.getDetailBySlug(created.slug), undefined);
+    });
+  }
+});
+
+describe("journal article fields: response strength", () => {
+  beforeEach(clearTables);
+
+  test("strength round-trips and null clears it", () => {
+    const created = responseModel.createComposite({
+      slug: "strength-response",
+      challenge_id: seedChallenge(),
+      published_draft: 1,
+      strength: 4,
+    });
+    assert.equal(responseModel.getAdminById(created.id).strength, 4);
+
+    const cleared = responseModel.updateComposite(created.id, { strength: null });
+    assert.equal(cleared.strength, null);
+  });
+
+  test("the CHECK constraint rejects 0 and 6", () => {
+    const challengeId = seedChallenge();
+    for (const bad of [0, 6]) {
+      assert.throws(
+        () =>
+          responseModel.create({
+            slug: `bad-strength-${bad}`,
+            challenge_id: challengeId,
+            strength: bad,
+          }),
+        /CHECK constraint failed/,
+      );
+    }
+  });
+
+  test("getDetailBySlug adds the public names the response page reads", () => {
+    responseModel.createComposite({
+      slug: "public-names",
+      challenge_id: seedChallenge(),
+      published_draft: 1,
+      response_title: "A title",
+      response_author: "An author",
+      response_content: "Body text.",
+      metadata_keywords: "one, two",
+    });
+    const detail = responseModel.getDetailBySlug("public-names");
+    assert.equal(detail.title, "A title");
+    assert.equal(detail.author, "An author");
+    assert.equal(detail.body, "Body text.");
+    assert.deepEqual(detail.keywords, ["one", "two"]);
+    assert.deepEqual(detail.bibliography, detail.mla_sources);
+    assert.equal(detail.response_title, "A title");
+  });
+});

@@ -208,6 +208,18 @@ describe("AdminFormBuilder.addTextarea", () => {
     assert.equal(textarea.spellcheck, true);
   });
 
+  test("sets maxLength when given and leaves it unset otherwise", () => {
+    var { AdminFormBuilder } = makeSandbox();
+    var limited = AdminFormBuilder.addTextarea(makeContainer(), {
+      id: "essay-abstract",
+      label: "Abstract",
+      maxLength: 2000,
+    });
+    var plain = AdminFormBuilder.addTextarea(makeContainer(), { id: "essay-body", label: "Body" });
+    assert.equal(limited.children.find((c) => c.tag === "textarea").maxLength, 2000);
+    assert.equal(plain.children.find((c) => c.tag === "textarea").maxLength, undefined);
+  });
+
   test("respects a custom rows value", () => {
     var { AdminFormBuilder } = makeSandbox();
     var container = makeContainer();

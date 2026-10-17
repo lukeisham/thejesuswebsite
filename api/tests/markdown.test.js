@@ -253,6 +253,13 @@ describe("renderMarkdown", () => {
     assert.ok(result.includes("<p>Line one.\nLine two.\nLine three.</p>"));
   });
 
+  test("[fn:N] markers pass through unescaped", async () => {
+    const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
+    const result = renderMarkdown("A claim[fn:2] with a note & more.");
+    assert.ok(result.includes("[fn:2]"));
+    assert.ok(result.includes("&amp;"));
+  });
+
   test("shortcode markers pass through untouched", async () => {
     const { renderMarkdown } = await import("../../frontend/assets/js/utils/markdown.js");
     const input = 'See [mla:1] for details and [figure src="/img.webp" caption="A caption"] here.';
