@@ -363,6 +363,9 @@ function hideTooltip() {
   if ($tooltip) $tooltip.classList.remove('is-visible');
 }
 
+// One document-level listener per event, not one per cell: infinite scroll
+// adds up to 255 articles (6,375 cells), and per-cell listeners would leak
+// with each batch (JS-6). Keyboard navigation below uses the same pattern.
 function bindTooltips() {
   if (tooltipTeardowns) tooltipTeardowns.forEach((teardown) => teardown());
 

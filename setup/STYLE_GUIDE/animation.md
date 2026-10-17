@@ -62,10 +62,4 @@ Never use `linear` or bouncy/spring easings for UI transitions.
 #### Implementation Reference
 
 - **CSS**: `frontend/assets/css/pages/wikipedia-quality-grid.css`.
-- **JS**: `frontend/assets/js/wikipedia.js` + shared `frontend/assets/js/utils/wikipedia-signals.js`:
-  - `SIGNAL_DICTIONARY` (25 × `{ key, name, capMagnitude, polarity }`) — single source of truth for §9 ordering, names, tooltips.
-  - Per-article data: `/wikipedia` and `/wikipedia/:slug` attach `signals` (`{ signal_key, contribution, cap }`) from the `wikipedia_article_signals` table.
-  - `buildAgentData()` emits all 25 signals per article (unfired ones included, `contribution: 0`, `fired: false`).
-  - `buildGridWidget(item, articleId)` renders the grid, score panel, copy button, and agent-data JSON; returns `''` when `signals` is empty.
-  - Grid keyboard navigation is a roving tabindex (one tab stop in, arrow keys move between cells, one tab stop out).
-  - Tooltip and keyboard listeners are both bound via single document-level `delegate()` calls (JS-6) — no per-cell listeners, so infinite scroll never leaks even at the full 255-article / 6,375-cell count.
+- **JS**: `frontend/assets/js/wikipedia.js`, with `SIGNAL_DICTIONARY` in `frontend/assets/js/utils/wikipedia-signals.js` as the one source for signal order and names.
