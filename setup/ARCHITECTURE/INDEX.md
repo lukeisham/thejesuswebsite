@@ -138,6 +138,7 @@ git already is one.
 | [`node-cluster-logic.md`](node-cluster-logic.md) | Timeline/map/arbor cluster placement, labels, edge routing |
 | [`error-notification.md`](error-notification.md) | The four-category error code system and the error toast |
 | [`wikipedia-ranking-pipeline.md`](wikipedia-ranking-pipeline.md) | Scoring pipeline, import path, vector sidecar |
+| [`wikipedia-quality-grid.md`](wikipedia-quality-grid.md) | Signal grid, score panel, tooltip and copy button on the Wikipedia list |
 
 Adding a subsystem: new file on the template, new row here. Never a new section
 in `Website_guide.md`.

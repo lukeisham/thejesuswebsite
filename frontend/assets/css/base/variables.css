@@ -125,10 +125,10 @@
     --bp-xl: 1280px;        /* desktops, max-width container */
     --bp-2xl: 1536px;       /* wide monitors, extra-wide layouts */
 
-    /* Undocumented breakpoints in active use (audit findings) */
-    --bp-sm-max: 480px;     /* max-width: 480px — specific component rules (2 instances) */
-    --bp-admin-sm: 600px;   /* max-width: 600px — admin responsive (10 instances) */
-    --bp-md-max: 767px;     /* max-width: 767px — mobile-tablet boundary (21 instances) */
+    /* Max-width breakpoints that have no --bp-* equivalent above */
+    --bp-sm-max: 480px;     /* max-width: 480px — specific component rules */
+    --bp-admin-sm: 600px;   /* max-width: 600px — admin responsive */
+    --bp-md-max: 767px;     /* max-width: 767px — mobile-tablet boundary */
 
     /* Border Radius */
     --radius-sm: 4px;
@@ -155,6 +155,21 @@
     --icon-md: 20px;
     --icon-lg: 24px;
     --icon-xl: 32px;
+
+    /* -------------------------------------------------------------------------
+     Wikipedia Quality Grid
+     ------------------------------------------------------------------------- */
+
+    --grid-cell-size: 26px;
+    --grid-cell-gap: 3px;
+    --grid-cell-size-sm: 22px;
+    --grid-cell-gap-sm: 2px;
+    --signal-btn-size: 34px;
+
+    /* Wikipedia ranked list rows */
+    --wikipedia-rank-col: 2.5rem;
+    --wikipedia-rank-col-sm: 1.5rem;
+    --wikipedia-rank-number-size: 2rem;
 
     /* -------------------------------------------------------------------------
        Admin Panel Tokens

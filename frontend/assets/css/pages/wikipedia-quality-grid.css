@@ -1,8 +1,9 @@
 /* ==========================================================================
    Wikipedia Quality Grid
-   Always-visible 5x5 per-signal contribution grid + document score panel on
-   the Wikipedia ranked list. See setup/STYLE_GUIDE/content-patterns.md §9.1
-   and setup/STYLE_GUIDE/animation.md §6.
+   Per-signal contribution grid and document score panel on the Wikipedia
+   ranked list. Class names are built in frontend/assets/js/wikipedia.js; see
+   setup/ARCHITECTURE/wikipedia-quality-grid.md and
+   setup/STYLE_GUIDE/content-patterns.md §9.1.
    ========================================================================== */
 
 /* -------------------------------------------------------------------------
@@ -11,14 +12,14 @@
 
 .wikipedia-grid {
   display: grid;
-  grid-template-columns: repeat(5, 26px);
-  gap: 3px;
+  grid-template-columns: repeat(5, var(--grid-cell-size));
+  gap: var(--grid-cell-gap);
   flex: 0 0 auto;
 }
 
 .wikipedia-cell {
-  width: 26px;
-  height: 26px;
+  width: var(--grid-cell-size);
+  height: var(--grid-cell-size);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -81,15 +82,15 @@
 }
 
 /* -------------------------------------------------------------------------
-   Copy button (unchanged glyph, new grid context)
+   Copy button
    ------------------------------------------------------------------------- */
 
 .wikipedia-signal-btn {
   flex: 0 0 auto;
-  width: 34px;
-  height: 34px;
-  min-width: 34px;
-  min-height: 34px;
+  width: var(--signal-btn-size);
+  height: var(--signal-btn-size);
+  min-width: var(--signal-btn-size);
+  min-height: var(--signal-btn-size);
   padding: 0;
   border-radius: var(--radius-sm);
   border: 1px solid transparent;
@@ -109,7 +110,8 @@
 
 /* -------------------------------------------------------------------------
    Tooltip — one shared element, positioned by the delegated listener (JS-6).
-   Pointer devices only; touch readers get full detail via the copy button.
+   Pointer devices only; the matching gate is pointerFineHover() in wikipedia.js.
+   Touch readers get full detail via the copy button.
    ------------------------------------------------------------------------- */
 
 @media (hover: hover) and (pointer: fine) {
@@ -125,7 +127,7 @@
     white-space: nowrap;
     pointer-events: none;
     opacity: 0;
-    transform: translateY(4px);
+    transform: translateY(var(--space-xs));
     transition: opacity var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out);
     box-shadow: var(--shadow-md);
   }
@@ -142,12 +144,12 @@
 
 @media (max-width: 767px) {
   .wikipedia-grid {
-    grid-template-columns: repeat(5, 22px);
-    gap: 2px;
+    grid-template-columns: repeat(5, var(--grid-cell-size-sm));
+    gap: var(--grid-cell-gap-sm);
   }
 
   .wikipedia-cell {
-    width: 22px;
-    height: 22px;
+    width: var(--grid-cell-size-sm);
+    height: var(--grid-cell-size-sm);
   }
 }

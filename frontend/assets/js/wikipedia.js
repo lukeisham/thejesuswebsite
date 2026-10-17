@@ -1,13 +1,13 @@
 /**
  * Wikipedia ranked list page: fetch ranked Wikipedia articles, render each
- * with rank number and external link + Feather icon. A single page-level
- * "Last updated" line (when the list was most recently uploaded to this
- * website) sits in the page header rather than per article. Infinite scroll.
+ * with rank number and external link + Feather icon, with infinite scroll.
+ * One page-level "Last updated" line shows the newest scoring import.
  *
- * Also renders the Wikipedia quality grid per article: an always-visible 5x5
- * grid of the 25 §9 signals (colour-intensity encoded), a colour-banded
- * document score panel, a copy-results button, and an invisible
- * agent-readable JSON block describing the exact scoring behind the grid.
+ * Also renders the Wikipedia quality grid per article: a signal grid
+ * (colour-intensity encoded), a colour-banded document score panel, a
+ * copy-results button, and an invisible agent-readable JSON block describing
+ * the exact scoring behind the grid. The class names built here must exist in
+ * wikipedia-quality-grid.css; see setup/ARCHITECTURE/wikipedia-quality-grid.md.
  *
  * @module wikipedia
  */
@@ -182,8 +182,8 @@ function scoreBand(netScore) {
   return 'red';
 }
 
-/** Build the agent-readable JSON payload for one article's signals: all 25
- *  §9 signals, including ones with no database row (unfired, contribution 0). */
+/** Build the agent-readable JSON payload for one article's signals: every
+ *  dictionary signal, including ones with no database row (unfired, contribution 0). */
 function buildAgentData(title, signalRows) {
   const rowsByKey = new Map((signalRows || []).map((row) => [row.signal_key, row]));
 
@@ -204,7 +204,7 @@ function buildAgentData(title, signalRows) {
       statement: buildStatement(entry, contribution, cap),
     };
 
-    // §12.3 explainability fields — only present when the DB row carries them.
+    // Explainability fields — only present when the DB row carries them.
     if (row && row.matched_exemplar_id != null) signal.matched_exemplar_id = row.matched_exemplar_id;
     if (row && row.similarity != null) signal.similarity = row.similarity;
 
@@ -213,8 +213,8 @@ function buildAgentData(title, signalRows) {
 
   const netScore = signals.reduce((sum, signal) => sum + signal.contribution, 0);
   // Theoretical max = every positive signal at its (category-derived) cap, every
-  // negative signal at 0 — reproduces the §10 per-category ceiling without
-  // needing a separate category field, since `cap` is already category-aware.
+  // negative signal at 0. No separate category field is needed, since `cap`
+  // is already category-aware.
   const maxPossible = signals.reduce((sum, signal) => sum + Math.max(signal.cap, 0), 0);
 
   return { article: title, net_score: netScore, max_possible: maxPossible, signals };
@@ -225,7 +225,7 @@ function escapeForScriptTag(jsonString) {
   return jsonString.replace(/</g, '\\u003c');
 }
 
-/** Build one grid cell (SafeString) for a signal, in its fixed §9 row-order position. */
+/** Build one grid cell (SafeString) for a signal, in its fixed dictionary-order position. */
 function buildCellMarkup(entry, row, index) {
   const contribution = row ? row.contribution : 0;
   const cap = row ? row.cap : 0;
@@ -313,7 +313,7 @@ function renderArticles(items) {
       <div class="wikipedia-rank-title">
         <a class="wikipedia-rank-title-link" href="${url}" target="_blank" rel="noopener noreferrer">
           ${title}
-          <svg width="14" height="14" aria-hidden="true" style="display:inline;vertical-align:middle;">
+          <svg class="wikipedia-rank-title-icon" width="14" height="14" aria-hidden="true">
             <use href="/assets/images/feather-sprite.svg#icon-external-link"/>
           </svg>
         </a>
@@ -364,8 +364,8 @@ function hideTooltip() {
 }
 
 // One document-level listener per event, not one per cell: infinite scroll
-// adds up to 255 articles (6,375 cells), and per-cell listeners would leak
-// with each batch (JS-6). Keyboard navigation below uses the same pattern.
+// keeps adding cells, and per-cell listeners would leak with each batch
+// (JS-6). Keyboard navigation below uses the same pattern.
 function bindTooltips() {
   if (tooltipTeardowns) tooltipTeardowns.forEach((teardown) => teardown());
 
@@ -391,11 +391,17 @@ function bindGridKeyboard() {
     if (!step) return;
 
     const grid = target.closest('.wikipedia-grid');
-    if (!grid) return;
+    if (!grid) {
+      console.warn('Grid keyboard: cell has no .wikipedia-grid ancestor', target);
+      return;
+    }
 
     const cells = Array.from(grid.querySelectorAll('.wikipedia-cell'));
     const index = cells.indexOf(target);
-    if (index === -1) return;
+    if (index === -1) {
+      console.warn('Grid keyboard: focused cell is not in its own grid', target);
+      return;
+    }
 
     const col = index % GRID_COLUMNS;
     if (e.key === 'ArrowRight' && col === GRID_COLUMNS - 1) return;
