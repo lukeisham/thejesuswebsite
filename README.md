@@ -10,12 +10,10 @@ This project includes an MCP (Model Context Protocol) server that exposes record
 
 **Hosted endpoint:** `https://www.thejesuswebsite.org/mcp`
 
+See [mcp-server/README.md](mcp-server/README.md) for setup and usage.
+
 ---
 
 ## License
 
 [CC BY-NC 4.0](LICENSE). You can share and adapt this work for non-commercial use, with credit.
-
----
-
-See [mcp-server/README.md](mcp-server/README.md) for setup and usage.
