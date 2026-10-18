@@ -2,16 +2,12 @@
 /**
  * Admin map-pin clustering bridge.
  *
- * Re-exposes the canonical frontend/assets/js/cluster-logic/cluster-map-pins.js
- * as the window.AdminMapsClusterPins global that maps-pins.js consumes
- * (JS-3, bridge pattern — see edge-path-bridge.js).
+ * Publishes frontend/assets/js/cluster-logic/cluster-map-pins.js as
+ * `window.AdminMapsClusterPins` for admin-maps/maps-pins.js. The editor has no
+ * zoom, so maps-pins.js omits the zoom argument and the canonical default
+ * (1.0, the "normal" spacing tier) applies.
  *
- * The admin editor has no zoom concept, so this bridge always calls the
- * canonical functions with the fixed default zoomLevel (1.0 — "normal"
- * spacing tier); there is no shape mismatch to adapt here, unlike
- * cluster-placement-bridge.js's Map/plain-object conversion.
- *
- * Must load (type="module") BEFORE maps-pins.js.
+ * Must load before maps-pins.js (admin/diagrams/maps.html).
  *
  * @module cluster-logic-bridge/cluster-map-pins-bridge
  */

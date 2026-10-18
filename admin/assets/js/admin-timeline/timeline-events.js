@@ -1,19 +1,25 @@
 /**
  * Admin timeline events module.
  *
- * Loads timeline events from the API, renders them as draggable markers along
- * the axis, and supports an edit panel for title/date/era.
- * Positions are derived from each event's timeline_period via AdminTimelineAxis
- * using fixed world coordinates (BASE_PX_PER_PERIOD = 100). Zoom is applied
- * by the CSS transform wrapper — all dot and era-label positions exist in a
- * single transformed coordinate system.
+ * Loads timeline events from the API, renders them as markers along the axis,
+ * and runs an edit panel for title and era. Positions come from each event's
+ * timeline_period (AdminTimelineAxis) in fixed world coordinates
+ * (AdminTimelineGeometry.BASE_PX_PER_PERIOD). Zoom is a CSS transform on the
+ * wrapper, so every dot and heading shares one coordinate system.
  *
- * Left-click drag (at any zoom level) repositions dots via AdminTimelineNodeDrag
- * with a 4px threshold to disambiguate from click-to-select.
- * Right-click drag (within SPREAD density) repositions dots as before.
- * Left-click below the threshold opens the edit panel.
+ * Stored offsets (timeline_offset_x and timeline_offset_y) replace the cluster
+ * position. The public page applies the same offsets in
+ * frontend/assets/js/timeline/timeline-render.js, with the same two scales
+ * (setup/ARCHITECTURE/node-cluster-logic.md). A node must land on the same spot
+ * in both places.
  *
- * Depends on AdminTimelineAxis for positioning and UpdateRecord for persistence.
+ * Dragging is in timeline-node-drag.js (left drag past 4px, or right drag in
+ * SPREAD density) and stages offsets in timeline-staged-changes.js. A click
+ * below the drag threshold opens the edit panel.
+ *
+ * Reads the globals published by the cluster-logic bridges, the label-collision
+ * adapter (timeline-label-collision.js) and AdminTimelineGeometry. All of them
+ * load before this file (admin/diagrams/timeline.html). UpdateRecord saves edits.
  *
  * @module admin-timeline/timeline-events
  */
@@ -82,9 +88,8 @@ Events.getEventById = function (id) {
 /* ── Rendering ─────────────────────────────────────────────────────────────── */
 
 /**
- * Render all event markers onto the timeline axis.
- * Uses fixed world coordinates — zoom is applied by the CSS transform wrapper.
- * Applies stored/staged offsets on top of cluster-computed positions.
+ * Render all event markers, labels and era headings onto the timeline axis.
+ * Stored and staged offsets replace the cluster-computed positions.
  */
 Events.renderEvents = function () {
   const axisEl = document.getElementById("timeline-axis");
@@ -100,107 +105,106 @@ Events.renderEvents = function () {
     existingHeadings[i].remove();
   }
 
-  // Group events by period for clustering
-  var byPeriod = {};
-  for (var j = 0; j < events.length; j++) {
-    var evGroup = events[j];
-    var periodGroup = evGroup.timeline_period || "PreIncarnation";
-    if (!byPeriod[periodGroup]) byPeriod[periodGroup] = [];
-    byPeriod[periodGroup].push(evGroup);
+  // The same two scales convert a stored offset to pixels on the public page
+  // (frontend/assets/js/timeline/timeline-render.js).
+  const basePx = window.AdminTimelineGeometry.BASE_PX_PER_PERIOD;
+  const canvasHeightPx = window.AdminTimelineGeometry.CANVAS_HEIGHT_PX;
+  const { LABEL_CLEARANCE_PCT, TIER_STEP_PCT } =
+    window.AdminTimelineClusterLabelCollision;
+
+  // Group events by period for clustering. The canonical placement function
+  // takes and returns a Map (period -> events).
+  const byPeriod = new Map();
+  for (let j = 0; j < events.length; j++) {
+    const evGroup = events[j];
+    const periodGroup = evGroup.timeline_period || "PreIncarnation";
+    if (!byPeriod.has(periodGroup)) byPeriod.set(periodGroup, []);
+    byPeriod.get(periodGroup).push(evGroup);
   }
 
-  // Use clustering modules for placement and label modes.
-  // They expect a pxPerPeriod value — pass the effective px-per-period
-  // (BASE_PX_PER_PERIOD * current zoom scale) so density tiers work correctly.
-  var effectivePx = window.AdminTimelineZoom
+  // Density tiers compare against the effective px-per-period: the base scale
+  // times the current zoom. Placement spacing uses the base scale.
+  const effectivePx = window.AdminTimelineZoom
     ? window.AdminTimelineZoom.effectivePxPerPeriod()
-    : 100;
+    : basePx;
 
-  var positions = window.AdminTimelineClusterPlacement.computeDotPositions(
+  const positions = window.AdminTimelineClusterPlacement.computeDotPositions(
     byPeriod,
-    100, // base world px — cluster placement uses this for spacing calc
+    basePx,
   );
-  var densityTier = window.AdminTimelineClusterDensity.getClusterDensity(
+  const densityTier = window.AdminTimelineClusterDensity.getClusterDensity(
     null,
     effectivePx,
   );
 
   // Build flat descriptor list for label modes
-  var flatDescs = [];
-  var periodPosKeys = Object.keys(positions);
-  for (var pk = 0; pk < periodPosKeys.length; pk++) {
-    var pp = periodPosKeys[pk];
-    var ppPositions = positions[pp];
-    for (var pi = 0; pi < ppPositions.length; pi++) {
-      flatDescs.push({ event: ppPositions[pi].event, timeline_period: pp });
+  const flatDescs = [];
+  for (const [period, periodPositions] of positions) {
+    for (const placed of periodPositions) {
+      flatDescs.push({ event: placed.event, timeline_period: period });
     }
   }
-  var labelModes = window.AdminTimelineClusterLabels.computeLabelModes(
+  const labelModes = window.AdminTimelineClusterLabels.computeLabelModes(
     flatDescs,
     densityTier,
   );
-  var modeByEventId = {};
-  for (var lm = 0; lm < labelModes.length; lm++) {
+  const modeByEventId = {};
+  for (let lm = 0; lm < labelModes.length; lm++) {
     modeByEventId[labelModes[lm].event.id] = labelModes[lm].mode;
   }
 
-  // Event bounding boxes in world coordinates, for era heading collision
-  // avoidance (matches frontend's approach — see timeline-render.js).
-  var eventBounds = [];
+  // Event bounding boxes in world coordinates, so era headings avoid the dots
+  // (the public renderer collects the same boxes).
+  const eventBounds = [];
 
-  for (var pk2 = 0; pk2 < periodPosKeys.length; pk2++) {
-    var period2 = periodPosKeys[pk2];
-    var periodPositions2 = positions[period2];
-    var baseX = window.AdminTimelineAxis.periodToX(period2, 100);
+  for (const [period2, periodPositions2] of positions) {
+    const baseX = window.AdminTimelineAxis.periodToX(period2, basePx);
 
-    for (var pi2 = 0; pi2 < periodPositions2.length; pi2++) {
-      var pos = periodPositions2[pi2];
-      var ev2 = pos.event;
-      var yOffset = pos.yOffset;
-      var xFan = pos.xFan || 0;
+    for (let pi2 = 0; pi2 < periodPositions2.length; pi2++) {
+      const pos = periodPositions2[pi2];
+      const ev2 = pos.event;
+      const yOffset = pos.yOffset;
+      const xFan = pos.xFan || 0;
 
-      // Apply stored/staged offsets if present
-      var finalX = baseX + xFan;
-      var finalY = yOffset;
+      let finalX = baseX + xFan;
+      let finalY = yOffset;
 
       // Offset precedence: staged (if present) > saved API offset > cluster placement
-      var stagedOffset = null;
+      let stagedOffset = null;
       if (window.AdminTimelineStaged && window.AdminTimelineStaged.getOffset) {
         stagedOffset = window.AdminTimelineStaged.getOffset(ev2.id);
       }
 
       if (stagedOffset) {
-        // Staged offsets override cluster placement
-        var offsetXPixels = window.AdminTimelineNodeBounds
+        const offsetXPixels = window.AdminTimelineNodeBounds
           ? window.AdminTimelineNodeBounds.offsetXToPixel(
               stagedOffset.timeline_offset_x,
-              100, // world px scale
+              basePx,
             )
           : 0;
         finalX = baseX + offsetXPixels;
-        finalY = stagedOffset.timeline_offset_y * 280; // canvas height * offset fraction
+        finalY = stagedOffset.timeline_offset_y * canvasHeightPx;
       } else if (
         ev2.timeline_offset_x != null ||
         ev2.timeline_offset_y != null
       ) {
-        // API offsets (no staged override)
-        var apiOffsetXPixels = window.AdminTimelineNodeBounds
+        const apiOffsetXPixels = window.AdminTimelineNodeBounds
           ? window.AdminTimelineNodeBounds.offsetXToPixel(
               ev2.timeline_offset_x != null ? ev2.timeline_offset_x : 0,
-              100,
+              basePx,
             )
           : 0;
         finalX = baseX + apiOffsetXPixels;
         if (ev2.timeline_offset_y != null) {
-          finalY = ev2.timeline_offset_y * 280;
+          finalY = ev2.timeline_offset_y * canvasHeightPx;
         }
       }
 
-      // Match the frontend's vertical positioning: dots sit at
+      // Same vertical placement as the public renderer: dots sit at
       // top: ${50 + finalY / 2}% of the timeline container.
-      var y = 50 + finalY / 2 + "%";
-      var mode = modeByEventId[ev2.id] || "full";
-      var el2 = Events.createEventElement(ev2, finalX, y, finalY, mode);
+      const y = 50 + finalY / 2 + "%";
+      const mode = modeByEventId[ev2.id] || "full";
+      const el2 = Events.createEventElement(ev2, finalX, y, finalY, mode);
       axisEl.appendChild(el2);
 
       eventBounds.push({
@@ -211,22 +215,23 @@ Events.renderEvents = function () {
         height: 10,
       });
 
-      // Create label as sibling element (matching frontend DOM shape)
+      // Labels are siblings of the dots, the same DOM shape as the public page.
       if (mode !== "hidden") {
-        var labelText = ev2.title || "";
+        let labelText = ev2.title || "";
         if (mode === "truncated" && labelText.length > 28) {
-          labelText = labelText.slice(0, 26) + "\u2026";
+          labelText = labelText.slice(0, 26) + "…";
         }
         if (labelText) {
-          var label = document.createElement("span");
-          var labelClasses = ["admin-timeline-event-label"];
+          const labelTop = yOffset <= 0
+            ? 50 + finalY / 2 - LABEL_CLEARANCE_PCT
+            : 50 + finalY / 2 + LABEL_CLEARANCE_PCT;
+          const label = document.createElement("span");
+          const labelClasses = ["admin-timeline-event-label"];
           if (mode === "truncated") labelClasses.push("label--truncated");
           label.className = labelClasses.join(" ");
           label.style.position = "absolute";
           label.style.left = finalX + "px";
-          label.style.top = yOffset <= 0
-            ? (50 + finalY / 2 - 10) + "%"
-            : (50 + finalY / 2 + 10) + "%";
+          label.style.top = labelTop + "%";
           label.style.transform = "translateX(-50%)";
           label.style.maxWidth = "100px";
           label.style.textAlign = "center";
@@ -240,9 +245,8 @@ Events.renderEvents = function () {
           label.textContent = labelText;
           label.dataset.eventId = String(ev2.id);
           label.dataset.tierIndex = "0";
-          label.dataset.originalTop = (yOffset <= 0
-            ? (50 + finalY / 2 - 10)
-            : (50 + finalY / 2 + 10)) + "%";
+          // Read back by timeline-label-collision.js when it applies a tier.
+          label.dataset.originalTop = labelTop + "%";
           axisEl.appendChild(label);
         }
       }
@@ -254,45 +258,50 @@ Events.renderEvents = function () {
     window.AdminTimelineNodeDrag.attachDragListeners();
   }
 
-  // Run collision resolution on all sibling labels
-  if (window.AdminTimelineClusterLabelCollision && window.AdminTimelineClusterLabelCollision.resolve) {
-    var labelEls = axisEl.querySelectorAll(".admin-timeline-event-label");
-    window.AdminTimelineClusterLabelCollision.resolve(
+  // Resolve label overlaps once, after every label is attached.
+  if (window.AdminTimelineLabelCollision) {
+    const labelEls = axisEl.querySelectorAll(".admin-timeline-event-label");
+    window.AdminTimelineLabelCollision.resolve(
       Array.prototype.slice.call(labelEls),
       "x",
-      12 // TIER_STEP_PCT matching frontend
+      TIER_STEP_PCT,
+    );
+  } else {
+    console.warn(
+      "timeline-events.js: window.AdminTimelineLabelCollision is missing. Labels are not collision-resolved.",
     );
   }
 
-  // Render era headings (SR-4: shared placement module, see
-  // cluster-logic-bridge/timeline-era-heading-placement-bridge.js).
-  // Admin is desktop-only — isMobile is always false.
-  // Runs after label collision resolution so headings avoid the final label
-  // positions, not just the dots (issue #221).
-  if (window.AdminTimelineEraHeadingPlacement && window.AdminTimelineEraHeadingPlacement.compute) {
-    var eraBoundaries = window.AdminTimelineGeometry.ERA_BOUNDARIES;
-    var eraScale = window.AdminTimelineZoom ? window.AdminTimelineZoom.getScale() : 1.0;
-    var canvasWidth = window.AdminTimelineAxis.totalWidth(100);
-    var canvasHeight = 280;
+  // Era headings use the placement module that the public page uses
+  // (cluster-logic-bridge/timeline-era-heading-placement-bridge.js). The editor
+  // is desktop only, so the mobile flag is false. Headings are placed after
+  // label collision so they avoid the final label positions, not only the dots.
+  if (
+    window.AdminTimelineEraHeadingPlacement &&
+    window.AdminTimelineEraHeadingPlacement.computeEraHeadingPositions
+  ) {
+    const eraBoundaries = window.AdminTimelineGeometry.ERA_BOUNDARIES;
+    const eraScale = window.AdminTimelineZoom ? window.AdminTimelineZoom.getScale() : 1.0;
+    const canvasWidth = window.AdminTimelineAxis.totalWidth(basePx);
 
-    var allBounds = eventBounds.concat(Events.measureLabelBounds(axisEl));
+    const allBounds = eventBounds.concat(Events.measureLabelBounds(axisEl));
 
-    var headings = window.AdminTimelineEraHeadingPlacement.compute(
+    const headings = window.AdminTimelineEraHeadingPlacement.computeEraHeadingPositions(
       eraBoundaries,
       allBounds,
       eraScale,
       canvasWidth,
-      canvasHeight,
+      canvasHeightPx,
       false,
     );
 
-    for (var hi = 0; hi < (headings || []).length; hi++) {
-      var h = headings[hi];
-      var eraKebab = h.era
+    for (let hi = 0; hi < (headings || []).length; hi++) {
+      const h = headings[hi];
+      const eraKebab = h.era
         .replace(/([a-z])([A-Z])/g, "$1-$2")
         .replace(/\s+/g, "-")
         .toLowerCase();
-      var headingEl = document.createElement("h3");
+      const headingEl = document.createElement("h3");
       headingEl.className = "admin-timeline-era-heading era--" + eraKebab + " tier-" + h.tier;
       headingEl.style.position = "absolute";
       headingEl.style.left = h.x + "px";
@@ -300,6 +309,10 @@ Events.renderEvents = function () {
       headingEl.textContent = window.AdminTimelineGeometry.ERA_LABELS[h.era] || h.era;
       axisEl.appendChild(headingEl);
     }
+  } else {
+    console.warn(
+      "timeline-events.js: window.AdminTimelineEraHeadingPlacement is missing. Era headings are not drawn.",
+    );
   }
 };
 
@@ -379,14 +392,10 @@ Events.createEventElement = function (ev, x, y, yOffset, labelMode) {
     el.classList.add("admin-timeline-event--selected");
   }
 
-  // Labels are now rendered as sibling elements in renderEvents
-  // (matching frontend DOM shape for shared collision resolution).
-  // createEventElement no longer creates labels.
-
   el.addEventListener("click", function (e) {
     e.stopPropagation();
-    // If a left-drag just happened (the drag module set this flag),
-    // skip selection — this click is the end of a drag, not a plain click.
+    // timeline-node-drag.js sets this flag at the end of a drag. That click
+    // ends the drag; it is not a request to select the event.
     if (el._timelineDragActive) {
       delete el._timelineDragActive;
       return;
@@ -490,14 +499,6 @@ Events.onSaveEvent = async function () {
   }
 };
 
-
-/* ── Left-drag repositioning restored ──────────────────────────────────────────
-   Left-click drag has been restored in AdminTimelineNodeDrag with a 4px
-   pointer-move threshold.  Sub-threshold movement lets the click event fire
-   through to selectEvent() (opens the edit panel).  Supra-threshold movement
-   activates a drag that writes timeline_offset_x/y via the staged-changes
-   system — no density gate (works at every zoom level).  Right-click drag
-   remains unchanged (SPREAD density only). ─────────────────────────────────── */
 
 /* ── Era mapping ───────────────────────────────────────────────────────────── */
 

@@ -2,15 +2,15 @@
 /**
  * Admin timeline era-heading-placement bridge.
  *
- * Wraps the canonical frontend timeline-era-heading-placement.js module as a
- * window.AdminTimelineEraHeadingPlacement global for classic admin scripts —
- * the same pattern as the density/placement/labels/collision bridges.
+ * Publishes frontend/assets/js/timeline/timeline-era-heading-placement.js as
+ * `window.AdminTimelineEraHeadingPlacement` for the classic admin script
+ * timeline-events.js, so the editor places era headings with the public code.
+ *
+ * Must load before timeline-events.js (admin/diagrams/timeline.html).
  *
  * @module cluster-logic-bridge/timeline-era-heading-placement-bridge
  */
 
 import { computeEraHeadingPositions } from "/assets/js/timeline/timeline-era-heading-placement.js";
 
-window.AdminTimelineEraHeadingPlacement = {
-  compute: computeEraHeadingPositions,
-};
+window.AdminTimelineEraHeadingPlacement = { computeEraHeadingPositions };

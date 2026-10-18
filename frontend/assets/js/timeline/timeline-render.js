@@ -7,9 +7,15 @@
  * into escalating clusters, draws era markers and labels, and handles
  * loading / empty states.
  *
- * Zoom and pan are now applied by a CSS transform on a `.timeline-world`
- * wrapper (matching the arbor diagram model), so all positions use the
- * fixed `BASE_PX_PER_PERIOD` geometry — no CSS variable read needed.
+ * Zoom and pan are a CSS transform on a `.timeline-world` wrapper (the arbor
+ * diagram works the same way), so all positions use the fixed
+ * `BASE_PX_PER_PERIOD` geometry.
+ *
+ * The admin editor (admin/assets/js/admin-timeline/timeline-events.js) draws
+ * the same layout from the same stored offsets. The offset-to-pixel formulas,
+ * the label clearance and the tier step must stay equal on both sides:
+ * setup/ARCHITECTURE/node-cluster-logic.md lists the invariants and
+ * api/tests/guide-node-cluster-logic.test.js checks them.
  *
  * @module timeline/timeline-render
  */
@@ -35,9 +41,19 @@ import {
   LABEL_TRUNCATED,
   LABEL_HIDDEN,
 } from "../cluster-logic/cluster-labels.js";
-import { periodX, periodY, BASE_PX_PER_PERIOD } from "./timeline-geometry.js";
+import {
+  periodX,
+  periodY,
+  BASE_PX_PER_PERIOD,
+  TIMELINE_CANVAS_HEIGHT_PX,
+} from "./timeline-geometry.js";
 import { getScale, mountZoomControls } from "./timeline-zoom.js";
-import { resolveLabelCollisions as resolveCollisionsShared, tierShift } from "../cluster-logic/cluster-label-collision.js";
+import {
+  resolveLabelCollisions as resolveCollisionsShared,
+  tierShift,
+  LABEL_CLEARANCE_PCT,
+  TIER_STEP_PCT,
+} from "../cluster-logic/cluster-label-collision.js";
 import { computeEraHeadingPositions } from "./timeline-era-heading-placement.js";
 
 // ─── Era Headings ───────────────────────────────────────────────────────────
@@ -88,7 +104,7 @@ function renderEraHeadings(inner, positions, effectivePx, isMobile, labelBounds)
   const containerWidth = isMobile
     ? 3800 // vertical mode: height becomes the primary axis
     : 3800;
-  const containerHeight = 280;
+  const containerHeight = TIMELINE_CANVAS_HEIGHT_PX;
 
   const headings = computeEraHeadingPositions(
     ERA_BOUNDARIES,
@@ -128,19 +144,18 @@ export const initialEra =
   (typeof document !== "undefined" && document.body?.dataset?.initialEra) ||
   null;
 
-/** Matches the mobile vertical-mode breakpoint used in timelines.css. */
+/** Same breakpoint as the 767px media queries in timeline-responsive.css,
+ * timeline-dots.css and timeline-era-headings.css. */
 const MOBILE_QUERY = "(max-width: 767px)";
 
-/** Minimum pixel gap enforced between adjacent label bounding boxes. */
-const LABEL_GAP_PX = 8;
-
-/** Matches .timeline-container min-height in timeline.css (Style Guide §9, Issue #172). */
+/** Equals .timeline-container min-height in timeline.css; the check at the end
+ * of renderTimeline warns when the content grows taller than this. */
 const CONTAINER_MIN_HEIGHT = 600;
 
 /**
- * Compute the effective px-per-period at the current zoom level.
- * cluster-density.js thresholds work against this value just as they did
- * against the old CSS variable — it's BASE_PX_PER_PERIOD × current zoom scale.
+ * Compute the effective px-per-period at the current zoom level:
+ * BASE_PX_PER_PERIOD × the current zoom scale. cluster-density.js compares its
+ * thresholds against this value.
  *
  * @returns {number}
  */
@@ -251,15 +266,12 @@ function labelSide(xOffset) {
 }
 
 /**
- * Clearance constants for label positioning relative to dots (Phase 1).
+ * Vertical-mode (mobile) distances, in pixels. The horizontal-mode
+ * equivalents, `LABEL_CLEARANCE_PCT` and `TIER_STEP_PCT`, are imported because
+ * the admin editor uses them too. The admin editor is desktop only, so these
+ * two have no admin counterpart.
  */
-const LABEL_CLEARANCE_PCT = 10;
 const LABEL_CLEARANCE_PX = 48;
-
-/**
- * Step size per collision-escalation tier (Phase 2).
- */
-const TIER_STEP_PCT = 12;
 const TIER_STEP_PX = 40;
 
 /**
@@ -376,11 +388,6 @@ function createLabel(event, posClass, style, isFiltered) {
 }
 
 /**
- * Layout era markers and labels in horizontal mode.
- * @param {HTMLElement} innerEl
- * @param {number} slotWidth
- */
-/**
  * Layout era divider markers in horizontal mode (no labels — era headings
  * are rendered separately by renderEraHeadings after dot placement).
  * @param {HTMLElement} innerEl
@@ -399,11 +406,6 @@ function layoutEraMarkersHorizontal(inner, slotWidth) {
   }
 }
 
-/**
- * Layout era markers and labels in vertical mode.
- * @param {HTMLElement} innerEl
- * @param {number} slotHeight
- */
 /**
  * Layout era divider markers in vertical mode (no labels).
  * @param {HTMLElement} innerEl
@@ -438,7 +440,7 @@ function buildHorizontalLayout(groupedEvents, activeEra) {
 
   const inner = createElement("div", {
     className: "timeline-inner",
-    style: `width:${totalWidth}px;position:relative;height:100%;min-height:280px`,
+    style: `width:${totalWidth}px;position:relative;height:100%;min-height:${TIMELINE_CANVAS_HEIGHT_PX}px`,
   });
 
   inner.appendChild(
@@ -481,13 +483,15 @@ function buildHorizontalLayout(groupedEvents, activeEra) {
       let yOffset = pos.yOffset;
       const xFan = pos.xFan || 0;
 
-      // Apply timeline offsets if present (stored manual repositioning).
+      // A stored offset (set by dragging in the admin editor) replaces the
+      // cluster position. Admin timeline-events.js and timeline-node-drag.js
+      // convert offsets with the same two scales.
       let finalX = x + xFan;
       if (event.timeline_offset_x !== null && event.timeline_offset_x !== undefined) {
         finalX = x + (event.timeline_offset_x * BASE_PX_PER_PERIOD);
       }
       if (event.timeline_offset_y !== null && event.timeline_offset_y !== undefined) {
-        yOffset = event.timeline_offset_y * 280;
+        yOffset = event.timeline_offset_y * TIMELINE_CANVAS_HEIGHT_PX;
       }
 
       const posClass = labelPosition(yOffset);
@@ -583,7 +587,7 @@ function buildVerticalLayout(groupedEvents, activeEra) {
         finalY = y + (event.timeline_offset_y * BASE_PX_PER_PERIOD);
       }
       if (event.timeline_offset_x !== null && event.timeline_offset_x !== undefined) {
-        xOffset = event.timeline_offset_x * 280;
+        xOffset = event.timeline_offset_x * TIMELINE_CANVAS_HEIGHT_PX;
       }
 
       const side = labelSide(xOffset);
@@ -637,7 +641,7 @@ function resolveLabelCollisions(descriptors) {
 
   // The resolver compares measured rects, which are in screen px. Give it the
   // step in screen px too, or it checks positions that a label never reaches
-  // (12% of the timeline height is about 34px, not 12px). Issue #238.
+  // (12% of the timeline height is about 34px, not 12px).
   const parent = descriptors[0].el.offsetParent;
   const parentH = parent ? parent.offsetHeight : 0;
   const scale = parentH > 0 ? parent.getBoundingClientRect().height / parentH : 1;
@@ -729,8 +733,8 @@ function labelSignature() {
 /**
  * Labels and headings are measured at the first render. If the stylesheet or
  * web fonts are not ready then, the boxes are wrong and headings can land on
- * labels (issue #239). Once the page and fonts have loaded, render again if
- * any label changed size. This runs at most once per page load.
+ * labels. Once the page and fonts have loaded, render again if any label
+ * changed size. This runs at most once per page load.
  */
 function armSettleRerender() {
   if (settleArmed || typeof document === "undefined") return;

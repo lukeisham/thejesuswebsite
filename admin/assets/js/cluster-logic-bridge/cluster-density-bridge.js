@@ -2,19 +2,13 @@
 /**
  * Admin timeline cluster-density bridge.
  *
- * Re-exposes the canonical frontend/assets/js/cluster-logic/cluster-density.js
- * module as the window.AdminTimelineClusterDensity global that classic admin
- * scripts (timeline-events.js, timeline-axis.js) already expect — same shape
- * as the old admin-only copy, sourced from one implementation instead of two
- * (JS-3, bridge pattern precedent: admin-toasts.js).
+ * Publishes frontend/assets/js/cluster-logic/cluster-density.js as
+ * `window.AdminTimelineClusterDensity` for the classic admin scripts
+ * timeline-events.js and timeline-node-drag.js. Callers pass the effective
+ * px-per-period, `BASE_PX_PER_PERIOD` × the zoom scale from
+ * `AdminTimelineZoom.effectivePxPerPeriod()`, so the tiers match the public page.
  *
- * The `pxPerPeriod` parameter should now be the effective px-per-period
- * (BASE_PX_PER_PERIOD × current zoom scale), obtained from
- * AdminTimelineZoom.effectivePxPerPeriod(). This preserves the existing
- * density tier thresholds while working with the new transform-based zoom.
- *
- * Must load (type="module", still runs deferred) BEFORE any classic script
- * that reads window.AdminTimelineClusterDensity at top level.
+ * Must load before the scripts that read the global (admin/diagrams/timeline.html).
  *
  * @module cluster-logic-bridge/cluster-density-bridge
  */
@@ -32,7 +26,5 @@ window.AdminTimelineClusterDensity = {
   DENSITY_NORMAL,
   DENSITY_SPREAD,
   THRESHOLDS,
-  getClusterDensity: function (events, pxPerPeriod) {
-    return getClusterDensity(events, pxPerPeriod);
-  },
+  getClusterDensity,
 };

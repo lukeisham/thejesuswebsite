@@ -12,6 +12,7 @@ const assert = require("node:assert/strict");
 const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
+const { loadBridge, loadCanonical } = require("./helpers/load-bridge");
 
 // ── Load maps-render.js in a sandboxed context ──────────────────────────────
 
@@ -666,69 +667,10 @@ function clampMenuPosition(screenX, screenY, menuWidth, menuHeight, viewW, viewH
 
 // ── AdminMapsClusterPins bridge ─────────────────────────────────────────
 
-function loadEsmAsPlainScript(absPath, sandboxObj) {
-  const source = fs
-    .readFileSync(absPath, "utf8")
-    .replace(/^import\s+\{[^}]*\}\s+from\s+["'][^"']+["'];?$/gm, "")
-    .replace(/^export\s+const\s+/gm, "var ")
-    .replace(/^export\s+function\s+/gm, "function ")
-    .replace(/^export\s+\{[^}]*\};?$/gm, "");
-  vm.runInNewContext(source, sandboxObj);
-}
-
-const bridgeSandbox = { console: { error: function () {} } };
-
-loadEsmAsPlainScript(
-  path.resolve(
-    __dirname,
-    "..",
-    "..",
-    "frontend",
-    "assets",
-    "js",
-    "cluster-logic",
-    "cluster-density.js",
-  ),
-  bridgeSandbox,
-);
-loadEsmAsPlainScript(
-  path.resolve(
-    __dirname,
-    "..",
-    "..",
-    "frontend",
-    "assets",
-    "js",
-    "cluster-logic",
-    "cluster-labels.js",
-  ),
-  bridgeSandbox,
-);
-loadEsmAsPlainScript(
-  path.resolve(
-    __dirname,
-    "..",
-    "..",
-    "frontend",
-    "assets",
-    "js",
-    "cluster-logic",
-    "cluster-map-pins.js",
-  ),
-  bridgeSandbox,
-);
-
-// Build the bridge's window.AdminMapsClusterPins shape directly from the
-// canonical exports now sitting in bridgeSandbox — mirrors what
-// cluster-map-pins-bridge.js does via its ES module import.
-const AdminMapsClusterPins = {
-  PROXIMITY_THRESHOLD: bridgeSandbox.PROXIMITY_THRESHOLD,
-  detectClusters: bridgeSandbox.detectClusters,
-  getZoomScaledSpacing: bridgeSandbox.getZoomScaledSpacing,
-  computeRadialOffset: bridgeSandbox.computeRadialOffset,
-  computePinOffsets: bridgeSandbox.computePinOffsets,
-  computePinLabelModes: bridgeSandbox.computePinLabelModes,
-};
+// The helper runs the real bridge file against the real canonical module.
+const AdminMapsClusterPins = loadBridge("cluster-map-pins-bridge.js")
+  .AdminMapsClusterPins;
+const canonicalPins = loadCanonical("/assets/js/cluster-logic/cluster-map-pins.js");
 
 describe("AdminMapsClusterPins bridge", function () {
   test("returns the same fan offsets as the canonical module for equivalent input", function () {
@@ -739,7 +681,7 @@ describe("AdminMapsClusterPins bridge", function () {
     ];
 
     var bridgeResult = AdminMapsClusterPins.computePinOffsets(pins, 1.0);
-    var canonicalResult = bridgeSandbox.computePinOffsets(pins, 1.0);
+    var canonicalResult = canonicalPins.computePinOffsets(pins, 1.0);
 
     assert.deepEqual(bridgeResult, canonicalResult);
   });

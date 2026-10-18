@@ -3,18 +3,24 @@
  *
  * Left-click drag (button === 0) repositions timeline event dots within their
  * assigned period slot at every zoom level. A 4px pointer-move threshold
- * disambiguates click-to-select (sub-threshold) from drag.
+ * separates a click (select the event) from a drag.
  *
  * Right-click drag (button === 2) repositions dots only when zoomed in to
- * SPREAD density — unchanged from the original behaviour.
+ * SPREAD density.
  *
- * Coordinates now use the fixed world scale (BASE_PX_PER_PERIOD = 100).
- * Zoom is applied by a CSS transform on the wrapper — drag deltas are
- * screen-space pixels converted to offset fractions using the fixed scale.
+ * A drag converts screen pixels to a stored offset fraction with the fixed
+ * world scales, `AdminTimelineGeometry.BASE_PX_PER_PERIOD` (x) and
+ * `CANVAS_HEIGHT_PX` (y). The public page converts a stored offset back to
+ * pixels with the same two scales (frontend/assets/js/timeline/timeline-render.js).
+ * If they differ, a node dropped at one spot shows at another on the public
+ * timeline (setup/ARCHITECTURE/node-cluster-logic.md).
  *
- * Pointer-event based (captures, prevents default, cleans up properly per JS-6).
- * Clamps movement via AdminTimelineNodeBounds; stages offset changes via
- * AdminTimelineStaged.stageOffset().
+ * Pointer-event based: it captures the pointer, prevents default, and removes
+ * its document listeners at the end of a drag (JS-6). It clamps movement with
+ * AdminTimelineNodeBounds and stages the result with AdminTimelineStaged.stageOffset().
+ * Listeners are attached by timeline-events.js after every render. At the end
+ * of a drag it sets `_timelineDragActive` on the dot, which the dot's click
+ * handler in timeline-events.js reads to skip selection.
  *
  * @module admin-timeline/timeline-node-drag
  */
@@ -29,8 +35,16 @@ window.AdminTimelineNodeDrag = {};
   /** Minimum pointer movement (px) before a left-click becomes a drag. */
   var CANDIDATE_DRAG_PX = 4;
 
-  /** Fixed base pixels per period at world scale. */
-  var BASE_PX = 100;
+  /** World scale for x offsets and for the height of the canvas for y offsets.
+   * Both come from the geometry shim, which a guide test compares with the
+   * frontend values. */
+  var BASE_PX = window.AdminTimelineGeometry.BASE_PX_PER_PERIOD;
+  var CANVAS_HEIGHT_PX = window.AdminTimelineGeometry.CANVAS_HEIGHT_PX;
+
+  /** Distance (percent of canvas height) between a dot and its label. Shared
+   * with the public renderer through the collision bridge. */
+  var LABEL_CLEARANCE_PCT =
+    window.AdminTimelineClusterLabelCollision.LABEL_CLEARANCE_PCT;
 
   /* ── State ─────────────────────────────────────────────────────────────────── */
 
@@ -165,7 +179,7 @@ window.AdminTimelineNodeDrag = {};
       var dy = e.clientY - dragState.startY;
       if (Math.abs(dx) < CANDIDATE_DRAG_PX && Math.abs(dy) < CANDIDATE_DRAG_PX) return;
 
-      // Threshold exceeded — activate the drag now.
+      // Past the threshold: this is a drag, not a click.
       e.preventDefault();
       e.stopPropagation();
 
@@ -204,7 +218,7 @@ window.AdminTimelineNodeDrag = {};
       ? window.AdminTimelineNodeBounds.pixelToOffsetX(dx2, BASE_PX)
       : 0;
     var deltaOffsetY = window.AdminTimelineNodeBounds
-      ? window.AdminTimelineNodeBounds.pixelToOffsetY(dy2, 280)
+      ? window.AdminTimelineNodeBounds.pixelToOffsetY(dy2, CANVAS_HEIGHT_PX)
       : 0;
 
     var newOffsetX = dragState.startOffsetX + deltaOffsetX;
@@ -245,7 +259,7 @@ window.AdminTimelineNodeDrag = {};
       ? window.AdminTimelineNodeBounds.pixelToOffsetX(dx, BASE_PX)
       : 0;
     var deltaOffsetY = window.AdminTimelineNodeBounds
-      ? window.AdminTimelineNodeBounds.pixelToOffsetY(dy, 280)
+      ? window.AdminTimelineNodeBounds.pixelToOffsetY(dy, CANVAS_HEIGHT_PX)
       : 0;
 
     var finalOffsetX = dragState.startOffsetX + deltaOffsetX;
@@ -283,11 +297,10 @@ window.AdminTimelineNodeDrag = {};
 
     dot.style.left = (dragState.baseLeftPx + pixelOffsetX) + "px";
 
-    var finalY = offsetY * 280;
+    var finalY = offsetY * CANVAS_HEIGHT_PX;
     dot.style.top = 50 + finalY / 2 + "%";
 
-    // Label is now a sibling of the dot (not a child). Update its
-    // position to track the dot's new position after drag.
+    // The label is a sibling of the dot, so move it with the dot while it drags.
     var eventId = dot.dataset.eventId;
     if (eventId) {
       var label = document.querySelector(
@@ -296,8 +309,8 @@ window.AdminTimelineNodeDrag = {};
       if (label) {
         label.style.left = dot.style.left;
         label.style.top = (offsetY <= 0
-          ? (50 + finalY / 2 - 10) + "%"
-          : (50 + finalY / 2 + 10) + "%");
+          ? (50 + finalY / 2 - LABEL_CLEARANCE_PCT) + "%"
+          : (50 + finalY / 2 + LABEL_CLEARANCE_PCT) + "%");
       }
     }
   }

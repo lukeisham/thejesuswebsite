@@ -1,33 +1,21 @@
 /**
  * Shared timeline geometry module.
  *
- * Pure, DOM-free math functions for translating timeline period indices to
- * pixel positions using a fixed base scale. Zoom is now applied entirely by
- * a CSS transform on a wrapper element (matching the arbor diagram model),
- * so these functions always return world-coordinate pixels at scale 1.
+ * Pure, DOM-free math for translating timeline period indices to pixel
+ * positions at a fixed base scale. Zoom is a CSS transform on a wrapper
+ * element (timeline-zoom.js), so these functions always return world
+ * coordinates at scale 1.
  *
- * This is the single canonical source for the centring math and stagger
- * offsets — both the public frontend (ES modules) and the admin editor
- * (plain `<script>` via the admin-timeline shim) must agree on every value.
+ * The admin editor cannot import ES modules in its classic scripts, so it
+ * keeps a copy of `BASE_PX_PER_PERIOD` and `TIMELINE_CANVAS_HEIGHT_PX` in
+ * admin/assets/js/admin-timeline/timeline-geometry.js (`BASE_PX_PER_PERIOD`,
+ * `CANVAS_HEIGHT_PX`). api/tests/guide-node-cluster-logic.test.js fails when
+ * the two copies differ. A stored `timeline_offset_x` or `timeline_offset_y`
+ * is converted to pixels with these two values on both sides, so a mismatch
+ * shows a node at one spot in the editor and another on the public page.
  *
- * Period indexing and stagger logic:
- * - The database defines 8 timeline eras (PreIncarnation, OldTestament, EarlyLife,
- *   Life, GalileeMinistry, JudeanMinistry, PassionWeek, Post-Passion) and 38
- *   granular periods (EarlyLifeBirth, GalileeSermonMount, etc. — see schema.sql
- *   lines 23–39). Period indices used here are 0-based across all 38 periods in
- *   canonical order (matching schema.sql). STAGGER_OFFSETS applies to events
- *   sharing the same period: start at tier 0 (spine), then alternate ±8px, ±16px,
- *   etc. Filtering by era occurs at the data-load layer; this module assumes
- *   already-filtered periods and computes pixel geometry only.
- *
- * Keep the admin shim at `admin/assets/js/admin-timeline/timeline-geometry.js`
- * byte-identical for the positioning functions and stagger array. See that
- * file's doc comment for the sync contract.
- *
- * See also:
- * - `database/schema.sql` lines 21–39 (era and period enums)
- * - `frontend/assets/js/timeline/timeline-data.js` (period display labels)
- * - `frontend/assets/js/timeline/timeline-zoom.js` (zoom scale applied as transform)
+ * Period indices are 0-based across the 38 periods in the order of
+ * `database/schema.sql` (the `timeline_period` CHECK list).
  *
  * @module timeline/timeline-geometry
  */
@@ -37,12 +25,14 @@
  * this value. */
 export const BASE_PX_PER_PERIOD = 100;
 
+/** Height in pixels of the timeline canvas inner box. A stored
+ * `timeline_offset_y` is a fraction of this height. */
+export const TIMELINE_CANVAS_HEIGHT_PX = 280;
+
 /**
- * Stagger tiers for events sharing the same period, ordered by increasing
- * distance from the spine (alternating each side). Reused as: (a) the
- * per-cluster starting tier for events in the same period, and (b) the
- * escalation ladder labels are pushed along when their bounding boxes
- * collide with an already-placed neighbour.
+ * Stagger tiers, ordered by increasing distance from the spine and alternating
+ * sides. No renderer reads this array; dot spacing for events that share a
+ * period comes from cluster-logic/cluster-placement.js.
  *
  * @type {number[]}
  */

@@ -1,16 +1,19 @@
 /**
  * Admin timeline geometry shim.
  *
- * Exposes the same geometry constants used by the public timeline renderer
- * (`frontend/assets/js/timeline/timeline-data.js` and
- * `frontend/assets/js/timeline/timeline-render.js`) so the admin timeline
- * editor renders dots, labels, and era markers with identical dimensions.
+ * Classic-script copy of the geometry in the public timeline modules
+ * (frontend/assets/js/timeline/timeline-data.js and timeline-geometry.js), so
+ * the editor draws dots, labels and era markers with the same dimensions.
+ * The admin pages cannot import ES modules in their classic scripts, so the
+ * values are repeated here. api/tests/guide-node-cluster-logic.test.js fails
+ * when `BASE_PX_PER_PERIOD` or `CANVAS_HEIGHT_PX` differs from the frontend
+ * value. A stored `timeline_offset_x` or `timeline_offset_y` is converted to
+ * pixels with these two values, so a mismatch shows a node at one spot in the
+ * editor and another on the public page.
  *
- * All positions now use the fixed BASE_PX_PER_PERIOD (100) world coordinate.
- * Zoom is applied via the CSS transform wrapper — no variable slot width needed.
- *
- * Keep this file in sync with the public timeline modules — they must agree
- * on every value.
+ * Read by timeline-axis.js, timeline-era-filter.js, timeline-events.js,
+ * timeline-node-drag.js and timeline-transform.js.
+ * Positions are fixed world coordinates; zoom is a CSS transform wrapper.
  *
  * @module admin-timeline/timeline-geometry
  */
@@ -81,7 +84,7 @@ window.AdminTimelineGeometry = {
     "Post-Passion": "Post-Passion",
   },
 
-  /** Era boundaries: each era's first period in PERIOD_ORDER. */
+  /** Era boundaries: each era's first period in TIMELINE_PERIODS. */
   ERA_STARTS: {
     PreIncarnation: "PreIncarnation",
     OldTestament: "OldTestament",
@@ -100,24 +103,29 @@ window.AdminTimelineGeometry = {
    * minus 1 as the end (or array length - 1 for the final era).
    * Mirrors frontend timeline-data.js ERA_BOUNDARIES.
    *
-   * NOTE: populated below the main object literal so the IIFE can
-   * reference TIMELINE_PERIODS / ERA_STARTS / ERA_ORDER.
+   * Filled in below the object literal, because it reads TIMELINE_PERIODS,
+   * ERA_STARTS and ERA_ORDER.
    */
   ERA_BOUNDARIES: null,
 
-  /** Stagger offsets (pixels) for events sharing the same period. */
+  /** Stagger offsets (pixels). No admin script reads this array; dot spacing
+   * comes from cluster-logic/cluster-placement.js. */
   STAGGER_OFFSETS: [0, -8, 8, -16, 16, -24, 24, -32, 32, -40, 40],
 
   /** Fixed base pixels per period at world scale (zoom is applied by CSS transform). */
   BASE_PX_PER_PERIOD: 100,
+
+  /** Height in pixels of the canvas inner box. A stored `timeline_offset_y` is
+   * a fraction of this height. */
+  CANVAS_HEIGHT_PX: 280,
 
   /**
    * Compute the pixel X position for a period by its canonical index,
    * centering the dot within its slot (matches frontend periodX).
    * Uses fixed world pixels — zoom is applied by the transform wrapper.
    *
-   * @param {number} periodIndex - zero-based index in PERIOD_ORDER
-   * @param {number} [basePx=100] - base pixels per period
+   * @param {number} periodIndex - zero-based index in TIMELINE_PERIODS
+   * @param {number} [basePx] - base pixels per period; defaults to BASE_PX_PER_PERIOD
    * @returns {number} pixel X coordinate in world space
    */
   periodToXCentered: function (periodIndex, basePx) {
@@ -126,9 +134,8 @@ window.AdminTimelineGeometry = {
   },
 };
 
-// Compute ERA_BOUNDARIES after the object is fully defined so the IIFE
-// can reference the properties it depends on (TIMELINE_PERIODS,
-// ERA_STARTS, ERA_ORDER).  Mirrors frontend timeline-data.js.
+// ERA_BOUNDARIES is computed here, after the object exists, because it reads
+// TIMELINE_PERIODS, ERA_STARTS and ERA_ORDER. Mirrors frontend timeline-data.js.
 (function () {
   var G = window.AdminTimelineGeometry;
   var periods = G.TIMELINE_PERIODS;

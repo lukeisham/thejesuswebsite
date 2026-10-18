@@ -1,6 +1,8 @@
 // Admin timeline tests — uses node:test + node:assert.
 // Tests the pure date↔position scale helpers from admin-timeline/timeline-axis.js
-// (periodToX, xToPeriod, round-trip stability, era-boundary mapping).
+// (periodToX, xToPeriod, round-trip stability, era-boundary mapping), and the
+// density, placement and label-mode globals that the real cluster bridges
+// publish for timeline-events.js.
 //
 // The DOM-bound drag/click timeline wiring is validated manually via browser
 // testing (see setup/TESTS/admin_tests.md for the manual checklist).
@@ -10,6 +12,7 @@ const assert = require("node:assert/strict");
 const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
+const { loadBridge } = require("./helpers/load-bridge");
 
 // ── Load timeline-axis.js in a sandboxed context ─────────────────────────────
 
@@ -57,92 +60,17 @@ const geometrySource = fs.readFileSync(geometryPath, "utf8");
 
 vm.runInNewContext(geometrySource, axisSandbox);
 
-// ── Load cluster modules (density, placement, labels) ─────────────────────────
+// ── Load the real cluster bridges (density, placement, labels) ───────────────
 //
-// These are canonical ES modules under frontend/assets/js/cluster-logic/,
-// shared with admin through cluster-logic-bridge/*.js. vm.runInNewContext
-// can't execute `export`/`import` syntax directly, so each canonical source
-// is stripped of its ESM keywords before evaluation, then wrapped into the
-// same window.AdminTimelineCluster* shape the real bridge files build — i.e.
-// this exercises the real canonical logic through the same glue the bridge
-// applies, without needing an async dynamic import() in a CommonJS test file.
+// The helper runs the real bridge files from admin/assets/js/cluster-logic-bridge/
+// against the canonical modules, so these tests exercise what the editor loads.
 
-function loadEsmAsPlainScript(absPath, sandbox) {
-  const source = fs
-    .readFileSync(absPath, "utf8")
-    .replace(/^import\s+\{[^}]*\}\s+from\s+["'][^"']+["'];?$/gm, "")
-    .replace(/^export\s+const\s+/gm, "var ")
-    .replace(/^export\s+function\s+/gm, "function ")
-    .replace(/^export\s+\{[^}]*\};?$/gm, "");
-  vm.runInNewContext(source, sandbox);
-}
-
-const clusterDensityPath = path.resolve(
-  __dirname,
-  "..",
-  "..",
-  "frontend",
-  "assets",
-  "js",
-  "cluster-logic",
-  "cluster-density.js",
+Object.assign(
+  axisSandbox.window,
+  loadBridge("cluster-density-bridge.js"),
+  loadBridge("cluster-placement-bridge.js"),
+  loadBridge("cluster-labels-bridge.js"),
 );
-loadEsmAsPlainScript(clusterDensityPath, axisSandbox);
-axisSandbox.window.AdminTimelineClusterDensity = {
-  DENSITY_COMPACT: axisSandbox.DENSITY_COMPACT,
-  DENSITY_NORMAL: axisSandbox.DENSITY_NORMAL,
-  DENSITY_SPREAD: axisSandbox.DENSITY_SPREAD,
-  THRESHOLDS: axisSandbox.THRESHOLDS,
-  getClusterDensity: axisSandbox.getClusterDensity,
-};
-
-const clusterPlacementPath = path.resolve(
-  __dirname,
-  "..",
-  "..",
-  "frontend",
-  "assets",
-  "js",
-  "cluster-logic",
-  "cluster-placement.js",
-);
-loadEsmAsPlainScript(clusterPlacementPath, axisSandbox);
-axisSandbox.window.AdminTimelineClusterPlacement = {
-  SPACING: { compact: 12, normal: 16, spread: 22 },
-  FAN_SPREAD: 6,
-  // Bridge converts the admin caller's plain-object groupedEvents to/from
-  // the canonical module's Map shape (see cluster-placement-bridge.js).
-  computeDotPositions: function (groupedEventsObject, pxPerPeriod) {
-    const groupedEventsMap = new Map(Object.entries(groupedEventsObject));
-    const positionedMap = axisSandbox.computeDotPositions(
-      groupedEventsMap,
-      pxPerPeriod,
-    );
-    const positionedObject = {};
-    for (const [period, positions] of positionedMap) {
-      positionedObject[period] = positions;
-    }
-    return positionedObject;
-  },
-};
-
-const clusterLabelsPath = path.resolve(
-  __dirname,
-  "..",
-  "..",
-  "frontend",
-  "assets",
-  "js",
-  "cluster-logic",
-  "cluster-labels.js",
-);
-loadEsmAsPlainScript(clusterLabelsPath, axisSandbox);
-axisSandbox.window.AdminTimelineClusterLabels = {
-  LABEL_FULL: axisSandbox.LABEL_FULL,
-  LABEL_TRUNCATED: axisSandbox.LABEL_TRUNCATED,
-  LABEL_HIDDEN: axisSandbox.LABEL_HIDDEN,
-  computeLabelModes: axisSandbox.computeLabelModes,
-};
 
 vm.runInNewContext(axisSource, axisSandbox);
 
@@ -612,15 +540,18 @@ describe("cluster density tiers", function () {
 // ── Dot Placement ─────────────────────────────────────────────────────────
 
 describe("dot placement", function () {
-  const computeDotPositions =
-    axisSandbox.window.AdminTimelineClusterPlacement.computeDotPositions.bind(
-      axisSandbox.window.AdminTimelineClusterPlacement,
-    );
+  const placeDots =
+    axisSandbox.window.AdminTimelineClusterPlacement.computeDotPositions;
+
+  // The canonical function takes and returns a Map (period -> events).
+  function computeDotPositions(groupedObject, pxPerPeriod) {
+    return placeDots(new Map(Object.entries(groupedObject)), pxPerPeriod);
+  }
 
   test("single event per period — y offset is 0", function () {
     var grouped = { PreIncarnation: [{ id: 1, title: "Test" }] };
     var result = computeDotPositions(grouped, 80);
-    var positions = result["PreIncarnation"];
+    var positions = result.get("PreIncarnation");
     assert.equal(positions.length, 1);
     assert.equal(positions[0].yOffset, 0);
     assert.equal(positions[0].xFan, 0);
@@ -629,7 +560,7 @@ describe("dot placement", function () {
   test("two events in same period — stacked vertically", function () {
     var grouped = { PreIncarnation: [{ id: 1 }, { id: 2 }] };
     var result = computeDotPositions(grouped, 80);
-    var positions = result["PreIncarnation"];
+    var positions = result.get("PreIncarnation");
     assert.equal(positions.length, 2);
     // normal spacing is 16, so offsets are -8 and +8
     assert.equal(positions[0].yOffset, -8);
@@ -643,7 +574,7 @@ describe("dot placement", function () {
     var scales = [30, 55, 80, 119, 120, 200];
     for (var s = 0; s < scales.length; s++) {
       var result = computeDotPositions(grouped, scales[s]);
-      var positions = result["PreIncarnation"];
+      var positions = result.get("PreIncarnation");
       assert.equal(
         positions.length,
         5,
@@ -667,7 +598,7 @@ describe("dot placement", function () {
   test("spread tier adds horizontal fan-out", function () {
     var grouped = { PreIncarnation: [{ id: 1 }, { id: 2 }, { id: 3 }] };
     var result = computeDotPositions(grouped, 200); // spread tier
-    var positions = result["PreIncarnation"];
+    var positions = result.get("PreIncarnation");
     // At least some should have non-zero xFan
     var hasFan = positions.some(function (p) {
       return p.xFan !== 0;

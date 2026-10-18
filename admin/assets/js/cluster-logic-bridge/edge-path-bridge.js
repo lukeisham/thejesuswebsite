@@ -2,12 +2,12 @@
 /**
  * Admin arbor edge-path bridge.
  *
- * Re-exposes the canonical frontend/assets/js/cluster-logic/edge-path.js
- * computeEdgePath() as window.AdminArborComputeEdgePath — a global classic
- * admin scripts (arbor-edges.js, arbor-edge-reroute.js) can call without
- * needing a second, hand-copied implementation (JS-3, bridge pattern).
+ * Publishes `computeEdgePath` from frontend/assets/js/cluster-logic/edge-path.js
+ * as `window.AdminArborComputeEdgePath` for admin-arbor/arbor-edges.js. Both
+ * that file and the public arbor-render.js pass `edge.waypoints`, so an edge
+ * takes the same route in the editor and on the public page.
  *
- * Must load (type="module") BEFORE arbor-edges.js.
+ * Must load before arbor-edges.js (admin/diagrams/arbor.html).
  *
  * @module cluster-logic-bridge/edge-path-bridge
  */
