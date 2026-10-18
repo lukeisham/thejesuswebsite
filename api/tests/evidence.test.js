@@ -292,6 +292,54 @@ describe("evidence: updateComposite", () => {
     assert.equal(updated.mla_sources.length, 0);
   });
 
+  // The timeline editor sends only the timeline fields; a save must not
+  // erase the record's sources, identifiers or links.
+  test("keeps all four link sets when the body holds no link keys", () => {
+    const target = evidenceModel.create({
+      title: "Link Target",
+      slug: "link-target",
+      published_draft: 1,
+    });
+    const created = evidenceModel.createComposite({
+      title: "Timeline Save",
+      slug: "timeline-save",
+      published_draft: 1,
+      mla_source_ids: [seedMlaSource()],
+      identifier_ids: [seedIdentifier()],
+      link_evidence_ids: [target.id],
+      link_context_ids: [seedContextEssay()],
+    });
+
+    const updated = evidenceModel.updateComposite(created.id, {
+      timeline_offset_x: 0.1,
+      timeline_offset_y: -0.2,
+    });
+
+    assert.equal(updated.timeline_offset_x, 0.1);
+    assert.equal(updated.timeline_offset_y, -0.2);
+    assert.equal(updated.mla_sources.length, 1);
+    assert.equal(updated.identifiers.length, 1);
+    assert.equal(updated.links_evidence.length, 1);
+    assert.equal(updated.links_context.length, 1);
+  });
+
+  test("rewrites only the link sets whose key is sent", () => {
+    const created = evidenceModel.createComposite({
+      title: "Partial Sets",
+      slug: "partial-sets",
+      published_draft: 1,
+      mla_source_ids: [seedMlaSource()],
+      identifier_ids: [seedIdentifier()],
+    });
+
+    const updated = evidenceModel.updateComposite(created.id, {
+      mla_source_ids: [],
+    });
+
+    assert.equal(updated.mla_sources.length, 0);
+    assert.equal(updated.identifiers.length, 1);
+  });
+
   test("returns undefined for non-existent id", () => {
     const result = evidenceModel.updateComposite(99999, { title: "Ghost" });
     assert.equal(result, undefined);

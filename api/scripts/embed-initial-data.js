@@ -151,11 +151,17 @@ const PAGES = [
 
 // ── Query helpers ─────────────────────────────────────────────────────────────
 
+// The era pages paint this snapshot first and re-render only if the live
+// fetch differs (frontend/assets/js/timeline/timeline-interactions.js). Every
+// field that timeline-render.js reads to place a node must be in this SELECT,
+// including the two offsets. Leave one out and nodes sit in the wrong place
+// until the live data arrives.
 function queryTimelineForEra(era) {
   return db
     .prepare(
       `SELECT id, slug, title, timeline_period, timeline_era,
-              primary_verse, gospel_category, map_location
+              primary_verse, gospel_category, map_location,
+              timeline_offset_x, timeline_offset_y
        FROM evidence
        WHERE published_draft = 1
          AND timeline_era = ?

@@ -197,6 +197,34 @@ describe("timeline: getTimelineEvents draft filtering", () => {
     assert.deepEqual(titles, ["Draft event", "Published event"]);
   });
 
+  // The public timeline places a node from these two fields; the API must
+  // pass them through unchanged.
+  test("returns the stored offsets, and null for an unmoved node", () => {
+    insertEvidence({
+      title: "Moved event",
+      slug: "moved-event",
+      timeline_era: "Life",
+      timeline_period: "LifeBaptism",
+      timeline_offset_x: 0.2,
+      timeline_offset_y: -0.15,
+    });
+    insertEvidence({
+      title: "Unmoved event",
+      slug: "unmoved-event",
+      timeline_era: "Life",
+      timeline_period: "LifeBaptism",
+    });
+
+    const events = timelineModel.getTimelineEvents();
+    const moved = events.find((e) => e.title === "Moved event");
+    const unmoved = events.find((e) => e.title === "Unmoved event");
+
+    assert.equal(moved.timeline_offset_x, 0.2);
+    assert.equal(moved.timeline_offset_y, -0.15);
+    assert.equal(unmoved.timeline_offset_x, null);
+    assert.equal(unmoved.timeline_offset_y, null);
+  });
+
   test("only includes evidence with a period (not unplaced items)", () => {
     insertEvidence({
       title: "Placed",

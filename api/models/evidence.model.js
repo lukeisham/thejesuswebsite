@@ -95,7 +95,7 @@ const VALID_FILTERS = [
  *
  * When `page` and `limit` are provided, returns a paginated response:
  *   { items: [...], total: N, page: N, limit: N, totalPages: N }
- * When they are absent, returns a flat array (backward compatible).
+ * When they are absent, returns a flat array.
  */
 function getAllPublished(filters = {}) {
   const { page, limit, ...filterKeys } = filters;
@@ -313,9 +313,16 @@ function update(id, data) {
 }
 
 /**
- * Composite update — updates the base row and atomically replaces all related
- * child/junction sets inside a single transaction. Accepts the same optional
- * arrays as createComposite.
+ * Composite update — updates the base row and atomically replaces the related
+ * junction sets inside a single transaction. Accepts the same optional arrays
+ * as createComposite.
+ *
+ * A junction set is rewritten only when its array key is in `data`. The
+ * timeline editor saves through `PUT /evidence/:id` with only the timeline
+ * fields (`UpdateRecord.saveEvent` in admin/assets/js/update-record.js), and
+ * `replaceLinks` deletes before it checks for rows. Without the guard, every
+ * timeline save would erase the record's sources, identifiers and links. An
+ * empty array still clears a set on purpose.
  *
  * Why transaction: ensures we never end up with half-updated relations if
  * one of the replacements fails.
@@ -334,38 +341,46 @@ function updateComposite(id, data) {
     const evidence = update(id, data);
     if (!evidence) return undefined;
 
-    replaceLinks(
-      "evidence_mla_sources",
-      "evidence_id",
-      "mla_source_id",
-      "citation_order",
-      id,
-      mlaSourceIds,
-    );
-    replaceLinks(
-      "evidence_identifiers",
-      "evidence_id",
-      "identifier_id",
-      "citation_order",
-      id,
-      identifierIds,
-    );
-    replaceLinks(
-      "evidence_links_evidence",
-      "source_evidence_id",
-      "target_evidence_id",
-      "sort_order",
-      id,
-      linkEvidenceIds,
-    );
-    replaceLinks(
-      "evidence_links_context",
-      "source_evidence_id",
-      "target_context_essay_id",
-      "sort_order",
-      id,
-      linkContextIds,
-    );
+    if (mlaSourceIds !== undefined) {
+      replaceLinks(
+        "evidence_mla_sources",
+        "evidence_id",
+        "mla_source_id",
+        "citation_order",
+        id,
+        mlaSourceIds,
+      );
+    }
+    if (identifierIds !== undefined) {
+      replaceLinks(
+        "evidence_identifiers",
+        "evidence_id",
+        "identifier_id",
+        "citation_order",
+        id,
+        identifierIds,
+      );
+    }
+    if (linkEvidenceIds !== undefined) {
+      replaceLinks(
+        "evidence_links_evidence",
+        "source_evidence_id",
+        "target_evidence_id",
+        "sort_order",
+        id,
+        linkEvidenceIds,
+      );
+    }
+    if (linkContextIds !== undefined) {
+      replaceLinks(
+        "evidence_links_context",
+        "source_evidence_id",
+        "target_context_essay_id",
+        "sort_order",
+        id,
+        linkContextIds,
+      );
+    }
 
     return getAdminById(id);
   });
