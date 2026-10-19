@@ -2,12 +2,6 @@
 
 The site turns historical evidence about Jesus, entered by an admin, into public pages and interactive timelines, arbor diagrams and maps. Two functions make this work: passkey-gated editing with a draft-to-publish step, and read-only access for visitors and AI agents to published content only.
 
-The site is **vanilla HTML, CSS, and JavaScript** with no framework and no build step. The browser code uses no third-party libraries except display assets (the Feather SVG sprite). Each Node package lists its own dependencies in its `package.json`, and the Wikipedia ranking runs a Python sidecar (`wikipedia-ranking-pipeline.md`). A new dependency needs sign-off (SR-2).
-
-Both frontends talk to a Node.js/Express API backed by SQLite. The admin panel has visual editors for timelines, arbor (network) diagrams, and maps. Admin access uses WebAuthn passkeys only (D-016). An MCP (Model Context Protocol) server exposes published content as read-only tools for AI agents.
-
-**This is a map, not a reference manual.** Read the *Project Map* and *Cross-module patterns* first. They show what lives where and how the parts connect. Each area with its own rules has a guide in this folder (`INDEX.md` lists them). Code rules are in `setup/Vibe_coding_rules.md`, and the dated record of each decision is in `setup/Decisions_log.md`.
-
 ---
 
 ## Project Map
