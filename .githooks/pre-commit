@@ -29,17 +29,21 @@
 #
 # [pre-commit: Map SVG Integrity Check]
 #
-# Purpose: reject commits that replace hand-drawn map SVGs with
-# machine-generated export artifacts (the failure mode of commit 1a2313f,
-# where a 211-line hand-crafted SVG was replaced by a 1-line minified
-# machine export with wrong viewBox, no parchment filter, and auto-generated
-# clipPath hex IDs). The check runs on any staged change to a file under
-# frontend/assets/images/maps/ and validates:
-#   - File is at least 50 lines (hand-drawn maps are 200+)
-#   - viewBox is "0 0 1000 1000"
+# Purpose: reject commits that replace a map SVG with a machine export from
+# a GIS or illustration tool (the failure mode of commit 1a2313f, where a
+# hand-crafted SVG was replaced by a 1-line minified export with the wrong
+# viewBox, no parchment filter, and auto-generated clipPath hex IDs).
+# The map SVGs are output of api/scripts/generate-maps/index.js, so the
+# expected values come from that generator, not from a fixed number. The
+# check runs on any staged change to a file under frontend/assets/images/maps/
+# and validates:
+#   - File has at least MIN_MAP_LINES lines (a minified export has one)
+#   - viewBox equals the viewBox of that map in
+#     api/scripts/generate-maps/map-configs.js
 #   - Contains the parchment texture filter
 #   - Does NOT contain machine-generated clipPath hex-ID markers
-#   - Is not a single line (minified export)
+# If you change a viewBox in map-configs.js, regenerate the SVG in the same
+# commit, or this check blocks the commit.
 #
 # Bypass in emergencies with `git commit --no-verify`.
 
@@ -101,6 +105,9 @@ fi  # completed_dir exists
 # ═══════════════════════════════════════════════════════════════════════════════
 
 map_dir="frontend/assets/images/maps"
+# Generated maps are short: the smallest has about 30 lines. A minified
+# export is one line.
+MIN_MAP_LINES=10
 map_blocked=0
 map_report=""
 
@@ -119,33 +126,31 @@ if [ -n "$staged_maps" ]; then
 
         line_count=$(echo "$content" | wc -l | tr -d ' ')
 
-        # Check 1 — minimum line count (hand-drawn maps are 200+ lines).
-        if [ "$line_count" -lt 50 ]; then
-            failures="${failures}    line count: $line_count (minimum 50 expected)
+        # Check 1 — minimum line count (a minified export is a single line).
+        if [ "$line_count" -lt "$MIN_MAP_LINES" ]; then
+            failures="${failures}    line count: $line_count (minimum $MIN_MAP_LINES expected)
 "
         fi
 
-        # Check 2 — single-line minified export artifact.
-        if [ "$line_count" -eq 1 ]; then
-            # Already covered by the <50 check, but call it out specifically.
-            failures="${failures}    single-line file (likely a minified machine export)
+        # Check 2 — viewBox equals the one the generator config gives this map.
+        map_key=$(basename "$svg" .svg)
+        expected_vb=$(node -e 'const c = require("./api/scripts/generate-maps/map-configs").MAP_CONFIGS[process.argv[1]]; if (c) console.log([c.viewBox.x, c.viewBox.y, c.viewBox.width, c.viewBox.height].join(" "))' "$map_key" 2>/dev/null)
+        if [ -z "$expected_vb" ]; then
+            failures="${failures}    no entry for \"$map_key\" in api/scripts/generate-maps/map-configs.js
 "
-        fi
-
-        # Check 3 — correct viewBox.
-        if ! echo "$content" | head -5 | grep -q 'viewBox="0 0 1000 1000"'; then
+        elif ! echo "$content" | head -5 | grep -q "viewBox=\"$expected_vb\""; then
             vb=$(echo "$content" | grep -o 'viewBox="[^"]*"' | head -1)
-            failures="${failures}    viewBox: ${vb:-missing} (expected viewBox=\"0 0 1000 1000\")
+            failures="${failures}    viewBox: ${vb:-missing} (expected viewBox=\"$expected_vb\" from map-configs.js)
 "
         fi
 
-        # Check 4 — parchment texture filter (signature of hand-drawn maps).
+        # Check 3 — parchment texture filter (the generator always writes it).
         if ! echo "$content" | grep -q '<filter id="parchment-texture"'; then
             failures="${failures}    missing <filter id=\"parchment-texture\">
 "
         fi
 
-        # Check 5 — no machine-generated clipPath hex IDs.
+        # Check 4 — no machine-generated clipPath hex IDs.
         machine_ids=$(echo "$content" | grep -o 'clip-path="url(#[0-9a-f]\{8,\})"' | head -3)
         if [ -n "$machine_ids" ]; then
             failures="${failures}    machine-generated clipPath IDs detected (e.g. ${machine_ids%%$'\n'*})
@@ -236,18 +241,17 @@ if [ $map_blocked -ne 0 ]; then
     echo "── Map SVG Integrity ─────────────────────────────────────────────"
     echo ""
     echo "The following staged map SVG(s) failed structural checks and appear"
-    echo "to be machine-generated export artifacts rather than hand-drawn maps:"
+    echo "to be machine exports from a GIS or illustration tool, not output of"
+    echo "api/scripts/generate-maps/index.js:"
     echo ""
     printf '%s' "$map_report"
-    echo "Hand-drawn maps must have:"
-    echo "  - at least 50 lines (typically 200+)"
-    echo "  - viewBox=\"0 0 1000 1000\""
+    echo "A map SVG must have:"
+    echo "  - at least $MIN_MAP_LINES lines"
+    echo "  - the viewBox that map-configs.js gives that map"
     echo "  - a <filter id=\"parchment-texture\"> element"
     echo "  - no machine-generated clipPath hex IDs"
     echo ""
-    echo "If you intended to replace a map SVG with a new hand-drawn version,"
-    echo "verify the file you staged is the correct hand-authored file, not an"
-    echo "export from a GIS tool or illustration app."
+    echo "Regenerate the file with: node api/scripts/generate-maps/index.js"
     echo ""
 fi
 
