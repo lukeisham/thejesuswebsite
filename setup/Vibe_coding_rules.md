@@ -29,12 +29,13 @@ Here* at the end.
 | 13 | Smoke tests only, and run them. | TEST-2, TEST-2a |
 | 14 | A guide row you edit that a text search can check has a guide test. | TEST-10 |
 | 15 | Each file you edit: comments give the *why* and the links to other files. Its cross-app behaviour is in a guide or README, and the file matches it. | CORE-5 |
+| 16 | A purpose statement states the *why*: input, output, and the essential functions between them. App purpose 60 words or fewer, guide purpose 40 or fewer. | CORE-6 |
 
 ---
 
 ## Core Rules
 
-These five rules apply without exception. A breach is a defect.
+These six rules apply without exception. A breach is a defect.
 
 **Touch rule.** When you edit a file (code, guide, style guide or README), bring that whole file
 into line with the Core Rules in the same change. Do not open or edit a file only to clean it.
@@ -90,7 +91,7 @@ CSS files also follow CSS-6 for section headings.
 **CORE-3 — Cross-module behaviour lives in the guides.**
 The guides in `setup/ARCHITECTURE/` (start with `Website_guide.md`) hold three things:
 
-- **Purpose** — what an area is for, above the level of any one function.
+- **Purpose** — what an area is for, above the level of any one function (CORE-6).
 - **Navigation** — an ASCII map of what lives where. Structure only, no per-file commentary.
 - **Cross-boundary behaviour** — everything outside one file that depends on it, or that it
   depends on: a pm2 process, a port, a cron job, a deploy step in `deploy.sh`, a sidecar, a
@@ -139,6 +140,26 @@ must meet both rules when the change is complete. Do not open a file only to do 
 
 In your reply, name each file where you added a connection comment, a guide row, or a fix
 from step 4.
+
+**CORE-6 — A purpose statement holds the intent, in few words.**
+The app has one purpose statement, and each guide in `setup/ARCHITECTURE/` has one. A purpose
+statement is the *why*. It governs the rest of its document: every other section must serve it.
+A section that does not serve it belongs in another guide, or nowhere.
+
+- **Place.** The app purpose is the first paragraph of `Website_guide.md`, under the title. A
+  guide purpose is the first paragraph of that guide, under the title.
+- **Content.** State the highest-level input and the highest-level output. Then name the one or
+  two essential functions that turn the input into the output. Leave out every function that
+  only supports those.
+- **Word cap.** App purpose: 60 words or fewer. Guide purpose: 40 words or fewer. One paragraph,
+  no list. A statement over the cap holds the *how*: cut until it is intent only.
+- **Never.** No file, function, process or table names, no counts, and no history. Those are
+  navigation or cross-boundary behaviour (CORE-3), and they change when the code changes. The
+  purpose changes only when the intent changes.
+- **Test.** A refactor that keeps the intent must not force an edit to the statement. If it
+  does, the statement holds the *how*.
+
+When you touch a guide, bring its purpose statement into line with this rule (Touch rule).
 
 ---
 
