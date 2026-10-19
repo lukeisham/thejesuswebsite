@@ -324,6 +324,49 @@ describe(`${GUIDE} row 9: zoom stacks`, () => {
   });
 });
 
+// ── Row 10: every cluster-logic module is pure ───────────────────────────────
+
+describe(`${GUIDE} row 10: cluster-logic modules use no document or window`, () => {
+  const files = jsFilesUnder("frontend/assets/js/cluster-logic");
+
+  test("finds the modules", () => {
+    assert.ok(files.length >= 8, "Expected the cluster-logic modules.");
+  });
+
+  for (const rel of files) {
+    test(`${rel} uses no document or window`, () => {
+      const code = blankStrings(blankComments(read(rel)));
+      const m = /\b(document|window)\b/.exec(code);
+      assert.equal(
+        m,
+        null,
+        `${GUIDE} row 10: ${rel}:${m ? lineOf(code, m.index) : 0} uses ${m && m[1]}. A cluster-logic module takes data in and returns data.`,
+      );
+    });
+  }
+});
+
+// ── Row 11: the era-page snapshot carries both offsets ───────────────────────
+
+describe(`${GUIDE} row 11: the era-page snapshot carries the offsets`, () => {
+  const EMBED = "api/scripts/embed-initial-data.js";
+
+  test("queryTimelineForEra selects both offset columns", () => {
+    const code = read(EMBED);
+    const at = code.indexOf("function queryTimelineForEra");
+    assert.ok(at >= 0, `${GUIDE} row 11: ${EMBED} has no queryTimelineForEra.`);
+    const select = /SELECT[\s\S]*?FROM/.exec(code.slice(at));
+    assert.ok(select, `${GUIDE} row 11: ${EMBED}:${lineOf(code, at)} has no SELECT in queryTimelineForEra.`);
+    for (const col of ["timeline_offset_x", "timeline_offset_y"]) {
+      assert.match(
+        select[0],
+        new RegExp(`\\b${col}\\b`),
+        `${GUIDE} row 11: ${EMBED}:${lineOf(code, at)} leaves ${col} out of the snapshot SELECT.`,
+      );
+    }
+  });
+});
+
 // ── Rows 5 and 6: load order and exports that readers rely on ─────────────────
 
 const globals = bridgeGlobals();

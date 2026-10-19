@@ -87,20 +87,21 @@ One horizontal timeline on `/evidence/timeline/`, plus one page per era (`/evide
   - Era colour: fill from the `--era-*` tokens. A label or tooltip always carries the meaning too (WCAG).
   - People and places: `gospel_category` of `people` or `places` gives a white roundel (`--color-white` fill, `--color-black` ring). Objects use `--text-muted` fill. Category rules come after era rules (CSS-5).
   - Keep `timeline/timeline-dots.css` and `maps-pins.css` identical in look.
-- **Labels**: event title (`--text-2xs`, weight 500, two lines at most) above or below the dot, with a muted meta line. In a dense cluster a label shrinks to one line or hides.
+- **Labels**: event title (`--text-2xs`, weight 500, two lines at most, at most `100px` wide) starting just right of its dot, with a muted meta line. If that spot is taken the label tries the left side, then moves up or down and gets a **leader line** (1px, `--text-muted`) from the start of its name to the dot. A label never covers a dot or another label. In a dense cluster a label shrinks to one line or hides. The admin editor places titles with the same code.
 - **Tooltip** (after a 200ms hover): title, location, category badge, verse.
 - **Detail panel** (click, or `Enter` / `Space` on a focused dot): see Detail Panel below.
 - **Zoom** (≥768px): two icon buttons, zoom in and zoom out, no reset. Range `0.3×` to `3.0×`, step `1.25×`. Drag with mouse or touch to pan. No scrollbar.
+- **Stacks** (zoomed out): events within `44px` on screen along the time axis gather in a column of dots, `13px` apart, at their mean position, with a count badge (`.timeline-stack`, a button) on top. Below `0.6×` events sit in stacks; from `1.0×` (the default) each event sits exactly where the admin put it; in between each moves from its stack spot to its exact spot. Titles of stacked events are hidden. A click, `Enter` or `Space` on a stack zooms to at most `2×`, centres its events and the spine, and the stack dissolves. The admin editor never stacks.
 - **Era chips** (Filter Chips, below) do two things at once. They fade dots and labels outside the era to `0.15` opacity, and they move the view to center that era at `1.0×`. "All Eras" clears the fade and resets to `1.0×`, unpanned.
 - **Mobile** (<768px): the spine runs top to bottom, labels sit left and right of it, and the page scrolls normally. No zoom controls and no pan. A chip click scrolls the first dot of that era into view.
 - **Empty state**: "No events in this period."
 - **Admin**: the timeline editor (§13) uses the same look in admin tokens, on desktop only.
 
 #### Era Headings
-- `<h3 class="timeline-era-heading">` at the **top-left** of each era's region. Bold, uppercase, `letter-spacing: 0.08em`, coloured with the era's `--era-*` token, no pointer events.
-- **Zoom**: the on-screen size is `--text-h4` × zoom, held between `--text-small` and `--text-h3` (0.875rem–1.375rem) at every zoom level.
-- **Collisions**: a heading moves sideways to clear dots and labels. It never leaves its own era's span.
-- **Mobile** (<768px): headings sit to the **left** of the vertical spine, at the era's start.
+- `<h3 class="timeline-era-heading">` in a **band** at the top of the timeline canvas (`--timeline-heading-band-height`), outside the zoomed world, so the dots never sit under a heading. Uppercase, `letter-spacing: 0.08em`, `--timeline-heading-font-size`, weight 600, `--text-primary`, no pointer events.
+- **Size**: fixed at every zoom level. The era colour is on a `--timeline-heading-bar-height` bar under the band that spans the era, not on the text (the era tints are too light to read as text).
+- **Lanes**: a heading takes the first of three lanes where it fits. A heading that is wider than its era, or that sits in a lower lane, gets a 2px leader line in the era colour down to its bar.
+- **Mobile** (<768px): headings sit to the **left** of the vertical spine, at the era's start, and keep the older scaled style.
 - **Print**: black.
 
 ### Map
