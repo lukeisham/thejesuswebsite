@@ -14,7 +14,7 @@
  *
  * The public renderer (frontend/assets/js/timeline/timeline-render.js) and the
  * admin editor (admin/assets/js/admin-timeline/timeline-events.js and
- * timeline-node-drag.js, through cluster-logic-bridge/timeline-offsets-bridge.js)
+ * timeline-node-drag.js, through cluster-logic-bridge/timeline-bridge.js)
  * must convert with these functions, or a node dropped at one spot in the
  * editor shows at another spot on the public page. Changing the mapping moves
  * every stored node.
@@ -111,11 +111,22 @@ export function crossAxisToTopPercent(crossAxisPixels) {
 /**
  * Clamp an x offset to what a drag may reach.
  *
- * @param {number} offsetX
- * @returns {number} a value in [-DRAG_LIMIT_X, DRAG_LIMIT_X]
+ * The limit is `DRAG_LIMIT_X`, or the absolute start offset if that is larger,
+ * never more than `OFFSET_LIMIT_X`. A dot saved past the drag limit keeps its
+ * start as the limit, so grabbing it does not pull it back across the slot; it
+ * can still move inwards.
+ *
+ * @param {number} offsetX - the offset the drag proposes
+ * @param {number} [startOffsetX] - the stored offset where the drag began
+ * @returns {number} a value in [-limit, limit], where limit is `DRAG_LIMIT_X` or
+ *   the absolute start, whichever is larger, capped at `OFFSET_LIMIT_X`
  */
-export function clampDragOffsetX(offsetX) {
-  return Math.max(-DRAG_LIMIT_X, Math.min(DRAG_LIMIT_X, offsetX));
+export function clampDragOffsetX(offsetX, startOffsetX) {
+  const limit = Math.min(
+    OFFSET_LIMIT_X,
+    Math.max(DRAG_LIMIT_X, Math.abs(startOffsetX || 0)),
+  );
+  return Math.max(-limit, Math.min(limit, offsetX));
 }
 
 /**

@@ -13,19 +13,9 @@
  */
 
 import {
-  PROXIMITY_THRESHOLD,
-  detectClusters,
-  getZoomScaledSpacing,
-  computeRadialOffset,
   computePinOffsets,
-  computePinLabelModes,
 } from "/assets/js/cluster-logic/cluster-map-pins.js";
 
 window.AdminMapsClusterPins = {
-  PROXIMITY_THRESHOLD,
-  detectClusters,
-  getZoomScaledSpacing,
-  computeRadialOffset,
   computePinOffsets,
-  computePinLabelModes,
 };

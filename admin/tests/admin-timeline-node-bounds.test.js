@@ -1,14 +1,14 @@
 // AdminTimelineNodeBounds tests — node:test + node:assert + vm.
-// Tests the pure functions for clamping offset values. The clamp
-// limits come from the real offsets bridge, so a test here also fails when the
-// editor stops using the canonical limits.
+// Tests the pure functions for clamping offset values. The clamp limits come
+// from the real offsets module (loadCanonical), so a test here also fails when
+// the editor stops using the canonical limits.
 
 const { test, describe } = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
-const { loadBridge } = require("./helpers/load-bridge");
+const { loadBridge, loadCanonical } = require("./helpers/load-bridge");
 
 const boundsPath = path.resolve(
   __dirname,
@@ -20,11 +20,17 @@ const boundsPath = path.resolve(
 );
 const boundsSource = fs.readFileSync(boundsPath, "utf8");
 
+// The bridge publishes the functions the script calls; the limit constants
+// live only in the canonical module (the bridge does not publish them).
+const canonicalOffsets = loadCanonical(
+  "/assets/js/cluster-logic/timeline-offsets.js",
+);
+
 // ── Sandbox setup ──────────────────────────────────────────────────────────
 
 function createSandbox() {
   const sandbox = {
-    window: loadBridge("timeline-offsets-bridge.js"),
+    window: loadBridge("timeline-bridge.js"),
   };
   vm.runInNewContext(boundsSource, sandbox);
   return sandbox.window.AdminTimelineNodeBounds;
@@ -36,11 +42,10 @@ describe("AdminTimelineNodeBounds", () => {
   describe("canonical limits", () => {
     test("the clamps stop at the limits that the offsets module defines", () => {
       const bounds = createSandbox();
-      const offsets = loadBridge("timeline-offsets-bridge.js").AdminTimelineOffsets;
-      assert.strictEqual(bounds.clampOffsetX(10), offsets.DRAG_LIMIT_X);
-      assert.strictEqual(bounds.clampOffsetX(-10), -offsets.DRAG_LIMIT_X);
-      assert.strictEqual(bounds.clampOffsetY(10), offsets.OFFSET_LIMIT_Y);
-      assert.strictEqual(bounds.clampOffsetY(-10), -offsets.OFFSET_LIMIT_Y);
+      assert.strictEqual(bounds.clampOffsetX(10), canonicalOffsets.DRAG_LIMIT_X);
+      assert.strictEqual(bounds.clampOffsetX(-10), -canonicalOffsets.DRAG_LIMIT_X);
+      assert.strictEqual(bounds.clampOffsetY(10), canonicalOffsets.OFFSET_LIMIT_Y);
+      assert.strictEqual(bounds.clampOffsetY(-10), -canonicalOffsets.OFFSET_LIMIT_Y);
     });
   });
 

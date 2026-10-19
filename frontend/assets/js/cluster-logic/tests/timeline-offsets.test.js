@@ -69,6 +69,26 @@ describe("timeline offsets: clamps", () => {
     assert.equal(offsets.clampDragOffsetX(0.2), 0.2);
   });
 
+  test("a start of 0.5 stays at 0.5 going outwards", () => {
+    assert.equal(offsets.clampDragOffsetX(0.5, 0.5), 0.5);
+    assert.equal(offsets.clampDragOffsetX(0.9, 0.5), 0.5);
+    assert.equal(offsets.clampDragOffsetX(-0.5, -0.5), -0.5);
+  });
+
+  test("a start of 0.5 can move inwards to 0.3", () => {
+    assert.equal(offsets.clampDragOffsetX(0.3, 0.5), 0.3);
+  });
+
+  test("a start of 0 stops at 0.45", () => {
+    assert.equal(offsets.clampDragOffsetX(0.49, 0), 0.45);
+    assert.equal(offsets.clampDragOffsetX(-0.49, 0), -0.45);
+  });
+
+  test("no result passes the 0.5 limit the API stores", () => {
+    assert.equal(offsets.clampDragOffsetX(2, 2), 0.5);
+    assert.equal(offsets.clampDragOffsetX(-2, -2), -0.5);
+  });
+
   test("y stops at 0.4", () => {
     assert.equal(offsets.clampOffsetY(0.9), 0.4);
     assert.equal(offsets.clampOffsetY(-0.9), -0.4);

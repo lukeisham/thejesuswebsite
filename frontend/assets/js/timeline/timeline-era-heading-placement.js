@@ -3,7 +3,7 @@
  *
  * Pure, DOM-free functions for placing the era headings. Both take data in and
  * return positions out. The admin editor reaches `computeEraBandLayout` through
- * admin/assets/js/cluster-logic-bridge/timeline-era-heading-placement-bridge.js.
+ * admin/assets/js/cluster-logic-bridge/timeline-bridge.js.
  *
  * - `computeEraBandLayout` is the horizontal (desktop) layout. Headings sit in
  *   a reserved band above the dots, in screen pixels, in up to three lanes. A

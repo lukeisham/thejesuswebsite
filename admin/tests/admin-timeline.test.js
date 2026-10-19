@@ -1,8 +1,8 @@
 // Admin timeline tests — uses node:test + node:assert.
 // Tests the pure date↔position scale helpers from admin-timeline/timeline-axis.js
 // (periodToX, xToPeriod, round-trip stability, era-boundary mapping), and the
-// density, placement and label-mode globals that the real cluster bridges
-// publish for timeline-events.js.
+// density, placement and label-mode globals that the real timeline bridge
+// publishes for timeline-events.js.
 //
 // The DOM-bound drag/click timeline wiring is validated manually via browser
 // testing (see setup/TESTS/admin_tests.md for the manual checklist).
@@ -12,7 +12,7 @@ const assert = require("node:assert/strict");
 const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
-const { loadBridge } = require("./helpers/load-bridge");
+const { loadBridge, loadCanonical } = require("./helpers/load-bridge");
 
 // ── Load timeline-axis.js in a sandboxed context ─────────────────────────────
 
@@ -60,17 +60,12 @@ const geometrySource = fs.readFileSync(geometryPath, "utf8");
 
 vm.runInNewContext(geometrySource, axisSandbox);
 
-// ── Load the real cluster bridges (density, placement, labels) ───────────────
+// ── Load the real timeline bridge (density, placement, labels) ──────────────
 //
-// The helper runs the real bridge files from admin/assets/js/cluster-logic-bridge/
+// The helper runs the real bridge file from admin/assets/js/cluster-logic-bridge/
 // against the canonical modules, so these tests exercise what the editor loads.
 
-Object.assign(
-  axisSandbox.window,
-  loadBridge("cluster-density-bridge.js"),
-  loadBridge("cluster-placement-bridge.js"),
-  loadBridge("cluster-labels-bridge.js"),
-);
+Object.assign(axisSandbox.window, loadBridge("timeline-bridge.js"));
 
 vm.runInNewContext(axisSource, axisSandbox);
 
@@ -499,10 +494,12 @@ describe("drag-snap round-trip identity for every period", function () {
 // ── Cluster Density Tiers ──────────────────────────────────────────────────
 
 describe("cluster density tiers", function () {
-  const DENSITY_COMPACT =
-    axisSandbox.window.AdminTimelineClusterDensity.DENSITY_COMPACT;
-  const DENSITY_NORMAL =
-    axisSandbox.window.AdminTimelineClusterDensity.DENSITY_NORMAL;
+  // DENSITY_COMPACT and DENSITY_NORMAL are expected values in this test only;
+  // no editor script reads them, so the bridge does not publish them. Read
+  // them from the canonical module (TEST-9).
+  const density = loadCanonical("/assets/js/cluster-logic/cluster-density.js");
+  const DENSITY_COMPACT = density.DENSITY_COMPACT;
+  const DENSITY_NORMAL = density.DENSITY_NORMAL;
   const DENSITY_SPREAD =
     axisSandbox.window.AdminTimelineClusterDensity.DENSITY_SPREAD;
   const getClusterDensity =
@@ -608,11 +605,13 @@ describe("dot placement", function () {
 // ── Label Modes ───────────────────────────────────────────────────────────
 
 describe("label modes", function () {
-  const LABEL_FULL = axisSandbox.window.AdminTimelineClusterLabels.LABEL_FULL;
-  const LABEL_TRUNCATED =
-    axisSandbox.window.AdminTimelineClusterLabels.LABEL_TRUNCATED;
-  const LABEL_HIDDEN =
-    axisSandbox.window.AdminTimelineClusterLabels.LABEL_HIDDEN;
+  // The mode constants are expected values in this test only; no editor script
+  // reads them, so the bridge does not publish them. Read them from the
+  // canonical module (TEST-9).
+  const labels = loadCanonical("/assets/js/cluster-logic/cluster-labels.js");
+  const LABEL_FULL = labels.LABEL_FULL;
+  const LABEL_TRUNCATED = labels.LABEL_TRUNCATED;
+  const LABEL_HIDDEN = labels.LABEL_HIDDEN;
   const computeLabelModes =
     axisSandbox.window.AdminTimelineClusterLabels.computeLabelModes.bind(
       axisSandbox.window.AdminTimelineClusterLabels,

@@ -63,12 +63,12 @@ function bridgeGlobals() {
   for (const file of bridgeFiles) {
     const rel = `${BRIDGE_DIR}/${file}`;
     const code = blankComments(read(rel));
-    const m = /window\.(Admin\w+)\s*=\s*(\{[^}]*\}|\w+)\s*;/.exec(code);
-    if (!m) continue;
-    const names = m[2].startsWith("{")
-      ? m[2].replace(/[{}]/g, "").split(",").map((s) => s.trim()).filter(Boolean)
-      : null;
-    map[m[1]] = { file: rel, names };
+    for (const m of code.matchAll(/window\.(Admin\w+)\s*=\s*(\{[^}]*\}|\w+)\s*;/g)) {
+      const names = m[2].startsWith("{")
+        ? m[2].replace(/[{}]/g, "").split(",").map((s) => s.trim()).filter(Boolean)
+        : null;
+      map[m[1]] = { file: rel, names };
+    }
   }
   return map;
 }
@@ -77,20 +77,20 @@ function bridgeGlobals() {
 
 describe(`${GUIDE} bridge rule (pure re-export): bridges are pure re-exports`, () => {
   test("finds the bridge files", () => {
-    assert.ok(bridgeFiles.length >= 7, `Expected 7 bridges in ${BRIDGE_DIR}.`);
+    assert.ok(bridgeFiles.length >= 3, `Expected 3 bridges in ${BRIDGE_DIR}.`);
   });
 
   for (const file of bridgeFiles) {
-    test(`${file} holds only imports and one window.Admin* assignment`, () => {
+    test(`${file} holds only imports and window.Admin* assignments`, () => {
       const rel = `${BRIDGE_DIR}/${file}`;
       const code = blankComments(read(rel))
         .replace(/^import\s*\{[^}]*\}\s*from\s*"\/assets\/js\/[^"]+";?/gm, "")
         .trim();
-      const allowed = /^window\.Admin\w+\s*=\s*(\{\s*\w+\s*(,\s*\w+\s*)*,?\s*\}|\w+)\s*;$/;
+      const allowed = /^(?:window\.Admin\w+\s*=\s*(\{\s*\w+\s*(,\s*\w+\s*)*,?\s*\}|\w+)\s*;\s*)+$/;
       assert.ok(
         allowed.test(code),
-        `${GUIDE} bridge rule (pure re-export): ${rel} holds more than imports from /assets/js/ and one ` +
-          `"window.Admin… = { names }" assignment. A bridge re-exports and holds no logic. ` +
+        `${GUIDE} bridge rule (pure re-export): ${rel} holds more than imports from /assets/js/ and ` +
+          `"window.Admin… = { names }" assignments. A bridge re-exports and holds no logic. ` +
           `Found: ${code.slice(0, 120)}`,
       );
     });
@@ -173,8 +173,14 @@ describe(`${GUIDE} bridge rule (load order): a bridge loads before the script th
 });
 
 describe(`${GUIDE} bridge rule (exports): readers use only what a bridge exports`, () => {
-  test("every bridge global was found", () => {
-    assert.equal(Object.keys(globals).length, bridgeFiles.length);
+  test("every bridge file publishes at least one global", () => {
+    const files = new Set(Object.values(globals).map((g) => g.file));
+    for (const file of bridgeFiles) {
+      assert.ok(
+        files.has(`${BRIDGE_DIR}/${file}`),
+        `No window.Admin* assignment found in ${BRIDGE_DIR}/${file}.`,
+      );
+    }
   });
 
   for (const [name, info] of Object.entries(globals)) {

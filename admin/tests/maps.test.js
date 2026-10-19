@@ -667,7 +667,10 @@ function clampMenuPosition(screenX, screenY, menuWidth, menuHeight, viewW, viewH
 
 // ── AdminMapsClusterPins bridge ─────────────────────────────────────────
 
-// The helper runs the real bridge file against the real canonical module.
+// The helper runs the real bridge file against the real canonical module. The
+// bridge publishes only computePinOffsets (the name maps-pins.js reads); the
+// zoom-spacing and cluster-detection helpers come straight from the canonical
+// module (TEST-9).
 const AdminMapsClusterPins = loadBridge("cluster-map-pins-bridge.js")
   .AdminMapsClusterPins;
 const canonicalPins = loadCanonical("/assets/js/cluster-logic/cluster-map-pins.js");
@@ -687,14 +690,14 @@ describe("AdminMapsClusterPins bridge", function () {
   });
 
   test("admin's fixed zoom default (1.0) produces the normal-tier spacing", function () {
-    var defaultSpacing = AdminMapsClusterPins.getZoomScaledSpacing();
-    var explicitNormalSpacing = AdminMapsClusterPins.getZoomScaledSpacing(1.0);
+    var defaultSpacing = canonicalPins.getZoomScaledSpacing();
+    var explicitNormalSpacing = canonicalPins.getZoomScaledSpacing(1.0);
     assert.equal(defaultSpacing, explicitNormalSpacing);
 
     // Confirm it sits strictly between the tight (high-zoom) and wide
     // (low-zoom) extremes, i.e. it really is the "normal" middle tier.
-    var tight = AdminMapsClusterPins.getZoomScaledSpacing(3.0);
-    var wide = AdminMapsClusterPins.getZoomScaledSpacing(0.5);
+    var tight = canonicalPins.getZoomScaledSpacing(3.0);
+    var wide = canonicalPins.getZoomScaledSpacing(0.5);
     assert.ok(defaultSpacing < wide);
     assert.ok(defaultSpacing > tight);
   });
@@ -704,7 +707,7 @@ describe("AdminMapsClusterPins bridge", function () {
       { x: 20, y: 20 },
       { x: 20, y: 20 },
     ];
-    var clusters = AdminMapsClusterPins.detectClusters(pins);
+    var clusters = canonicalPins.detectClusters(pins);
     assert.equal(clusters.length, 1);
     assert.equal(clusters[0].length, 2);
   });

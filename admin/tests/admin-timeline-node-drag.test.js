@@ -41,11 +41,7 @@ function makeLabel(eventId) {
  * @param {Object} opts.events - event id -> event
  */
 function createEnv({ scale = 1, dots, events }) {
-  const win = Object.assign(
-    {},
-    loadBridge("timeline-offsets-bridge.js"),
-    loadBridge("cluster-density-bridge.js"),
-  );
+  const win = Object.assign({}, loadBridge("timeline-bridge.js"));
 
   const labels = {};
   for (const dot of dots) labels[dot.dataset.eventId] = makeLabel(dot.dataset.eventId);

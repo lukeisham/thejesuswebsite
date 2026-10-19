@@ -18,9 +18,10 @@
  * SPREAD density) and stages offsets in timeline-staged-changes.js. A click
  * below the drag threshold opens the edit panel.
  *
- * Reads the globals published by the cluster-logic bridges (density, placement,
- * labels, label layout, offsets, era heading placement) and AdminTimelineGeometry.
- * All of them load before this file (admin/diagrams/timeline.html). UpdateRecord
+ * Reads the globals published by the timeline bridge
+ * (cluster-logic-bridge/timeline-bridge.js: density, placement, labels, label
+ * layout, offsets, era heading placement) and AdminTimelineGeometry. All of
+ * them load before this file (admin/diagrams/timeline.html). UpdateRecord
  * saves edits.
  *
  * @module admin-timeline/timeline-events
@@ -328,7 +329,7 @@ function followGlidingLabels() {
 /**
  * Place every title beside its dot, and draw a leader line for each title that
  * had to move. The placement is `layoutLabelsBesideNodes`, the function that
- * the public timeline calls (cluster-logic-bridge/cluster-label-layout-bridge.js),
+ * the public timeline calls (cluster-logic-bridge/timeline-bridge.js),
  * so a title sits where the editor shows it. `renderEvents` calls this after it
  * attaches the labels; `timeline-node-drag.js` calls it while a node is dragged
  * and when it is dropped.
@@ -437,7 +438,7 @@ function eraKebab(era) {
  * Build the era heading band at the top of the canvas, outside the zoomed
  * world, and lay it out for the current zoom and pan. The placement comes from
  * `computeEraBandLayout`, the function that the public timeline uses
- * (cluster-logic-bridge/timeline-era-heading-placement-bridge.js). Called by
+ * (cluster-logic-bridge/timeline-bridge.js). Called by
  * `renderEvents`; the band is built once and kept.
  *
  * @param {boolean} [rebuild] - build it again, for example after fonts load

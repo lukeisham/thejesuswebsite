@@ -9,9 +9,10 @@
  *
  * All values are pixels in the dot field: the box that holds the dots, as wide
  * as the timeline and `TIMELINE_CANVAS_HEIGHT_PX` tall. The public renderer
+ * The public renderer
  * (frontend/assets/js/timeline/timeline-render.js) and the admin editor
  * (admin/assets/js/admin-timeline/timeline-events.js, through
- * cluster-logic-bridge/cluster-label-layout-bridge.js) call the same functions,
+ * cluster-logic-bridge/timeline-bridge.js) call the same functions,
  * so a title sits where the editor showed it. The vertical (mobile) layout has
  * its own label code.
  *
