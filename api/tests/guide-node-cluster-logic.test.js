@@ -152,6 +152,24 @@ describe(`${GUIDE} row 3: admin geometry equals frontend geometry`, () => {
     );
   });
 
+  test("the API clamps stored offsets to the canonical limits", () => {
+    const OFFSETS = "frontend/assets/js/cluster-logic/timeline-offsets.js";
+    const model = blankComments(read("api/models/evidence.model.js"));
+    for (const axis of ["x", "y"]) {
+      const upper = axis.toUpperCase();
+      const m = new RegExp(
+        `Math\\.max\\(\\s*(-?[\\d.]+)\\s*,\\s*Math\\.min\\(\\s*([\\d.]+)\\s*,\\s*row\\.timeline_offset_${axis}`,
+      ).exec(model);
+      assert.ok(m, `${GUIDE} row 3: api/models/evidence.model.js has no clamp for timeline_offset_${axis}.`);
+      const limit = numberAfter(OFFSETS, new RegExp(`export const OFFSET_LIMIT_${upper}\\s*=\\s*([\\d.]+)`));
+      assert.equal(
+        [Number(m[1]), Number(m[2])].join(","),
+        [-limit, limit].join(","),
+        `${GUIDE} row 3: the API clamp for timeline_offset_${axis} differs from OFFSET_LIMIT_${upper} in ${OFFSETS}.`,
+      );
+    }
+  });
+
   test("CANVAS_HEIGHT_PX equals TIMELINE_CANVAS_HEIGHT_PX", () => {
     assert.equal(
       numberAfter(ADMIN, /CANVAS_HEIGHT_PX:\s*(\d+)/),
@@ -181,6 +199,17 @@ describe(`${GUIDE} row 4: offset code uses the geometry constants`, () => {
   });
 
   for (const rel of OFFSET_FILES) {
+    test(`${rel} does not repeat the top-percentage formula`, () => {
+      const code = blankComments(read(rel));
+      const m = /\b50\s*\+\s*[\w.]+\s*\/\s*2\b/.exec(code);
+      assert.equal(
+        m,
+        null,
+        `${GUIDE} row 4: ${rel}:${m ? lineOf(code, m.index) : 0} repeats "50 + y / 2". ` +
+          `Call crossAxisToTopPercent() from frontend/assets/js/cluster-logic/timeline-offsets.js.`,
+      );
+    });
+
     test(`${rel} has no bare 280`, () => {
       assert.ok(exists(rel), `${GUIDE} row 4: ${rel} does not exist. Update OFFSET_FILES.`);
       if (BARE_280_EXCEPTIONS[rel]) return;

@@ -12,8 +12,9 @@
  * `BASE_PX_PER_PERIOD` geometry.
  *
  * The admin editor (admin/assets/js/admin-timeline/timeline-events.js) draws
- * the same layout from the same stored offsets. The offset-to-pixel formulas,
- * the label clearance and the tier step must stay equal on both sides:
+ * the same layout from the same stored offsets. Both convert offsets with
+ * cluster-logic/timeline-offsets.js, and both read the label clearance and the
+ * tier step from cluster-label-collision.js:
  * setup/ARCHITECTURE/node-cluster-logic.md lists the invariants and
  * api/tests/guide-node-cluster-logic.test.js checks them.
  *
@@ -54,6 +55,11 @@ import {
   LABEL_CLEARANCE_PCT,
   TIER_STEP_PCT,
 } from "../cluster-logic/cluster-label-collision.js";
+import {
+  offsetXToPixels,
+  offsetYToPixels,
+  crossAxisToTopPercent,
+} from "../cluster-logic/timeline-offsets.js";
 import { computeEraHeadingPositions } from "./timeline-era-heading-placement.js";
 
 // ─── Era Headings ───────────────────────────────────────────────────────────
@@ -281,7 +287,7 @@ const TIER_STEP_PX = 40;
  * @returns {string} inline style value
  */
 function labelStyleHorizontal(finalX, yOffset) {
-  var dotTop = 50 + yOffset / 2;
+  var dotTop = crossAxisToTopPercent(yOffset);
   var labelTop = yOffset <= 0
     ? dotTop - LABEL_CLEARANCE_PCT
     : dotTop + LABEL_CLEARANCE_PCT;
@@ -484,20 +490,20 @@ function buildHorizontalLayout(groupedEvents, activeEra) {
       const xFan = pos.xFan || 0;
 
       // A stored offset (set by dragging in the admin editor) replaces the
-      // cluster position. Admin timeline-events.js and timeline-node-drag.js
-      // convert offsets with the same two scales.
+      // cluster position. The admin editor converts offsets with the same
+      // functions (cluster-logic/timeline-offsets.js).
       let finalX = x + xFan;
       if (event.timeline_offset_x !== null && event.timeline_offset_x !== undefined) {
-        finalX = x + (event.timeline_offset_x * BASE_PX_PER_PERIOD);
+        finalX = x + offsetXToPixels(event.timeline_offset_x);
       }
       if (event.timeline_offset_y !== null && event.timeline_offset_y !== undefined) {
-        yOffset = event.timeline_offset_y * TIMELINE_CANVAS_HEIGHT_PX;
+        yOffset = offsetYToPixels(event.timeline_offset_y);
       }
 
       const posClass = labelPosition(yOffset);
       const isFiltered =
         activeEra && activeEra !== "all" && event.timeline_era !== activeEra;
-      const dotStyle = `left:${finalX}px;top:${50 + yOffset / 2}%`;
+      const dotStyle = `left:${finalX}px;top:${crossAxisToTopPercent(yOffset)}%`;
       const labelStyle = labelStyleHorizontal(finalX, yOffset);
 
       inner.appendChild(createDot(event, dotStyle, isFiltered));
@@ -582,12 +588,15 @@ function buildVerticalLayout(groupedEvents, activeEra) {
       let xOffset = pos.yOffset; // In vertical mode, yOffset becomes xOffset
       const yFan = pos.xFan || 0;
 
+      // The time axis is vertical here. A stored x offset still means "along
+      // the time axis" and a stored y offset still means "across it", as on
+      // the horizontal layout.
       let finalY = y + yFan;
-      if (event.timeline_offset_y !== null && event.timeline_offset_y !== undefined) {
-        finalY = y + (event.timeline_offset_y * BASE_PX_PER_PERIOD);
-      }
       if (event.timeline_offset_x !== null && event.timeline_offset_x !== undefined) {
-        xOffset = event.timeline_offset_x * TIMELINE_CANVAS_HEIGHT_PX;
+        finalY = y + offsetXToPixels(event.timeline_offset_x);
+      }
+      if (event.timeline_offset_y !== null && event.timeline_offset_y !== undefined) {
+        xOffset = offsetYToPixels(event.timeline_offset_y);
       }
 
       const side = labelSide(xOffset);

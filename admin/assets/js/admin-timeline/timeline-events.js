@@ -111,6 +111,8 @@ Events.renderEvents = function () {
   const canvasHeightPx = window.AdminTimelineGeometry.CANVAS_HEIGHT_PX;
   const { LABEL_CLEARANCE_PCT, TIER_STEP_PCT } =
     window.AdminTimelineClusterLabelCollision;
+  const { offsetXToPixels, offsetYToPixels, crossAxisToTopPercent } =
+    window.AdminTimelineOffsets;
 
   // Group events by period for clustering. The canonical placement function
   // takes and returns a Map (period -> events).
@@ -176,33 +178,20 @@ Events.renderEvents = function () {
       }
 
       if (stagedOffset) {
-        const offsetXPixels = window.AdminTimelineNodeBounds
-          ? window.AdminTimelineNodeBounds.offsetXToPixel(
-              stagedOffset.timeline_offset_x,
-              basePx,
-            )
-          : 0;
-        finalX = baseX + offsetXPixels;
-        finalY = stagedOffset.timeline_offset_y * canvasHeightPx;
+        finalX = baseX + offsetXToPixels(stagedOffset.timeline_offset_x);
+        finalY = offsetYToPixels(stagedOffset.timeline_offset_y);
       } else if (
         ev2.timeline_offset_x != null ||
         ev2.timeline_offset_y != null
       ) {
-        const apiOffsetXPixels = window.AdminTimelineNodeBounds
-          ? window.AdminTimelineNodeBounds.offsetXToPixel(
-              ev2.timeline_offset_x != null ? ev2.timeline_offset_x : 0,
-              basePx,
-            )
-          : 0;
-        finalX = baseX + apiOffsetXPixels;
+        finalX = baseX + offsetXToPixels(ev2.timeline_offset_x != null ? ev2.timeline_offset_x : 0);
         if (ev2.timeline_offset_y != null) {
-          finalY = ev2.timeline_offset_y * canvasHeightPx;
+          finalY = offsetYToPixels(ev2.timeline_offset_y);
         }
       }
 
-      // Same vertical placement as the public renderer: dots sit at
-      // top: ${50 + finalY / 2}% of the timeline container.
-      const y = 50 + finalY / 2 + "%";
+      // The public renderer places dots at the same percentage.
+      const y = crossAxisToTopPercent(finalY) + "%";
       const mode = modeByEventId[ev2.id] || "full";
       const el2 = Events.createEventElement(ev2, finalX, y, finalY, mode);
       axisEl.appendChild(el2);
@@ -223,8 +212,8 @@ Events.renderEvents = function () {
         }
         if (labelText) {
           const labelTop = yOffset <= 0
-            ? 50 + finalY / 2 - LABEL_CLEARANCE_PCT
-            : 50 + finalY / 2 + LABEL_CLEARANCE_PCT;
+            ? crossAxisToTopPercent(finalY) - LABEL_CLEARANCE_PCT
+            : crossAxisToTopPercent(finalY) + LABEL_CLEARANCE_PCT;
           const label = document.createElement("span");
           const labelClasses = ["admin-timeline-event-label"];
           if (mode === "truncated") labelClasses.push("label--truncated");

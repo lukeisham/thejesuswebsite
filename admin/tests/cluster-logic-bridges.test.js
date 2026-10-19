@@ -64,6 +64,23 @@ const BRIDGES = [
     ],
   },
   {
+    file: "timeline-offsets-bridge.js",
+    global: "AdminTimelineOffsets",
+    canonical: CLUSTER + "timeline-offsets.js",
+    names: [
+      "OFFSET_LIMIT_X",
+      "OFFSET_LIMIT_Y",
+      "DRAG_LIMIT_X",
+      "offsetXToPixels",
+      "pixelsToOffsetX",
+      "offsetYToPixels",
+      "pixelsToOffsetY",
+      "crossAxisToTopPercent",
+      "clampDragOffsetX",
+      "clampOffsetY",
+    ],
+  },
+  {
     file: "timeline-era-heading-placement-bridge.js",
     global: "AdminTimelineEraHeadingPlacement",
     canonical: "/assets/js/timeline/timeline-era-heading-placement.js",

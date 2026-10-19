@@ -46,6 +46,9 @@ window.AdminTimelineNodeDrag = {};
   var LABEL_CLEARANCE_PCT =
     window.AdminTimelineClusterLabelCollision.LABEL_CLEARANCE_PCT;
 
+  /** The offset-to-percentage mapping shared with the public renderer. */
+  var Offsets = window.AdminTimelineOffsets;
+
   /* ── State ─────────────────────────────────────────────────────────────────── */
 
   /** @type {Object|null} Current drag state. */
@@ -297,8 +300,9 @@ window.AdminTimelineNodeDrag = {};
 
     dot.style.left = (dragState.baseLeftPx + pixelOffsetX) + "px";
 
-    var finalY = offsetY * CANVAS_HEIGHT_PX;
-    dot.style.top = 50 + finalY / 2 + "%";
+    var finalY = Offsets.offsetYToPixels(offsetY);
+    var topPercent = Offsets.crossAxisToTopPercent(finalY);
+    dot.style.top = topPercent + "%";
 
     // The label is a sibling of the dot, so move it with the dot while it drags.
     var eventId = dot.dataset.eventId;
@@ -309,8 +313,8 @@ window.AdminTimelineNodeDrag = {};
       if (label) {
         label.style.left = dot.style.left;
         label.style.top = (offsetY <= 0
-          ? (50 + finalY / 2 - LABEL_CLEARANCE_PCT) + "%"
-          : (50 + finalY / 2 + LABEL_CLEARANCE_PCT) + "%");
+          ? topPercent - LABEL_CLEARANCE_PCT
+          : topPercent + LABEL_CLEARANCE_PCT) + "%";
       }
     }
   }

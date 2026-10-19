@@ -2,13 +2,19 @@
  * Admin timeline node bounds module.
  *
  * Pure functions (no DOM access) for clamping and converting timeline node
- * offset values. Used by the drag handler to constrain manual repositioning
- * within the period slot and the canvas bounds.
+ * offset values. Used by timeline-node-drag.js to constrain manual
+ * repositioning within the period slot and the canvas bounds.
+ *
+ * The clamp limits are not defined here: they come from
+ * `window.AdminTimelineOffsets` (cluster-logic-bridge/timeline-offsets-bridge.js),
+ * so the editor and the API agree on the range of a stored offset. The
+ * conversion functions take the scale from the caller; timeline-node-drag.js
+ * passes `AdminTimelineGeometry.BASE_PX_PER_PERIOD` and `CANVAS_HEIGHT_PX`.
  *
  * Offset ranges:
- *   - offsetX: fraction of period-slot width from slot centre [-0.5, 0.5],
- *     clamped to ±0.45 so the dot stays visually inside its slot.
- *   - offsetY: fraction of canvas height from the spine [-0.4, 0.4].
+ *   - offsetX: fraction of period-slot width from slot centre. A drag stops at
+ *     `DRAG_LIMIT_X` so the dot stays visually inside its slot.
+ *   - offsetY: fraction of canvas height from the spine, within `OFFSET_LIMIT_Y`.
  *
  * @module admin-timeline/timeline-node-bounds
  */
@@ -21,31 +27,23 @@ window.AdminTimelineNodeBounds = {};
   /* ── Clamping helpers ──────────────────────────────────────────────────────── */
 
   /**
-   * Clamp offsetX to the safe range [-0.45, 0.45] so the dot never visually
-   * exceeds its period slot boundary.
+   * Clamp offsetX so the dot never visually exceeds its period slot boundary.
    *
-   * @param {number} fraction - offset fraction in range [-0.5, 0.5]
-   * @returns {number} clamped fraction in range [-0.45, 0.45]
+   * @param {number} fraction - offset fraction
+   * @returns {number} the fraction, limited to `DRAG_LIMIT_X` either way
    */
   self.clampOffsetX = function (fraction) {
-    var margin = 0.45;
-    if (fraction < -margin) return -margin;
-    if (fraction > margin) return margin;
-    return fraction;
+    return window.AdminTimelineOffsets.clampDragOffsetX(fraction);
   };
 
   /**
-   * Clamp offsetY to the safe range [-0.4, 0.4] so the dot never visually
-   * exceed the canvas bounds.
+   * Clamp offsetY so the dot never visually exceeds the canvas bounds.
    *
-   * @param {number} fraction - offset fraction in range [-0.4, 0.4]
-   * @returns {number} clamped fraction in range [-0.4, 0.4]
+   * @param {number} fraction - offset fraction
+   * @returns {number} the fraction, limited to `OFFSET_LIMIT_Y` either way
    */
   self.clampOffsetY = function (fraction) {
-    var max = 0.4;
-    if (fraction < -max) return -max;
-    if (fraction > max) return max;
-    return fraction;
+    return window.AdminTimelineOffsets.clampOffsetY(fraction);
   };
 
   /* ── Conversion helpers ────────────────────────────────────────────────────── */
