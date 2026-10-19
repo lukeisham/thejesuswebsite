@@ -1,9 +1,8 @@
 # Wikipedia ranking pipeline
 
-The `/debate/wikipedia/` page ranks a **fixed canonical article list** (not an
-auto-growing pool) by a hybrid keyword + FAISS-vector scoring rubric. Scoring
-runs only on the developer machine; the VPS imports the finished export and
-serves a live vector-classification endpoint alongside it.
+The pipeline ranks a fixed list of Wikipedia articles on Jesus by how well each substantiates its content, then publishes the ranking on the site. Two steps do this: offline scoring, then import by the server.
+
+The `/debate/wikipedia/` page shows the ranking. The list is canonical, not an auto-growing pool. The rubric mixes keyword and FAISS-vector signals. The VPS also serves a live vector-classification endpoint beside the imported export.
 
 **Source of truth:** `setup/SKILLS/!TheJesusWebsite-Wikipedia/skill.md` — wins any disagreement with this doc, including the list size and the command set.
 **Spans:** `setup/SKILLS/!TheJesusWebsite-Wikipedia/scripts/{rank_engine.py,extract.js}`, `Wikipedia algorithm/` (CSVs, gold sets, vector stores), `Wikipedia algorithm/vector-sidecar/`, `database/scoring-export.json`, `deploy.sh`, `api/scripts/import-wikipedia-scoring.js`, `api/lib/vector-sidecar-client.js`, `api/routes/wikipedia.js`, `ecosystem.config.js`, `scripts/sync-vector-stores.sh`, `frontend/assets/js/wikipedia.js`, `database/schema.sql` (`wikipedia_articles`, `wikipedia_article_signals`).
