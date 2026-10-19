@@ -1,9 +1,8 @@
 # Wikipedia quality grid
 
-The signal grid, score panel, tooltip and copy button on the `/debate/wikipedia/` list. Each ranked
-article shows one cell per scoring signal, a colour-banded score and a copy button. The same
-data sits in an invisible JSON block for AI agents. This guide covers what the page, the script
-and the style sheets must agree on. The scoring is in `wikipedia-ranking-pipeline.md`.
+The grid shows, for each ranked Wikipedia article, which scoring signals earned or lost points, and the score. A reader sees why the article ranks where it does. AI agents and the clipboard get the same data.
+
+On `/debate/wikipedia/`, each article has one cell per signal, a colour-banded score, a tooltip, a copy button and an invisible JSON block. This guide covers what the page, the script and the style sheets must agree on. The scoring is in `wikipedia-ranking-pipeline.md`.
 
 **Source of truth:** `frontend/assets/js/wikipedia.js` — wins any disagreement with this doc.
 **Spans:** `frontend/assets/js/wikipedia.js`, `frontend/assets/js/utils/wikipedia-signals.js`, `frontend/assets/css/pages/wikipedia-quality-grid.css`, `frontend/assets/css/base/animations.css`, `frontend/debate/wikipedia.html`, `api/routes/wikipedia.js`, `api/models/wikipedia.model.js`, `Wikipedia algorithm/ALGORITHM_GUIDE_the_what.md`.
