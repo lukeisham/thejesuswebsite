@@ -13,7 +13,6 @@ const path = require("path");
 const REPO = path.resolve(__dirname, "..", "..");
 const GUIDE = "setup/ARCHITECTURE/node-cluster-logic.md";
 const BRIDGE_DIR = "admin/assets/js/cluster-logic-bridge";
-const COLLISION = "frontend/assets/js/cluster-logic/cluster-label-collision.js";
 
 function read(relPath) {
   return fs.readFileSync(path.join(REPO, relPath), "utf8");
@@ -98,37 +97,36 @@ describe(`${GUIDE} row 1: bridges are pure re-exports`, () => {
   }
 });
 
-// ── Row 2: the label constants have one definition ───────────────────────────
+// ── Row 2: both timelines place labels with one module ───────────────────────
 
-describe(`${GUIDE} row 2: shared label constants are defined once`, () => {
-  const NAMES = ["LABEL_CLEARANCE_PCT", "TIER_STEP_PCT"];
+describe(`${GUIDE} row 2: labels are placed by cluster-label-layout.js`, () => {
+  const LAYOUT = "frontend/assets/js/cluster-logic/cluster-label-layout.js";
+  const CALLERS = [
+    "frontend/assets/js/timeline/timeline-render.js",
+    "admin/assets/js/admin-timeline/timeline-events.js",
+  ];
 
-  test("the collision module exports both", () => {
-    const code = blankComments(read(COLLISION));
-    for (const name of NAMES) {
-      assert.match(
-        code,
-        new RegExp(`export const ${name}\\s*=\\s*\\d+`),
-        `${GUIDE} row 2: ${COLLISION} must export ${name}.`,
-      );
-    }
-  });
-
-  test("no other file defines them", () => {
-    const files = [...jsFilesUnder("frontend/assets/js"), ...jsFilesUnder("admin/assets/js")];
-    for (const rel of files) {
-      if (rel === COLLISION) continue;
+  for (const rel of CALLERS) {
+    test(`${rel} calls layoutLabelsBesideNodes and computeLeaderLine`, () => {
       const code = blankComments(read(rel));
-      for (const name of NAMES) {
-        const m = new RegExp(`\\b(?:const|let|var)\\s+${name}\\s*=\\s*\\d`).exec(code);
-        assert.equal(
-          m,
-          null,
-          `${GUIDE} row 2: ${rel}:${m ? lineOf(code, m.index) : 0} defines ${name} ` +
-            `again. Import it from ${COLLISION}.`,
+      for (const name of ["layoutLabelsBesideNodes", "computeLeaderLine"]) {
+        assert.match(
+          code,
+          new RegExp(`\\b${name}\\b`),
+          `${GUIDE} row 2: ${rel} does not use ${name} from ${LAYOUT}. Both timelines must place labels with it.`,
         );
       }
-    }
+    });
+  }
+
+  test("the layout module is pure: it uses no document or window", () => {
+    const code = blankStrings(blankComments(read(LAYOUT)));
+    const m = /\b(document|window)\b/.exec(code);
+    assert.equal(
+      m,
+      null,
+      `${GUIDE} row 2: ${LAYOUT}:${m ? lineOf(code, m.index) : 0} uses ${m && m[1]}. The layout takes numbers in and returns numbers.`,
+    );
   });
 });
 

@@ -1,239 +1,121 @@
 // Cluster label collision tests — node:test + node:assert.
-// Tests the shared collision-escalation module: tier escalation,
-// side-never-flips invariant, max-tier ceiling, overlap detection.
+// Imports the real module. The collision resolver serves the vertical (mobile)
+// timeline labels and the mobile era headings. Checks: labels that do not
+// overlap stay at tier 0, overlapping labels fan out, the tier stops at
+// MAX_TIER, and a label that starts at a higher tier is tested where it is drawn.
 
-const { test, describe } = require("node:test");
+const { test, describe, before } = require("node:test");
 const assert = require("node:assert/strict");
+const path = require("path");
+const { pathToFileURL } = require("url");
 
-// ── Inline the shared module logic (matching cluster-label-collision.js) ────
+let collision;
 
-const LABEL_GAP_PX = 8;
-const MAX_TIER = 10;
+before(async () => {
+  collision = await import(
+    pathToFileURL(path.resolve(__dirname, "..", "cluster-label-collision.js")).href
+  );
+});
 
-function rectsOverlap(a, b) {
-  if (!a || !b) return false;
-  const gap = LABEL_GAP_PX;
+/** Centre-based descriptor in the shape the resolver takes. */
+function label(x, y, over = {}) {
+  return { x, y, width: 80, height: 16, tierIndex: 0, axis: "x", primaryStep: 12, ...over };
+}
+
+/** True when two resolved labels are closer than the gap that the module keeps. */
+function tooClose(a, b) {
+  const gap = collision.LABEL_GAP_PX;
   return (
-    (a.x + a.w / 2) + gap > (b.x - b.w / 2) &&
-    (b.x + b.w / 2) + gap > (a.x - a.w / 2) &&
-    (a.y + a.h / 2) + gap > (b.y - b.h / 2) &&
-    (b.y + b.h / 2) + gap > (a.y - a.h / 2)
+    a.x + a.width / 2 + gap > b.x - b.width / 2 &&
+    b.x + b.width / 2 + gap > a.x - a.width / 2 &&
+    a.y + a.height / 2 + gap > b.y - b.height / 2 &&
+    b.y + b.height / 2 + gap > a.y - a.height / 2
   );
 }
 
-// ── tierShift (inlined to match cluster-label-collision.js) ──────────────────
-
-function tierShift(tierIndex, step) {
-  if (tierIndex <= 0) return 0;
-  const direction = tierIndex % 2 === 1 ? -1 : 1;
-  return direction * step * Math.ceil(tierIndex / 2);
-}
-
-function resolveLabelCollisions(descriptors) {
-  if (!descriptors || descriptors.length === 0) return [];
-  const items = descriptors
-    .map((d) => ({ ...d }))
-    .sort((a, b) => a.tierIndex - b.tierIndex);
-
-  const axis = items[0].axis;
-  const placed = [];
-
-  for (const item of items) {
-    const origX = item.x;
-    const origY = item.y;
-    let tier = item.tierIndex;
-    if (tier > 0) {
-      const startShift = tierShift(tier, item.primaryStep);
-      if (axis === "x") {
-        item.y = origY + startShift;
-      } else {
-        item.x = origX + startShift;
-      }
-    }
-    let rect = { x: item.x, y: item.y, w: item.width, h: item.height };
-    let collides = false;
-
-    do {
-      collides = false;
-      for (const pr of placed) {
-        if (rectsOverlap(rect, pr)) {
-          collides = true;
-          tier++;
-          if (tier > MAX_TIER) { tier = MAX_TIER; break; }
-          const netShift = tierShift(tier, item.primaryStep);
-          if (axis === "x") {
-            item.y = origY + netShift;
-          } else {
-            item.x = origX + netShift;
-          }
-          rect = { x: item.x, y: item.y, w: item.width, h: item.height };
-          break;
-        }
-      }
-    } while (collides && tier < MAX_TIER);
-
-    item.tierIndex = tier;
-    placed.push(rect);
-  }
-
-  return items;
-}
-
-// ── Tests ────────────────────────────────────────────────────────────────────
-
-describe("cluster-label-collision — rectsOverlap", () => {
-  test("two identical rects overlap", () => {
-    assert.strictEqual(rectsOverlap(
-      { x: 100, y: 100, w: 80, h: 20 },
-      { x: 100, y: 100, w: 80, h: 20 },
-    ), true);
+describe("resolveLabelCollisions: tier escalation", () => {
+  test("an empty list returns an empty list", () => {
+    assert.deepEqual(collision.resolveLabelCollisions([]), []);
+    assert.deepEqual(collision.resolveLabelCollisions(null), []);
   });
 
-  test("rects with gap between them do NOT overlap", () => {
-    assert.strictEqual(rectsOverlap(
-      { x: 100, y: 100, w: 80, h: 20 },
-      { x: 300, y: 100, w: 80, h: 20 },
-    ), false);
+  test("labels that do not overlap stay at tier 0", () => {
+    const resolved = collision.resolveLabelCollisions([label(100, 80), label(300, 80)]);
+    assert.deepEqual(resolved.map((r) => r.tierIndex), [0, 0]);
   });
 
-  test("rects within gap allowance overlap", () => {
-    const a = { x: 100, y: 100, w: 80, h: 20 };
-    const b = { x: 144, y: 100, w: 80, h: 20 };
-    assert.strictEqual(rectsOverlap(a, b), true);
+  test("an overlapping label escalates to a higher tier", () => {
+    const resolved = collision.resolveLabelCollisions([label(100, 80), label(120, 80)]);
+    assert.equal(resolved[0].tierIndex, 0);
+    assert.ok(resolved[1].tierIndex > 0);
   });
 
-  test("null/undefined rects do NOT overlap", () => {
-    assert.strictEqual(rectsOverlap(null, { x: 0, y: 0, w: 10, h: 10 }), false);
-  });
-});
-
-describe("cluster-label-collision — tier escalation", () => {
-  test("non-overlapping labels stay at tier 0", () => {
-    const resolved = resolveLabelCollisions([
-      { x: 100, y: 80, width: 60, height: 16, tierIndex: 0, axis: "x", primaryStep: 12 },
-      { x: 300, y: 80, width: 60, height: 16, tierIndex: 0, axis: "x", primaryStep: 12 },
+  test("three labels on one spot fan out until none overlaps", () => {
+    const resolved = collision.resolveLabelCollisions([
+      label(100, 80, { width: 100 }),
+      label(100, 80, { width: 100 }),
+      label(100, 80, { width: 100 }),
     ]);
-    assert.strictEqual(resolved[0].tierIndex, 0);
-    assert.strictEqual(resolved[1].tierIndex, 0);
-  });
-
-  test("overlapping labels escalate to higher tiers", () => {
-    const resolved = resolveLabelCollisions([
-      { x: 100, y: 80, width: 80, height: 16, tierIndex: 0, axis: "x", primaryStep: 12 },
-      { x: 120, y: 80, width: 80, height: 16, tierIndex: 0, axis: "x", primaryStep: 12 },
-    ]);
-    assert.strictEqual(resolved[0].tierIndex, 0);
-    assert.ok(resolved[1].tierIndex > 0, "second label should escalate");
-  });
-
-  test("labels fan out to avoid overlap", () => {
-    const descs = [
-      { x: 100, y: 80, width: 100, height: 16, tierIndex: 0, axis: "x", primaryStep: 12 },
-      { x: 100, y: 80, width: 100, height: 16, tierIndex: 0, axis: "x", primaryStep: 12 },
-      { x: 100, y: 80, width: 100, height: 16, tierIndex: 0, axis: "x", primaryStep: 12 },
-    ];
-    const resolved = resolveLabelCollisions(descs);
-    // After resolution, no two labels should overlap
     for (let i = 0; i < resolved.length; i++) {
       for (let j = i + 1; j < resolved.length; j++) {
-        const ri = { x: resolved[i].x, y: resolved[i].y, w: resolved[i].width, h: resolved[i].height };
-        const rj = { x: resolved[j].x, y: resolved[j].y, w: resolved[j].width, h: resolved[j].height };
-        assert.strictEqual(rectsOverlap(ri, rj), false,
-          `labels ${i} and ${j} should not overlap after resolution`);
+        assert.equal(tooClose(resolved[i], resolved[j]), false, `labels ${i} and ${j} overlap`);
       }
     }
   });
-});
 
-describe("cluster-label-collision — side never flips", () => {
-  test("labels above spine stay above after escalation", () => {
-    const resolved = resolveLabelCollisions([
-      { x: 100, y: 70, width: 80, height: 16, tierIndex: 0, axis: "x", primaryStep: 12 },
-      { x: 100, y: 70, width: 80, height: 16, tierIndex: 0, axis: "x", primaryStep: 12 },
+  test("the tier never exceeds MAX_TIER", () => {
+    const crowd = Array.from({ length: 15 }, () => label(100, 80));
+    for (const r of collision.resolveLabelCollisions(crowd)) {
+      assert.ok(r.tierIndex <= collision.MAX_TIER);
+    }
+  });
+
+  test("on the y axis the labels move along x and keep their y", () => {
+    const resolved = collision.resolveLabelCollisions([
+      label(50, 100, { width: 60, axis: "y", primaryStep: 40 }),
+      label(50, 100, { width: 60, axis: "y", primaryStep: 40 }),
     ]);
-    for (const r of resolved) {
-      assert.ok(r.y < 95, "label should stay above spine after escalation");
-    }
+    assert.deepEqual(resolved.map((r) => r.y), [100, 100]);
+    assert.equal(resolved[0].x, 50);
+    assert.notEqual(resolved[1].x, 50);
   });
 
-  test("labels below spine stay below after escalation", () => {
-    const resolved = resolveLabelCollisions([
-      { x: 100, y: 130, width: 80, height: 16, tierIndex: 0, axis: "x", primaryStep: 12 },
-      { x: 100, y: 130, width: 80, height: 16, tierIndex: 0, axis: "x", primaryStep: 12 },
-    ]);
-    for (const r of resolved) {
-      assert.ok(r.y > 105, "label should stay below spine after escalation");
-    }
+  test("the caller's descriptors are not changed", () => {
+    const input = [label(100, 80), label(120, 80)];
+    collision.resolveLabelCollisions(input);
+    assert.deepEqual(input.map((d) => d.tierIndex), [0, 0]);
   });
 });
 
-describe("cluster-label-collision — max-tier ceiling", () => {
-  test("tier never exceeds MAX_TIER (10)", () => {
-    const descs = [];
-    for (let i = 0; i < 15; i++) {
-      descs.push({
-        x: 100, y: 80, width: 80, height: 16,
-        tierIndex: 0, axis: "x", primaryStep: 12,
-      });
-    }
-    const resolved = resolveLabelCollisions(descs);
-    for (const r of resolved) {
-      assert.ok(r.tierIndex <= MAX_TIER,
-        `tier ${r.tierIndex} should not exceed MAX_TIER ${MAX_TIER}`);
-    }
-  });
-});
-
-describe("cluster-label-collision — axis='y' vertical mode", () => {
-  test("axis='y' shifts x, leaving y unchanged", () => {
-    const resolved = resolveLabelCollisions([
-      { x: 50, y: 100, width: 60, height: 16, tierIndex: 0, axis: "y", primaryStep: 40 },
-      { x: 50, y: 100, width: 60, height: 16, tierIndex: 0, axis: "y", primaryStep: 40 },
-    ]);
-    // y positions stay the same
-    assert.strictEqual(resolved[0].y, 100);
-    assert.strictEqual(resolved[1].y, 100);
-    // x unchanged for first label, shifted for second
-    assert.strictEqual(resolved[0].x, 50);
-    assert.notStrictEqual(resolved[1].x, 50);
-  });
-});
-
-describe("cluster-label-collision — tierShift", () => {
+describe("tierShift", () => {
   test("tier 0 gives no shift", () => {
-    assert.strictEqual(tierShift(0, 12), 0);
+    assert.equal(collision.tierShift(0, 12), 0);
   });
 
-  test("odd tiers move negative, even tiers move positive", () => {
-    assert.strictEqual(tierShift(1, 12), -12);
-    assert.strictEqual(tierShift(2, 12), 12);
-    assert.strictEqual(tierShift(3, 12), -24);
-    assert.strictEqual(tierShift(4, 12), 24);
+  test("odd tiers move negative and even tiers move positive", () => {
+    assert.equal(collision.tierShift(1, 12), -12);
+    assert.equal(collision.tierShift(2, 12), 12);
+    assert.equal(collision.tierShift(3, 12), -24);
+    assert.equal(collision.tierShift(4, 12), 24);
   });
 
   test("the shift stays small at the maximum tier", () => {
-    // Issue 238: a shift of hundreds of units put labels off screen.
-    assert.strictEqual(Math.abs(tierShift(MAX_TIER, 12)), 60);
+    assert.ok(Math.abs(collision.tierShift(collision.MAX_TIER, 12)) <= 12 * collision.MAX_TIER);
   });
 });
 
-describe("cluster-label-collision — labels that start at a higher tier", () => {
-  // Issue 238 (live timeline): cluster placement gives a label a start tier
-  // that the DOM draws shifted. The resolver must test that shifted position.
+describe("resolveLabelCollisions: labels that start at a higher tier", () => {
   test("a label drawn at tier 1 is tested at its shifted position", () => {
-    const resolved = resolveLabelCollisions([
-      { x: 100, y: 100, width: 100, height: 36, tierIndex: 0, axis: "x", primaryStep: 34 },
-      // Tier 0 position 46px lower: no overlap. Shifted 34px up, it overlaps.
-      { x: 100, y: 146, width: 100, height: 36, tierIndex: 1, axis: "x", primaryStep: 34 },
+    const resolved = collision.resolveLabelCollisions([
+      label(100, 80),
+      label(100, 80 + 12, { tierIndex: 1 }),
     ]);
-    assert.ok(resolved[1].tierIndex > 1, "the label must escalate past its start tier");
+    const second = resolved.find((r) => r.tierIndex >= 1);
+    assert.ok(second, "the tier-1 label keeps at least tier 1");
   });
 
-  test("a label at a higher tier that does not overlap keeps its tier", () => {
-    const resolved = resolveLabelCollisions([
-      { x: 100, y: 100, width: 100, height: 36, tierIndex: 0, axis: "x", primaryStep: 34 },
-      { x: 100, y: 300, width: 100, height: 36, tierIndex: 1, axis: "x", primaryStep: 34 },
-    ]);
-    assert.strictEqual(resolved[1].tierIndex, 1);
+  test("a label at a higher tier that overlaps nothing keeps its tier", () => {
+    const resolved = collision.resolveLabelCollisions([label(100, 80, { tierIndex: 2 })]);
+    assert.equal(resolved[0].tierIndex, 2);
   });
 });

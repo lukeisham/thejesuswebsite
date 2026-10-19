@@ -14,9 +14,9 @@
  * starts from where the dot is shown, not from the stored offset, so a dot that
  * has never been moved does not jump.
  *
- * While a node is dragged, and when it is dropped, the labels are laid out again
+ * While a node is dragged, and when it is dropped, the labels are placed again
  * (`AdminTimelineEvents.relayoutLabels`), so titles move out of each other's way
- * as the node moves. A drop stages the offsets with
+ * and keep a leader line to their dot as the node moves. A drop stages the offsets with
  * `AdminTimelineStaged.stageOffset`; they are saved by the toolbar button.
  *
  * The offset maths is `window.AdminTimelineOffsets`, the same module the public
@@ -41,11 +41,6 @@ window.AdminTimelineNodeDrag = {};
 
   /** World pixels per period slot. */
   var BASE_PX = window.AdminTimelineGeometry.BASE_PX_PER_PERIOD;
-
-  /** Distance (percent of the dot field height) between a dot and its label.
-   * Shared with the public renderer through the collision bridge. */
-  var LABEL_CLEARANCE_PCT =
-    window.AdminTimelineClusterLabelCollision.LABEL_CLEARANCE_PCT;
 
   /** The offset-to-pixel and offset-to-percentage maths, shared with the public renderer. */
   var Offsets = window.AdminTimelineOffsets;
@@ -265,9 +260,8 @@ window.AdminTimelineNodeDrag = {};
   /* ── Visual position update ───────────────────────────────────────────────── */
 
   /**
-   * Move the dot and its label to an offset, with the same formulas as
-   * `Events.renderEvents`. The label's base position is stored for the layout
-   * pass, which then moves it out of the way of other labels.
+   * Move the dot to an offset, with the same formulas as `Events.renderEvents`.
+   * The label is moved by the layout pass that follows.
    *
    * @param {HTMLElement} dot
    * @param {number} offsetX
@@ -279,17 +273,5 @@ window.AdminTimelineNodeDrag = {};
     dot.style.left = dragState.slotCentreX + Offsets.offsetXToPixels(offsetX) + "px";
     var topPercent = Offsets.crossAxisToTopPercent(Offsets.offsetYToPixels(offsetY));
     dot.style.top = topPercent + "%";
-
-    var label = document.querySelector(
-      '.admin-timeline-event-label[data-event-id="' + dot.dataset.eventId + '"]',
-    );
-    if (!label) return;
-
-    var labelTop =
-      (offsetY <= 0 ? topPercent - LABEL_CLEARANCE_PCT : topPercent + LABEL_CLEARANCE_PCT) +
-      "%";
-    label.style.left = dot.style.left;
-    label.dataset.originalTop = labelTop;
-    label.style.top = labelTop;
   }
 })();

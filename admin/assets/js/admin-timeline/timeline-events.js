@@ -18,9 +18,10 @@
  * SPREAD density) and stages offsets in timeline-staged-changes.js. A click
  * below the drag threshold opens the edit panel.
  *
- * Reads the globals published by the cluster-logic bridges, the label-collision
- * adapter (timeline-label-collision.js) and AdminTimelineGeometry. All of them
- * load before this file (admin/diagrams/timeline.html). UpdateRecord saves edits.
+ * Reads the globals published by the cluster-logic bridges (density, placement,
+ * labels, label layout, offsets, era heading placement) and AdminTimelineGeometry.
+ * All of them load before this file (admin/diagrams/timeline.html). UpdateRecord
+ * saves edits.
  *
  * @module admin-timeline/timeline-events
  */
@@ -99,16 +100,14 @@ Events.renderEvents = function () {
   const axisEl = document.getElementById("timeline-axis");
   if (!axisEl) return;
 
-  // Remove existing event markers
-  const existing = axisEl.querySelectorAll(".admin-timeline-event");
-  for (let i = 0; i < existing.length; i++) {
-    existing[i].remove();
-  }
+  // Remove existing event markers, their labels and the leader lines
+  axisEl
+    .querySelectorAll(".admin-timeline-event, .admin-timeline-event-label, .admin-timeline-leaders")
+    .forEach(function (el) { el.remove(); });
 
   // The same two scales convert a stored offset to pixels on the public page
   // (frontend/assets/js/timeline/timeline-render.js).
   const basePx = window.AdminTimelineGeometry.BASE_PX_PER_PERIOD;
-  const { LABEL_CLEARANCE_PCT } = window.AdminTimelineClusterLabelCollision;
   const { offsetXToPixels, offsetYToPixels, crossAxisToTopPercent } =
     window.AdminTimelineOffsets;
 
@@ -196,32 +195,15 @@ Events.renderEvents = function () {
           labelText = labelText.slice(0, 26) + "…";
         }
         if (labelText) {
-          // The side follows the final position, as on the public page.
-          const labelTop = finalY <= 0
-            ? crossAxisToTopPercent(finalY) - LABEL_CLEARANCE_PCT
-            : crossAxisToTopPercent(finalY) + LABEL_CLEARANCE_PCT;
           const label = document.createElement("span");
           const labelClasses = ["admin-timeline-event-label"];
           if (mode === "truncated") labelClasses.push("label--truncated");
           label.className = labelClasses.join(" ");
-          label.style.position = "absolute";
+          // Starts at the dot; relayoutLabels moves it beside the dot.
           label.style.left = finalX + "px";
-          label.style.top = labelTop + "%";
-          label.style.transform = "translateX(-50%)";
-          label.style.maxWidth = "100px";
-          label.style.textAlign = "center";
-          label.style.fontSize = "var(--text-2xs)";
-          label.style.fontFamily = "var(--font-sans)";
-          label.style.color = "var(--text-primary)";
-          label.style.whiteSpace = "nowrap";
-          label.style.pointerEvents = "none";
-          label.style.userSelect = "none";
-          label.style.lineHeight = "var(--leading-small)";
+          label.style.top = y;
           label.textContent = labelText;
           label.dataset.eventId = String(ev2.id);
-          label.dataset.tierIndex = "0";
-          // Read back by timeline-label-collision.js when it applies a tier.
-          label.dataset.originalTop = labelTop + "%";
           axisEl.appendChild(label);
         }
       }
@@ -297,19 +279,63 @@ Events.createEventElement = function (ev, x, y, yOffset, labelMode) {
   return el;
 };
 
+/** The leader-line layer and what it connects, kept for the animation frames. */
+let leaderLayer = null;
+let leaderTargets = [];
+let leaderFrame = 0;
+
 /**
- * Resolve label overlaps again for the labels that are on the axis now.
+ * Draw the leader lines from the start of each moved title to its dot. A label
+ * that is gliding is read from its computed position, so the line and the title
+ * stay joined for the whole move.
+ */
+function drawLeaders() {
+  if (!leaderLayer) return;
+  const layout = window.AdminTimelineClusterLabelLayout;
+  const svgNs = "http://www.w3.org/2000/svg";
+  leaderLayer.replaceChildren();
+
+  for (const target of leaderTargets) {
+    const style = window.getComputedStyle(target.label);
+    const shown = {
+      left: parseFloat(style.left),
+      top: parseFloat(style.top),
+      width: target.spot.width,
+      height: target.spot.height,
+      side: target.spot.side,
+    };
+    const line = layout.computeLeaderLine(target.node, layout.DOT_CLEARANCE_PX - 2, shown);
+    const el = document.createElementNS(svgNs, "line");
+    el.setAttribute("x1", String(line.x1));
+    el.setAttribute("y1", String(line.y1));
+    el.setAttribute("x2", String(line.x2));
+    el.setAttribute("y2", String(line.y2));
+    leaderLayer.appendChild(el);
+  }
+}
+
+/** Keep the leader lines in step with gliding labels for a short while. */
+function followGlidingLabels() {
+  cancelAnimationFrame(leaderFrame);
+  const until = performance.now() + 300;
+  const tick = function () {
+    drawLeaders();
+    if (performance.now() < until) leaderFrame = requestAnimationFrame(tick);
+  };
+  tick();
+}
+
+/**
+ * Place every title beside its dot, and draw a leader line for each title that
+ * had to move. The placement is `layoutLabelsBesideNodes`, the function that
+ * the public timeline calls (cluster-logic-bridge/cluster-label-layout-bridge.js),
+ * so a title sits where the editor shows it. `renderEvents` calls this after it
+ * attaches the labels; `timeline-node-drag.js` calls it while a node is dragged
+ * and when it is dropped.
  *
- * Every label goes back to its base position (`data-original-top`, tier 0) and
- * the collision adapter (timeline-label-collision.js) works out the tiers. This
- * is also how `renderEvents` places labels, so a drag and a full render give the
- * same result. `timeline-node-drag.js` calls it while a node is dragged and when
- * it is dropped, after it has moved the dragged label's `data-original-top`.
- *
- * With `glide` true, each label moves from where it was to where it now goes
- * instead of jumping (the `top` transition in timeline-dots.css). The
- * transition is off while the adapter measures, because the adapter reads the
- * labels' current rectangles.
+ * With `glide` true the labels move from where they were to where they now go
+ * (the `left` and `top` transition in timeline-dots.css) and the leader lines
+ * follow them.
  *
  * @param {boolean} glide - animate the move
  * @returns {void}
@@ -317,41 +343,69 @@ Events.createEventElement = function (ev, x, y, yOffset, labelMode) {
 Events.relayoutLabels = function (glide) {
   const axisEl = document.getElementById("timeline-axis");
   if (!axisEl) return;
-  if (!window.AdminTimelineLabelCollision) {
+  const layout = window.AdminTimelineClusterLabelLayout;
+  if (!layout) {
     console.warn(
-      "timeline-events.js: window.AdminTimelineLabelCollision is missing. Labels are not collision-resolved.",
+      "timeline-events.js: window.AdminTimelineClusterLabelLayout is missing. Labels are not placed.",
     );
     return;
   }
 
-  const labels = Array.prototype.slice.call(
-    axisEl.querySelectorAll(".admin-timeline-event-label"),
-  );
-  const before = labels.map(function (label) { return label.style.top; });
+  const fieldHeight = window.AdminTimelineGeometry.CANVAS_HEIGHT_PX;
+  const dots = Array.prototype.slice.call(axisEl.querySelectorAll(".admin-timeline-event"));
+  const labelById = {};
+  axisEl.querySelectorAll(".admin-timeline-event-label").forEach(function (label) {
+    labelById[label.dataset.eventId] = label;
+  });
 
-  for (const label of labels) {
-    label.style.transition = "none";
-    label.style.top = label.dataset.originalTop;
-    label.dataset.tierIndex = "0";
-  }
-  window.AdminTimelineLabelCollision.resolve(
-    labels,
-    "x",
-    window.AdminTimelineClusterLabelCollision.TIER_STEP_PCT,
-  );
+  const nodes = dots.map(function (dot) {
+    const label = labelById[dot.dataset.eventId];
+    return {
+      x: parseFloat(dot.style.left),
+      y: (parseFloat(dot.style.top) / 100) * fieldHeight,
+      width: label ? label.offsetWidth : 0,
+      height: label ? label.offsetHeight : 0,
+    };
+  });
+  const placed = layout.layoutLabelsBesideNodes(nodes, {
+    width: axisEl.offsetWidth,
+    height: fieldHeight,
+  });
 
   if (!glide) {
-    for (const label of labels) label.style.transition = "";
+    for (const label of Object.values(labelById)) label.style.transition = "none";
+  }
+
+  leaderTargets = [];
+  dots.forEach(function (dot, i) {
+    const label = labelById[dot.dataset.eventId];
+    const spot = placed[i];
+    if (!label || !spot || spot.height === 0) return;
+
+    label.style.left = spot.left + "px";
+    label.style.top = spot.top + "px";
+    label.classList.toggle("admin-timeline-event-label--left", spot.side === "left");
+    if (spot.leader) leaderTargets.push({ label: label, node: nodes[i], spot: spot });
+  });
+
+  if (!leaderLayer || !leaderLayer.isConnected) {
+    leaderLayer = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    leaderLayer.setAttribute("class", "admin-timeline-leaders");
+    leaderLayer.setAttribute("aria-hidden", "true");
+    axisEl.appendChild(leaderLayer);
+  }
+  leaderLayer.setAttribute("width", String(axisEl.offsetWidth));
+  leaderLayer.setAttribute("height", String(fieldHeight));
+  leaderLayer.setAttribute("viewBox", "0 0 " + axisEl.offsetWidth + " " + fieldHeight);
+
+  if (glide) {
+    followGlidingLabels();
     return;
   }
 
-  const after = labels.map(function (label) { return label.style.top; });
-  labels.forEach(function (label, i) { label.style.top = before[i] || after[i]; });
-  void axisEl.offsetWidth; // flush the start position before the transition is back on
-  labels.forEach(function (label, i) {
-    label.style.transition = "";
-    label.style.top = after[i];
-  });
+  void axisEl.offsetWidth; // apply the positions before the transition is back on
+  for (const label of Object.values(labelById)) label.style.transition = "";
+  drawLeaders();
 };
 
 /* ── Era heading band ──────────────────────────────────────────────────────── */

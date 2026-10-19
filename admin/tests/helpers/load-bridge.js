@@ -11,8 +11,8 @@
 // value and a test can compare them with ===.
 //
 // Used by admin/tests/cluster-logic-bridges.test.js,
-// admin/tests/admin-timeline-label-collision.test.js and
-// admin/tests/admin-timeline.test.js. The guide
+// admin/tests/admin-timeline.test.js, admin-timeline-node-drag.test.js,
+// admin-timeline-node-bounds.test.js and maps.test.js. The guide
 // setup/ARCHITECTURE/node-cluster-logic.md says why bridges must stay pure.
 
 const fs = require("fs");
@@ -130,7 +130,7 @@ function loadBridge(bridgeFile) {
  * Run an admin classic script (the `window.Admin* = ...` style) in a sandbox.
  *
  * @param {string} adminJsPath - path under admin/assets/js/, for example
- *   "admin-timeline/timeline-label-collision.js"
+ *   "admin-timeline/timeline-node-bounds.js"
  * @param {Object} win - the sandbox `window`; globals the script reads must be on it
  * @param {Object} [extra] - more sandbox globals, for example a fake `document`
  * @returns {Object} the same `win`, after the script ran

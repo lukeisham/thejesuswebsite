@@ -38,16 +38,14 @@ const BRIDGES = [
     names: ["LABEL_FULL", "LABEL_TRUNCATED", "LABEL_HIDDEN", "computeLabelModes"],
   },
   {
-    file: "cluster-label-collision-bridge.js",
-    global: "AdminTimelineClusterLabelCollision",
-    canonical: CLUSTER + "cluster-label-collision.js",
+    file: "cluster-label-layout-bridge.js",
+    global: "AdminTimelineClusterLabelLayout",
+    canonical: CLUSTER + "cluster-label-layout.js",
     names: [
-      "resolveLabelCollisions",
-      "tierShift",
-      "LABEL_GAP_PX",
-      "MAX_TIER",
-      "LABEL_CLEARANCE_PCT",
-      "TIER_STEP_PCT",
+      "DOT_CLEARANCE_PX",
+      "MAX_LABEL_STEPS",
+      "layoutLabelsBesideNodes",
+      "computeLeaderLine",
     ],
   },
   {

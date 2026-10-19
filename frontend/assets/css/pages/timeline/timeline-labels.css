@@ -1,6 +1,6 @@
 /* ==========================================================================
    Timeline Labels
-   Event labels, clustering modes, and label inner content.
+   Event labels, leader lines, clustering modes, and label inner content.
    ========================================================================== */
 
 /* -------------------------------------------------------------------------
@@ -31,6 +31,41 @@
 }
 
 .timeline-label.filtered-out {
+    opacity: 0.15;
+}
+
+/* Horizontal layout: layoutHorizontalLabels (timeline-render.js) sets `left`
+   and `top` in px for the label's top-left corner, so the label is not centred
+   on its dot. A label on the left of its dot is right-aligned, so the text ends
+   near the dot. The vertical (mobile) layout keeps the centred rules above. */
+.timeline-inner:not(.timeline-inner--vertical) .timeline-label {
+    transform: none;
+    text-align: left;
+}
+
+.timeline-inner:not(.timeline-inner--vertical) .timeline-label.timeline-label--left {
+    text-align: right;
+}
+
+/* Leader lines: one line from the start of a moved label's name to its dot. The
+   SVG has the size of the dot field; the stroke keeps one pixel at every zoom. */
+.timeline-leaders {
+    position: absolute;
+    top: 0;
+    left: 0;
+    overflow: visible;
+    pointer-events: none;
+    color: var(--text-muted);
+    z-index: 1;
+}
+
+.timeline-leader {
+    stroke: currentColor;
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+}
+
+.timeline-leader.filtered-out {
     opacity: 0.15;
 }
 

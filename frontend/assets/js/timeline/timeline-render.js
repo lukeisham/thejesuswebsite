@@ -52,9 +52,12 @@ import { getScale, getPan, mountZoomControls, onTransformChange } from "./timeli
 import {
   resolveLabelCollisions as resolveCollisionsShared,
   tierShift,
-  LABEL_CLEARANCE_PCT,
-  TIER_STEP_PCT,
 } from "../cluster-logic/cluster-label-collision.js";
+import {
+  layoutLabelsBesideNodes,
+  computeLeaderLine,
+  DOT_CLEARANCE_PX,
+} from "../cluster-logic/cluster-label-layout.js";
 import {
   offsetXToPixels,
   offsetYToPixels,
@@ -330,15 +333,6 @@ export function showEmpty() {
 // ─── Horizontal label helpers (positioning, side) ────────────────────────────
 
 /**
- * Determine label positioning class based on vertical offset relative to spine.
- * @param {number} yOffset - cluster-jittered Y offset for this dot
- * @returns {string} "above" or "below"
- */
-function labelPosition(yOffset) {
-  return yOffset <= 0 ? "above" : "below";
-}
-
-/**
  * Determine label side for vertical mode based on X offset.
  * @param {number} xOffset
  * @returns {string} "left" or "right"
@@ -348,27 +342,11 @@ function labelSide(xOffset) {
 }
 
 /**
- * Vertical-mode (mobile) distances, in pixels. The horizontal-mode
- * equivalents, `LABEL_CLEARANCE_PCT` and `TIER_STEP_PCT`, are imported because
- * the admin editor uses them too. The admin editor is desktop only, so these
- * two have no admin counterpart.
+ * Vertical-mode (mobile) distances, in pixels. The horizontal layout places
+ * labels with `layoutLabelsBesideNodes` instead (cluster-logic/cluster-label-layout.js).
  */
 const LABEL_CLEARANCE_PX = 48;
 const TIER_STEP_PX = 40;
-
-/**
- * Compute the inline style string for a horizontal-mode label.
- * @param {number} finalX  - dot's pixel x position
- * @param {number} yOffset - dot's cluster-jittered y offset
- * @returns {string} inline style value
- */
-function labelStyleHorizontal(finalX, yOffset) {
-  var dotTop = crossAxisToTopPercent(yOffset);
-  var labelTop = yOffset <= 0
-    ? dotTop - LABEL_CLEARANCE_PCT
-    : dotTop + LABEL_CLEARANCE_PCT;
-  return "left:" + finalX + "px;top:" + labelTop + "%";
-}
 
 /**
  * Compute the inline style string for a vertical-mode label.
@@ -560,7 +538,7 @@ function buildHorizontalLayout(groupedEvents, activeEra) {
 
     const x = periodX(periodIdx);
 
-    periodPositions.forEach((pos, clusterIndex) => {
+    periodPositions.forEach((pos) => {
       const event = pos.event;
       let yOffset = pos.yOffset;
       const xFan = pos.xFan || 0;
@@ -576,15 +554,16 @@ function buildHorizontalLayout(groupedEvents, activeEra) {
         yOffset = offsetYToPixels(event.timeline_offset_y);
       }
 
-      const posClass = labelPosition(yOffset);
       const isFiltered =
         activeEra && activeEra !== "all" && event.timeline_era !== activeEra;
-      const dotStyle = `left:${finalX}px;top:${crossAxisToTopPercent(yOffset)}%`;
-      const labelStyle = labelStyleHorizontal(finalX, yOffset);
+      const topPercent = crossAxisToTopPercent(yOffset);
+      const dotStyle = `left:${finalX}px;top:${topPercent}%`;
 
       inner.appendChild(createDot(event, dotStyle, isFiltered));
 
-      const label = createLabel(event, posClass, labelStyle, isFiltered);
+      // The label starts at the dot; layoutHorizontalLabels moves it beside the
+      // dot once the labels are attached and measured.
+      const label = createLabel(event, "", dotStyle, isFiltered);
 
       const mode = modeByEventId.get(event.id) || LABEL_FULL;
       if (mode === LABEL_TRUNCATED) {
@@ -596,10 +575,11 @@ function buildHorizontalLayout(groupedEvents, activeEra) {
       inner.appendChild(label);
       labelDescriptors.push({
         el: label,
-        tierIndex: clusterIndex,
-        axis: "x",
-        originalTop: labelStyle,
+        x: finalX,
+        y: (topPercent / 100) * TIMELINE_CANVAS_HEIGHT_PX,
+        eventId: event.id,
         era: event.timeline_era || "",
+        filtered: Boolean(isFiltered),
       });
 
       hasEvents = true;
@@ -709,31 +689,25 @@ function buildVerticalLayout(groupedEvents, activeEra) {
 }
 
 /**
- * Adapter: measure DOM label elements, delegate collision resolution
- * to the shared cluster-label-collision.js module, and apply results.
+ * Adapter for the vertical (mobile) layout: measure the label elements, delegate
+ * collision resolution to the shared cluster-label-collision.js module, and
+ * apply the result. The horizontal layout does not use it
+ * (`layoutHorizontalLabels`).
  *
- * @param {Array} descriptors — array of { el, tierIndex, axis, originalTop }
+ * @param {Array} descriptors — array of { el, tierIndex, axis }
  */
 function resolveLabelCollisions(descriptors) {
   if (!descriptors || descriptors.length === 0) return;
 
-  const axis = descriptors[0].axis;
-  // The shared resolver fans labels out across the axis that is NOT the
-  // timeline axis: up and down in horizontal mode ("x"), left and right in
-  // vertical mode ("y"). Horizontal labels move in `top` (%). Vertical labels
-  // move in `left`, which is `calc(50% + Npx)`, so only the px part changes.
-  const domStep = axis === "x" ? TIER_STEP_PCT : TIER_STEP_PX;
-
-  // The resolver compares measured rects, which are in screen px. Give it the
-  // step in screen px too, or it checks positions that a label never reaches
-  // (12% of the timeline height is about 34px, not 12px).
+  // The shared resolver fans vertical-layout labels out left and right along
+  // `left`, which is `calc(50% + Npx)`, so only the px part changes. It compares
+  // measured rects, which are in screen px, so the step is scaled to screen px
+  // too.
   const parent = descriptors[0].el.offsetParent;
   const parentH = parent ? parent.offsetHeight : 0;
   const scale = parentH > 0 ? parent.getBoundingClientRect().height / parentH : 1;
-  const primaryStep =
-    (axis === "x" ? (TIER_STEP_PCT / 100) * parentH : TIER_STEP_PX) * (scale || 1);
+  const primaryStep = TIER_STEP_PX * (scale || 1);
 
-  // Build collision descriptors with measured DOM rects
   const collisionDescs = descriptors.map((d) => {
     const rect = d.el.getBoundingClientRect();
     return {
@@ -743,27 +717,78 @@ function resolveLabelCollisions(descriptors) {
       width: rect.width,
       height: rect.height,
       tierIndex: d.tierIndex,
-      axis: axis,
+      axis: "y",
       primaryStep: primaryStep,
     };
   });
 
-  // Run the shared collision resolver
   const resolved = resolveCollisionsShared(collisionDescs);
 
-  // Apply resolved positions back to the DOM.
   for (const item of resolved) {
     if (item.tierIndex <= 0) continue;
-    const shift = tierShift(item.tierIndex, domStep);
-    if (axis === "x") {
-      const currentTop = parseFloat(item.el.style.top);
-      item.el.style.top = (Number.isFinite(currentTop) ? currentTop : 50) + shift + "%";
-    } else {
-      const match = /calc\(50%\s*\+\s*(-?[\d.]+)px\)/.exec(item.el.style.left);
-      const baseLeft = match ? parseFloat(match[1]) : 0;
-      item.el.style.left = "calc(50% + " + (baseLeft + shift) + "px)";
-    }
+    const shift = tierShift(item.tierIndex, TIER_STEP_PX);
+    const match = /calc\(50%\s*\+\s*(-?[\d.]+)px\)/.exec(item.el.style.left);
+    const baseLeft = match ? parseFloat(match[1]) : 0;
+    item.el.style.left = "calc(50% + " + (baseLeft + shift) + "px)";
   }
+}
+
+/**
+ * Place the labels of the horizontal layout beside their dots and draw a leader
+ * line for each label that had to move. The placement comes from
+ * `layoutLabelsBesideNodes`, the same function that the admin editor calls, so a
+ * title sits where the editor showed it. The labels must be attached to the
+ * document so they can be measured.
+ *
+ * @param {HTMLElement} inner — the attached .timeline-inner element
+ * @param {Array<{el: HTMLElement, x: number, y: number, eventId: number, era: string, filtered: boolean}>} descriptors
+ */
+function layoutHorizontalLabels(inner, descriptors) {
+  if (descriptors.length === 0) return;
+
+  const nodes = descriptors.map((d) => {
+    const hidden = d.el.classList.contains("label--hidden");
+    return {
+      x: d.x,
+      y: d.y,
+      width: hidden ? 0 : d.el.offsetWidth,
+      height: hidden ? 0 : d.el.offsetHeight,
+    };
+  });
+  const placed = layoutLabelsBesideNodes(nodes, {
+    width: inner.offsetWidth,
+    height: TIMELINE_CANVAS_HEIGHT_PX,
+  });
+
+  const svgNs = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(svgNs, "svg");
+  svg.setAttribute("class", "timeline-leaders");
+  svg.setAttribute("viewBox", `0 0 ${inner.offsetWidth} ${TIMELINE_CANVAS_HEIGHT_PX}`);
+  svg.setAttribute("width", String(inner.offsetWidth));
+  svg.setAttribute("height", String(TIMELINE_CANVAS_HEIGHT_PX));
+  svg.setAttribute("aria-hidden", "true");
+
+  descriptors.forEach((d, i) => {
+    const spot = placed[i];
+    if (!spot || spot.height === 0) return;
+
+    d.el.style.left = `${spot.left}px`;
+    d.el.style.top = `${spot.top}px`;
+    d.el.classList.toggle("timeline-label--left", spot.side === "left");
+
+    if (!spot.leader) return;
+    const { x1, y1, x2, y2 } = computeLeaderLine(d, DOT_CLEARANCE_PX - 2, spot);
+    const line = document.createElementNS(svgNs, "line");
+    line.setAttribute("class", d.filtered ? "timeline-leader filtered-out" : "timeline-leader");
+    line.setAttribute("x1", String(x1));
+    line.setAttribute("y1", String(y1));
+    line.setAttribute("x2", String(x2));
+    line.setAttribute("y2", String(y2));
+    line.dataset.era = d.era;
+    svg.appendChild(line);
+  });
+
+  inner.appendChild(svg);
 }
 
 /**
@@ -884,8 +909,12 @@ export function renderTimeline(groupedEvents, activeEra) {
     container.classList.toggle("timeline-container--vertical", vertical);
     container.hidden = !built.hasEvents;
 
-    // ── Resolve collisions once, after elements are attached ───────────────
-    resolveLabelCollisions(built.labelDescriptors);
+    // ── Place the labels once, after elements are attached ─────────────────
+    if (built.vertical) {
+      resolveLabelCollisions(built.labelDescriptors);
+    } else {
+      layoutHorizontalLabels(innerEl, built.labelDescriptors);
+    }
 
     // ── Era headings last. Mobile headings avoid the final label positions;
     //    the desktop band has its own reserved space above the dots. ────────
@@ -979,6 +1008,9 @@ export function applyEraFilter(activeEra) {
     }
     for (let i = 0; i < labels.length; i++) {
       labels[i].classList.toggle("filtered-out", faded.includes(i));
+    }
+    for (const leader of container.querySelectorAll(".timeline-leader")) {
+      leader.classList.toggle("filtered-out", leader.dataset.era !== activeEra);
     }
   });
 }

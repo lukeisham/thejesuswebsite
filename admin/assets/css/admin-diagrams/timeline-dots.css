@@ -77,21 +77,49 @@
 
 /* ── Event Labels (sibling-positioned, matching frontend .timeline-label) ─ */
 
+/* timeline-events.js (Events.relayoutLabels) sets `left` and `top` in px for the
+   label's top-left corner, so the label starts beside its dot like the public
+   one. Size and wrapping follow the public label: at most 100px wide, two lines. */
 .admin-timeline-event-label {
     position: absolute;
-    font-size: var(--text-2xs);
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+    font-size: var(--timeline-label-font-size);
+    font-weight: 500;
     font-family: var(--font-sans);
     color: var(--text-primary);
-    white-space: nowrap;
     pointer-events: none;
     user-select: none;
     line-height: var(--leading-small);
     max-width: 100px;
-    text-align: center;
-    transform: translateX(-50%);
-    /* A label glides to its new tier when a node is dragged. timeline-events.js
-       (Events.relayoutLabels) turns this off inline while it measures labels. */
-    transition: top var(--duration-fast) var(--ease-out);
+    text-align: left;
+    /* A label glides to its new spot when a node is dragged. Events.relayoutLabels
+       turns this off inline when it places labels without an animation. */
+    transition:
+        left var(--duration-fast) var(--ease-out),
+        top var(--duration-fast) var(--ease-out);
+}
+
+.admin-timeline-event-label--left {
+    text-align: right;
+}
+
+/* Leader lines: one line from the start of a moved title to its dot, drawn in
+   an SVG with the size of the dot field. */
+.admin-timeline-leaders {
+    position: absolute;
+    top: 0;
+    left: 0;
+    overflow: visible;
+    pointer-events: none;
+    color: var(--text-muted);
+}
+
+.admin-timeline-leaders line {
+    stroke: currentColor;
+    stroke-width: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {

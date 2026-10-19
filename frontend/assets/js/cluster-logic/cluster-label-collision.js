@@ -13,11 +13,10 @@
  *    the push direction so labels fan out to both sides.
  * 4. Side never flips — a label above the spine stays above, below stays below.
  *
- * Consumed by the public timeline (frontend/assets/js/timeline/timeline-render.js
- * and timeline-era-heading-placement.js, by ES import) and by the admin editor
- * (admin/assets/js/cluster-logic-bridge/cluster-label-collision-bridge.js
- * re-exports it; admin/assets/js/admin-timeline/timeline-label-collision.js
- * measures the DOM and applies the result).
+ * Consumed by the vertical (mobile) timeline in
+ * frontend/assets/js/timeline/timeline-render.js and by the mobile era headings
+ * in timeline-era-heading-placement.js. The horizontal timeline and the admin
+ * editor place labels with cluster-label-layout.js instead.
  *
  * @module cluster-logic/cluster-label-collision
  */
@@ -28,21 +27,6 @@ export const LABEL_GAP_PX = 8;
 /** Maximum escalation tier — labels stop fanning out beyond this. */
 export const MAX_TIER = 10;
 
-/**
- * Distance, as a percentage of the canvas height, between a dot and its tier-0
- * label. The public renderer and the admin adapter both place labels with it,
- * so the two must read this one value. A different value in either file puts
- * admin labels at a different distance from their dots than public labels, and
- * nothing reports an error.
- */
-export const LABEL_CLEARANCE_PCT = 10;
-
-/**
- * Distance, as a percentage of the canvas height, that a label moves for each
- * escalation tier. Shared by the public renderer and the admin adapter for the
- * same reason as `LABEL_CLEARANCE_PCT`.
- */
-export const TIER_STEP_PCT = 12;
 
 /**
  * Net shift for a label that sits at a given escalation tier.

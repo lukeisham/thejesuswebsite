@@ -44,7 +44,6 @@ function createEnv({ scale = 1, dots, events }) {
   const win = Object.assign(
     {},
     loadBridge("timeline-offsets-bridge.js"),
-    loadBridge("cluster-label-collision-bridge.js"),
     loadBridge("cluster-density-bridge.js"),
   );
 
@@ -200,22 +199,6 @@ describe("AdminTimelineNodeDrag: the dot follows the pointer", () => {
 });
 
 describe("AdminTimelineNodeDrag: labels while dragging", () => {
-  test("the label follows the dot and keeps its clearance from it", () => {
-    const dot = makeDot(7, "150px", "50%");
-    const env = createEnv({ dots: [dot], events: EVENTS });
-    drag(env, dot, [100, 100], [[110, 100], [110, 128]]); // dot moves down: below the spine
-    const label = env.labels["7"];
-    assert.equal(label.style.left, dot.style.left);
-    assert.ok(Math.abs(parseFloat(label.dataset.originalTop) - 70) < 1e-9); // 60% + 10%
-  });
-
-  test("a dot above the spine puts its label above it", () => {
-    const dot = makeDot(7, "150px", "50%");
-    const env = createEnv({ dots: [dot], events: EVENTS });
-    drag(env, dot, [100, 100], [[110, 100], [110, 72]]);
-    assert.ok(Math.abs(parseFloat(env.labels["7"].dataset.originalTop) - 30) < 1e-9); // 40% - 10%
-  });
-
   test("labels are laid out at most once per frame, and once more on drop", () => {
     const dot = makeDot(7, "150px", "50%");
     const env = createEnv({ dots: [dot], events: EVENTS });
