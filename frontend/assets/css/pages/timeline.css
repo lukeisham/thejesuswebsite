@@ -61,6 +61,13 @@
     cursor: grabbing;
 }
 
+/* The era heading band (timeline-era-headings.css) covers the top of the
+   container, so the dots start below it. The vertical (mobile) layout has no
+   band. */
+.timeline-container:not(.timeline-container--vertical) {
+    padding-top: calc(var(--space-xl) + var(--timeline-heading-band-height));
+}
+
 /* -------------------------------------------------------------------------
    Timeline World — Transform Wrapper (for Arbor-style zoom/pan)
    ------------------------------------------------------------------------- */

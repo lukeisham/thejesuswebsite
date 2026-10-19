@@ -1,43 +1,90 @@
 /* ==========================================================================
    Admin Timeline Era Headings
-   Mirrors the frontend era headings: top-left anchoring, zoom-aware font
-   size, era-colour tokens, pointer-events:none for drag safety.
+   The era heading band at the top of the canvas. It matches the public timeline
+   (frontend/assets/css/components/timeline-era-headings.css): headings in lanes,
+   a coloured bar under each era, and a leader line when a heading is wider than
+   its era or sits in a lower lane. timeline-events.js (Events.renderEraBand)
+   sets inline `left` and `width` and a `--lane` custom property. The band sits
+   in .admin-timeline-canvas, outside .admin-timeline-world, so it does not zoom.
    ========================================================================== */
 
-/* Headings live inside .admin-timeline-world, which timeline-zoom.js scales
-   via `transform: scale()` and publishes as --timeline-zoom-scale (same
-   property/mechanism as the frontend). Font-size counter-divides by the
-   live scale so the ancestor transform doesn't compound the clamp — see
-   the longer comment in frontend/assets/css/components/timeline-era-headings.css. */
-.admin-timeline-era-heading {
+/* Era colour for the bar and the leader. The heading text uses the primary text
+   colour: the era tints are too light to read as text. The era name is always in
+   the text, so colour is never the only signal. */
+.admin-timeline-heading-band .era--pre-incarnation { --timeline-era-color: var(--era-pre-incarnation); }
+.admin-timeline-heading-band .era--old-testament   { --timeline-era-color: var(--era-old-testament); }
+.admin-timeline-heading-band .era--early-life      { --timeline-era-color: var(--era-early-life); }
+.admin-timeline-heading-band .era--life            { --timeline-era-color: var(--era-life); }
+.admin-timeline-heading-band .era--galilee-ministry { --timeline-era-color: var(--era-galilee-ministry); }
+.admin-timeline-heading-band .era--judean-ministry { --timeline-era-color: var(--era-judean-ministry); }
+.admin-timeline-heading-band .era--passion-week    { --timeline-era-color: var(--era-passion-week); }
+.admin-timeline-heading-band .era--post-passion    { --timeline-era-color: var(--era-post-passion); }
+
+.admin-timeline-heading-band {
     position: absolute;
-    font-weight: 700;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--timeline-heading-band-height);
+    overflow: hidden;
+    background: var(--bg-primary);
+    border-bottom: 1px solid var(--border);
+    z-index: 4; /* above the zoomed world, below the controls (z-index: 10) */
+    pointer-events: none; /* never block drag or pan */
+}
+
+/* The track is shifted by the pan; the pieces inside are positioned from the
+   left edge of the world. */
+.admin-timeline-heading-band__track {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+}
+
+.admin-timeline-era-heading {
+    --lane: 0;
+    position: absolute;
+    top: calc(var(--space-xs) + var(--lane) * var(--timeline-heading-lane-height));
+    margin: 0;
+    padding: 0;
+    font-family: var(--font-sans);
+    font-size: var(--timeline-heading-font-size);
+    font-weight: 600;
+    line-height: var(--timeline-heading-lane-height);
     text-transform: uppercase;
     letter-spacing: 0.08em;
     white-space: nowrap;
-    pointer-events: none; /* critical: never block drag on event dots */
-    z-index: 1; /* below event dots (z-index: 2–3) */
     color: var(--text-primary);
-    line-height: 1.3;
-    padding: var(--space-xs) var(--space-sm); /* 4px 8px */
-    transition: none;
-    font-size: calc(
-        clamp(0.875rem, calc(1.125rem * var(--timeline-zoom-scale, 1)), 1.375rem)
-        / var(--timeline-zoom-scale, 1)
-    );
+    transition: left var(--duration-fast) var(--ease-out);
 }
 
-/* ── Tier classes (CSS hooks only) ──────────────────────────────────────── */
-.admin-timeline-era-heading.tier-0 { }
-.admin-timeline-era-heading.tier-1 { }
-.admin-timeline-era-heading.tier-2 { }
+/* The bar sits under the three lanes, spanning its era. */
+.admin-timeline-era-bar {
+    position: absolute;
+    top: calc(var(--space-xs) + 3 * var(--timeline-heading-lane-height) + var(--space-xs));
+    height: var(--timeline-heading-bar-height);
+    border-radius: var(--radius-sm);
+    background: var(--timeline-era-color);
+    transition:
+        left var(--duration-fast) var(--ease-out),
+        width var(--duration-fast) var(--ease-out);
+}
 
-/* ── Era colour tokens ──────────────────────────────────────────────────── */
-.admin-timeline-era-heading.era--pre-incarnation    { color: var(--era-pre-incarnation); }
-.admin-timeline-era-heading.era--old-testament     { color: var(--era-old-testament); }
-.admin-timeline-era-heading.era--early-life        { color: var(--era-early-life); }
-.admin-timeline-era-heading.era--life              { color: var(--era-life); }
-.admin-timeline-era-heading.era--galilee-ministry  { color: var(--era-galilee-ministry); }
-.admin-timeline-era-heading.era--judean-ministry   { color: var(--era-judean-ministry); }
-.admin-timeline-era-heading.era--passion-week      { color: var(--era-passion-week); }
-.admin-timeline-era-heading.era--post-passion      { color: var(--era-post-passion); }
+/* The leader runs from the heading's lane down to the bar, at the era's left
+   edge. */
+.admin-timeline-era-leader {
+    --lane: 0;
+    position: absolute;
+    top: calc(var(--space-xs) + (var(--lane) + 1) * var(--timeline-heading-lane-height));
+    height: calc(
+        3 * var(--timeline-heading-lane-height) + var(--space-xs)
+        - (var(--lane) + 1) * var(--timeline-heading-lane-height)
+    );
+    border-left: 2px solid var(--timeline-era-color);
+    transition: left var(--duration-fast) var(--ease-out);
+}
+
+.admin-timeline-era-leader[hidden] {
+    display: none;
+}

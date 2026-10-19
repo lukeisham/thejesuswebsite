@@ -199,6 +199,15 @@
     --overlay-backdrop: rgba(0, 0, 0, 0.3);
     --timeline-hover-shadow: 0 0 0 4px rgba(92, 64, 51, 0.15);
 
+    /* Era heading band above the timeline dots (timeline-era-headings.css).
+       The band holds three heading lanes and the era bar; ERA_BAND_LANES in
+       timeline-era-heading-placement.js must stay 3 while the band height is
+       this value. */
+    --timeline-heading-font-size: 0.75rem;
+    --timeline-heading-lane-height: 1.125rem;
+    --timeline-heading-bar-height: 0.3125rem;
+    --timeline-heading-band-height: 4.5rem;
+
     /* -------------------------------------------------------------------------
         Era Colour Tokens (Timeline)
         Low-saturation tints derived from the parchment palette.

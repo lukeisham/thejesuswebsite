@@ -1,20 +1,23 @@
 /* ==========================================================================
    Timeline Era Headings
-   Prominent era headings anchored at the top-left of each era's region.
-   Scales with zoom; nudges away from event nodes via collision avoidance.
-   Replaces the old centred .timeline-era-label elements.
+   Two layouts share the .timeline-era-heading class:
+   - Horizontal (desktop): headings sit in .timeline-heading-band, a fixed band
+     at the top of the timeline container, outside .timeline-world. Each era
+     has a coloured bar under the band. A heading that does not fit its era, or
+     sits in a lower lane, has a leader line down to its bar.
+     timeline-render.js (renderEraBand) positions the pieces with inline `left`,
+     `width` and a `--lane` custom property; the lane and bar sizes come from the
+     --timeline-heading-* tokens in variables.css.
+   - Vertical (mobile): headings are placed by JS inside .timeline-inner, left of
+     the spine, and scale with the page (the base rule below).
    ========================================================================== */
 
-/* Headings live inside .timeline-world, which timeline-zoom.js scales via
-   `transform: scale()` and publishes as the live --timeline-zoom-scale
-   custom property (same mechanism as timeline-line-stability.css). Since
-   heading positions/sizes are computed once in JS and never recomputed as
-   the user zooms (SR-3), font-size can't be set from that one-shot JS
-   value without going stale the moment zoom changes — it must instead
-   track the live scale continuously via CSS: clamp the *visual* target
-   size to a readable range, then counter-divide by the same live scale so
-   the ancestor transform's later multiplication lands back on the clamped
-   target instead of compounding it. */
+/* ── Vertical (mobile) headings ─────────────────────────────────────────── */
+
+/* Mobile headings live inside .timeline-world, which timeline-zoom.js scales
+   with `transform: scale()` and publishes as --timeline-zoom-scale. Their
+   font-size counter-divides that scale so the final size stays inside a
+   readable range. */
 .timeline-era-heading {
     position: absolute;
     font-weight: 700;
@@ -33,13 +36,6 @@
     );
 }
 
-/* ── Tier classes (CSS hooks for JS-tier-based nudging) ──────────────────── */
-.timeline-era-heading.tier-0 { /* primary position — no shift */ }
-.timeline-era-heading.tier-1 { /* nudged left or right by JS */ }
-.timeline-era-heading.tier-2 { /* nudged further */ }
-
-/* ── Era colour tokens ──────────────────────────────────────────────────── */
-
 .timeline-era-heading.era--pre-incarnation    { color: var(--era-pre-incarnation); }
 .timeline-era-heading.era--old-testament     { color: var(--era-old-testament); }
 .timeline-era-heading.era--early-life        { color: var(--era-early-life); }
@@ -49,10 +45,87 @@
 .timeline-era-heading.era--passion-week      { color: var(--era-passion-week); }
 .timeline-era-heading.era--post-passion      { color: var(--era-post-passion); }
 
-/* ── Mobile vertical mode (< 768px) ─────────────────────────────────────── */
-@media (max-width: 767px) {
-    .timeline-era-heading {
-        /* In vertical mode, headings reposition to the left of the spine.
-           JS handles the positioning; CSS is mode-agnostic with no overrides. */
+/* ── Horizontal (desktop) heading band ──────────────────────────────────── */
+
+/* Era colour for the bar and the leader. The heading text uses the primary
+   text colour: the era tints are too light to read as text. The era name is
+   always in the text, so colour is never the only signal. */
+.timeline-heading-band .era--pre-incarnation { --timeline-era-color: var(--era-pre-incarnation); }
+.timeline-heading-band .era--old-testament   { --timeline-era-color: var(--era-old-testament); }
+.timeline-heading-band .era--early-life      { --timeline-era-color: var(--era-early-life); }
+.timeline-heading-band .era--life            { --timeline-era-color: var(--era-life); }
+.timeline-heading-band .era--galilee-ministry { --timeline-era-color: var(--era-galilee-ministry); }
+.timeline-heading-band .era--judean-ministry { --timeline-era-color: var(--era-judean-ministry); }
+.timeline-heading-band .era--passion-week    { --timeline-era-color: var(--era-passion-week); }
+.timeline-heading-band .era--post-passion    { --timeline-era-color: var(--era-post-passion); }
+
+.timeline-heading-band {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--timeline-heading-band-height);
+    overflow: hidden;
+    background: var(--bg-primary);
+    border-bottom: 1px solid var(--border);
+    z-index: 4; /* above the zoomed world, below the controls (z-index: 10) */
+    pointer-events: none;
+}
+
+/* The track is shifted by the pan; the pieces inside are positioned from the
+   left edge of the world. */
+.timeline-heading-band__track {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+}
+
+.timeline-heading-band .timeline-era-heading {
+    --lane: 0;
+    top: calc(var(--space-xs) + var(--lane) * var(--timeline-heading-lane-height));
+    z-index: auto;
+    padding: 0;
+    font-size: var(--timeline-heading-font-size);
+    font-weight: 600;
+    line-height: var(--timeline-heading-lane-height);
+    color: var(--text-primary);
+    transition: left var(--duration-fast) var(--ease-out);
+}
+
+/* The bar sits under the three lanes, spanning its era. */
+.timeline-era-bar {
+    position: absolute;
+    top: calc(var(--space-xs) + 3 * var(--timeline-heading-lane-height) + var(--space-xs));
+    height: var(--timeline-heading-bar-height);
+    border-radius: var(--radius-sm);
+    background: var(--timeline-era-color);
+    transition:
+        left var(--duration-fast) var(--ease-out),
+        width var(--duration-fast) var(--ease-out);
+}
+
+/* The leader runs from the heading's lane down to the bar, at the era's left
+   edge. */
+.timeline-era-leader {
+    --lane: 0;
+    position: absolute;
+    top: calc(var(--space-xs) + (var(--lane) + 1) * var(--timeline-heading-lane-height));
+    height: calc(
+        3 * var(--timeline-heading-lane-height) + var(--space-xs)
+        - (var(--lane) + 1) * var(--timeline-heading-lane-height)
+    );
+    border-left: 2px solid var(--timeline-era-color);
+    transition: left var(--duration-fast) var(--ease-out);
+}
+
+.timeline-era-leader[hidden] {
+    display: none;
+}
+
+@media print {
+    .timeline-heading-band .timeline-era-bar,
+    .timeline-heading-band .timeline-era-leader {
+        --timeline-era-color: var(--color-black);
     }
 }

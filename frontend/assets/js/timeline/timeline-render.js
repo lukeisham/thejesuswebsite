@@ -48,7 +48,7 @@ import {
   BASE_PX_PER_PERIOD,
   TIMELINE_CANVAS_HEIGHT_PX,
 } from "./timeline-geometry.js";
-import { getScale, mountZoomControls } from "./timeline-zoom.js";
+import { getScale, getPan, mountZoomControls, onTransformChange } from "./timeline-zoom.js";
 import {
   resolveLabelCollisions as resolveCollisionsShared,
   tierShift,
@@ -60,84 +60,160 @@ import {
   offsetYToPixels,
   crossAxisToTopPercent,
 } from "../cluster-logic/timeline-offsets.js";
-import { computeEraHeadingPositions } from "./timeline-era-heading-placement.js";
+import {
+  computeEraBandLayout,
+  computeEraHeadingPositions,
+} from "./timeline-era-heading-placement.js";
 
 // ─── Era Headings ───────────────────────────────────────────────────────────
 
 /**
- * Render era headings after dots are placed.
- * Collects event bounding boxes, calls the placement module, and creates
- * <h3> heading elements positioned absolutely within the inner container.
+ * Render the era headings of the vertical (mobile) layout: <h3> elements left
+ * of the spine, placed by `computeEraHeadingPositions` so they avoid the event
+ * boxes. The horizontal layout uses `renderEraBand` instead.
  *
  * @param {HTMLElement} inner — the .timeline-inner element
  * @param {Map} positions — clustered dot positions from computeDotPositions
- * @param {number} effectivePx — effective px-per-period
- * @param {boolean} isMobile — true for vertical/mobile mode
  * @param {Array<{era:string,x:number,y:number,width:number,height:number}>} labelBounds
  *   measured label boxes in world coordinates, so headings avoid label text
  *   as well as dots
  */
-function renderEraHeadings(inner, positions, effectivePx, isMobile, labelBounds) {
-  if (!computeEraHeadingPositions) return;
-
-  // ── Collect event bounding boxes in world coordinates ────────────────
+function renderEraHeadings(inner, positions, labelBounds) {
   const eventBounds = [];
   for (const [period, periodPositions] of positions) {
     const periodIdx = getPeriodIndex(period);
     if (periodIdx < 0) continue;
 
     for (const pos of periodPositions) {
-      const event = pos.event;
-      const era = event.timeline_era || "";
-      const dotX = isMobile ? 0 : periodX(periodIdx);
-      const dotY = isMobile ? periodY(periodIdx) : 0;
-      // Dots are positioned with percentage-based tops in horizontal mode
-      // and pixel-based tops in vertical mode.  Use approximate values.
       eventBounds.push({
-        era: era,
-        x: dotX,
-        y: dotY,
+        era: pos.event.timeline_era || "",
+        x: 0,
+        y: periodY(periodIdx),
         width: 10,
         height: 10,
       });
     }
   }
-
   eventBounds.push(...labelBounds);
-
-  // ── Compute heading positions ─────────────────────────────────────────
-  const zoomScale = typeof getScale === "function" ? getScale() : 1.0;
-  const containerWidth = isMobile
-    ? 3800 // vertical mode: height becomes the primary axis
-    : 3800;
-  const containerHeight = TIMELINE_CANVAS_HEIGHT_PX;
 
   const headings = computeEraHeadingPositions(
     ERA_BOUNDARIES,
     eventBounds,
-    zoomScale,
-    containerWidth,
-    containerHeight,
-    isMobile,
+    getScale(),
+    TIMELINE_PERIODS.length * BASE_PX_PER_PERIOD,
   );
 
-  if (!headings || headings.length === 0) return;
-
-  // ── Create heading elements ───────────────────────────────────────────
   for (const h of headings) {
-    const eraKebab = h.era
-      .replace(/([a-z])([A-Z])/g, "$1-$2")
-      .replace(/\s+/g, "-")
-      .toLowerCase();
-
     const heading = createElement("h3", {
-      className: `timeline-era-heading era--${eraKebab} tier-${h.tier}`,
+      className: `timeline-era-heading era--${eraKebab(h.era)} tier-${h.tier}`,
       style: `left:${h.x}px;top:${h.y}px`,
       textContent: ERA_LABELS[h.era] || h.era,
     });
     inner.appendChild(heading);
   }
 }
+
+/**
+ * CSS class suffix for an era key, for example "GalileeMinistry" becomes
+ * "galilee-ministry".
+ *
+ * @param {string} era
+ * @returns {string}
+ */
+function eraKebab(era) {
+  return era
+    .replace(/([a-z])([A-Z])/g, "$1-$2")
+    .replace(/\s+/g, "-")
+    .toLowerCase();
+}
+
+// ─── Era heading band (horizontal layout) ───────────────────────────────────
+
+/** The band element and the pieces of each era in it. */
+let bandEl = null;
+let bandTrackEl = null;
+/** @type {Array<{era:string, heading:HTMLElement, bar:HTMLElement, leader:HTMLElement}>} */
+let bandItems = [];
+/** Heading widths in px by era key. They do not change with zoom. */
+let bandTextWidths = {};
+/** Zoom scale that the band was last laid out for. */
+let bandScale = null;
+
+/**
+ * Build the era heading band above the dots, measure the headings, and lay it
+ * out for the current zoom and pan. The band lives in the container, outside
+ * `.timeline-world`, so the headings keep a fixed size and a fixed place at the
+ * top while the world zooms and pans underneath. `syncEraBand` keeps it in step.
+ *
+ * @param {HTMLElement} containerEl — the .timeline-container element
+ */
+function renderEraBand(containerEl) {
+  containerEl.querySelector(".timeline-heading-band")?.remove();
+
+  bandEl = createElement("div", { className: "timeline-heading-band" });
+  bandTrackEl = createElement("div", { className: "timeline-heading-band__track" });
+  bandItems = [];
+
+  for (const era of Object.keys(ERA_BOUNDARIES)) {
+    const kebab = eraKebab(era);
+    const heading = createElement("h3", {
+      className: `timeline-era-heading era--${kebab}`,
+      textContent: ERA_LABELS[era] || era,
+    });
+    const bar = createElement("span", { className: `timeline-era-bar era--${kebab}` });
+    const leader = createElement("span", { className: `timeline-era-leader era--${kebab}` });
+    bandTrackEl.append(bar, leader, heading);
+    bandItems.push({ era, heading, bar, leader });
+  }
+
+  bandEl.appendChild(bandTrackEl);
+  containerEl.appendChild(bandEl);
+
+  // Measure once the headings are in the document; the size is fixed, so the
+  // widths stay valid across zoom changes.
+  bandTextWidths = {};
+  for (const { era, heading } of bandItems) {
+    bandTextWidths[era] = heading.offsetWidth;
+  }
+
+  bandScale = null;
+  syncEraBand({ panX: getPan().x, scale: getScale() });
+}
+
+/**
+ * Bring the band in step with the world transform. A zoom change lays the band
+ * out again; a pan only shifts the track. Runs after every transform
+ * (timeline-zoom.js `onTransformChange`) and once after each render.
+ *
+ * @param {{panX: number, scale: number}} state
+ */
+function syncEraBand({ panX, scale }) {
+  if (!bandEl || !bandEl.isConnected) return;
+
+  if (scale !== bandScale) {
+    bandScale = scale;
+    const layout = computeEraBandLayout(
+      ERA_BOUNDARIES,
+      BASE_PX_PER_PERIOD * scale,
+      bandTextWidths,
+    );
+    for (const entry of layout) {
+      const item = bandItems.find((i) => i.era === entry.era);
+      if (!item) continue;
+      item.heading.style.left = `${entry.textX}px`;
+      item.heading.style.setProperty("--lane", String(entry.lane));
+      item.bar.style.left = `${entry.x + 1}px`;
+      item.bar.style.width = `${Math.max(0, entry.width - 3)}px`;
+      item.leader.style.left = `${entry.x + 1}px`;
+      item.leader.style.setProperty("--lane", String(entry.lane));
+      item.leader.hidden = !entry.leader;
+    }
+  }
+
+  bandTrackEl.style.transform = `translateX(${panX}px)`;
+}
+
+onTransformChange(syncEraBand);
 
 // ─── Layout Functions ───────────────────────────────────────────────────────
 
@@ -729,12 +805,15 @@ let renderedLabelSignature = "";
 let settleArmed = false;
 
 /**
- * Sizes of all labels as text, for a cheap "did the layout change" test.
+ * Sizes of all labels and era headings as text, for a cheap "did the layout
+ * change" test.
  * @returns {string}
  */
 function labelSignature() {
   if (!container) return "";
-  return Array.from(container.querySelectorAll(".timeline-label"))
+  return Array.from(
+    container.querySelectorAll(".timeline-label, .timeline-era-heading"),
+  )
     .map((el) => el.offsetWidth + "x" + el.offsetHeight)
     .join(",");
 }
@@ -808,14 +887,17 @@ export function renderTimeline(groupedEvents, activeEra) {
     // ── Resolve collisions once, after elements are attached ───────────────
     resolveLabelCollisions(built.labelDescriptors);
 
-    // ── Era headings last: they avoid the final label positions ────────────
-    renderEraHeadings(
-      innerEl,
-      built.positions,
-      built.effectivePx,
-      built.vertical,
-      measureLabelBounds(innerEl, built.labelDescriptors),
-    );
+    // ── Era headings last. Mobile headings avoid the final label positions;
+    //    the desktop band has its own reserved space above the dots. ────────
+    if (built.vertical) {
+      renderEraHeadings(
+        innerEl,
+        built.positions,
+        measureLabelBounds(innerEl, built.labelDescriptors),
+      );
+    } else if (built.hasEvents) {
+      renderEraBand(container);
+    }
 
     renderedLabelSignature = labelSignature();
     armSettleRerender();

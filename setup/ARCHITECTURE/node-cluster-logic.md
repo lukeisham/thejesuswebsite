@@ -22,6 +22,7 @@ Bridge behaviour test: `admin/tests/cluster-logic-bridges.test.js`.
 | 5 | In each `admin/diagrams/*.html` page, a bridge `<script>` comes before every script that reads its global | Scripts run in document order | A reader throws on a missing global, or skips its work |
 | 6 | A script reads only the names that its bridge exports | A reader of a name that no bridge exports gets `undefined` | A label, step or mode becomes `NaN` or `undefined` |
 | 7 | Both arbor callers pass `edge.waypoints` to `computeEdgePath()`: `arbor-render.js` and `arbor-edges.js` (through the `window.AdminArborComputeEdgePath` bridge) | A present `waypoints` array replaces the computed parallel-edge offset | An edge shows one route in the editor and another route on the public page |
+| 8 | The four `--timeline-heading-*` tokens are equal in `frontend/assets/css/base/variables.css` and `admin/assets/css/admin-diagrams/timeline-tokens.css`. `ERA_BAND_LANES` in `timeline-era-heading-placement.js` equals the lane count in both heading stylesheets | The era heading band is laid out in JS and sized in CSS, on both sides | A heading sits on the bar, or a third lane is cut off |
 
 ## Shape
 
@@ -29,6 +30,7 @@ Bridge behaviour test: `admin/tests/cluster-logic-bridges.test.js`.
 - **Public consumers** import the canonical modules directly: `timeline-render.js`, `arbor-render.js`, `maps-render.js` and `timeline-era-heading-placement.js`.
 - **Offset maths:** `cluster-logic/timeline-offsets.js` holds the pixel conversion, the `top` percentage mapping and the clamp limits for a stored node offset. The admin editor reads it through `timeline-offsets-bridge.js`. `timeline-node-bounds.js` takes its clamps from the same bridge.
 - **Admin consumers** are classic scripts. Each canonical module has a same-named `*-bridge.js` that publishes it as a `window.Admin*` global.
+- **Era heading band:** on the horizontal layout the headings sit in a band at the top of the canvas, outside the zoomed world. `computeEraBandLayout` (in `timeline-era-heading-placement.js`) assigns lanes from measured heading widths and the zoom. The public `timeline-render.js` (`renderEraBand`) and the admin `timeline-events.js` (`Events.renderEraBand`) build the band, and each keeps it in step with pan and zoom through its zoom module's `onTransformChange`. The vertical (mobile) layout keeps headings in the world and uses `computeEraHeadingPositions`.
 - **Admin label adapter:** `admin/assets/js/admin-timeline/timeline-label-collision.js` measures the label elements, calls `resolveLabelCollisions` through the collision bridge, and writes the resolved tier to each label. `timeline-events.js` calls it after it attaches all labels.
 - **Plain object and `Map`:** `computeDotPositions` takes and returns a `Map` (period to events). `timeline-events.js` builds and reads a `Map`.
 

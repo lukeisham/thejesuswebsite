@@ -84,7 +84,7 @@ const BRIDGES = [
     file: "timeline-era-heading-placement-bridge.js",
     global: "AdminTimelineEraHeadingPlacement",
     canonical: "/assets/js/timeline/timeline-era-heading-placement.js",
-    names: ["computeEraHeadingPositions"],
+    names: ["computeEraBandLayout", "ERA_BAND_LANES"],
   },
 ];
 

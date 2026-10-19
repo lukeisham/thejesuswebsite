@@ -33,6 +33,17 @@
 
     /* Radii */
     --radius-round: 50%;
+    --radius-sm: 4px;
+
+    /* Era heading band above the dots (timeline-era-headings.css). Values
+       mirror the frontend tokens of the same names. The band holds three
+       heading lanes and the era bar; ERA_BAND_LANES in
+       frontend/assets/js/timeline/timeline-era-heading-placement.js must stay 3
+       while the band height is this value. */
+    --timeline-heading-font-size: 0.75rem;
+    --timeline-heading-lane-height: 1.125rem;
+    --timeline-heading-bar-height: 0.3125rem;
+    --timeline-heading-band-height: 4.5rem;
 
     /* Transitions */
     --duration-fast: 150ms;

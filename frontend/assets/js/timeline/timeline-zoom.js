@@ -61,6 +61,14 @@ let panStartClientY = 0;
 let panStartPanX = 0;
 let panStartPanY = 0;
 
+/**
+ * Callbacks run after every applied transform. timeline-render.js registers one
+ * to keep the era heading band (outside the world element) in step with zoom
+ * and pan.
+ * @type {Array<(state: {panX: number, panY: number, scale: number}) => void>}
+ */
+const transformListeners = [];
+
 /** Last known-good transform state, restored if panX/panY/scale go non-finite (JS-2). */
 let lastValidPanX = 0;
 let lastValidPanY = 0;
@@ -82,6 +90,18 @@ export function getScale() {
  */
 export function getPan() {
   return { x: panX, y: panY };
+}
+
+/**
+ * Register a callback that runs after every applied transform (zoom, pan or a
+ * programmatic jump). It does not run in vertical/mobile mode, where the
+ * transform is not applied.
+ *
+ * @param {(state: {panX: number, panY: number, scale: number}) => void} listener
+ * @returns {void}
+ */
+export function onTransformChange(listener) {
+  transformListeners.push(listener);
 }
 
 /**
@@ -130,6 +150,10 @@ function applyTransform() {
   lastValidPanX = panX;
   lastValidPanY = panY;
   lastValidScale = scale;
+
+  for (const listener of transformListeners) {
+    listener({ panX: roundedX, panY: roundedY, scale });
+  }
 }
 
 /**

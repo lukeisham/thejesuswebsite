@@ -225,6 +225,55 @@ describe(`${GUIDE} row 4: offset code uses the geometry constants`, () => {
   }
 });
 
+// ── Row 8: the era heading band matches in the editor and on the public page ──
+
+describe(`${GUIDE} row 8: era heading band tokens and lanes agree`, () => {
+  const FRONTEND_TOKENS = "frontend/assets/css/base/variables.css";
+  const ADMIN_TOKENS = "admin/assets/css/admin-diagrams/timeline-tokens.css";
+  const TOKENS = [
+    "--timeline-heading-font-size",
+    "--timeline-heading-lane-height",
+    "--timeline-heading-bar-height",
+    "--timeline-heading-band-height",
+  ];
+
+  function tokenValue(relPath, token) {
+    const m = new RegExp(`${token}:\\s*([^;]+);`).exec(blankComments(read(relPath)));
+    assert.ok(m, `${GUIDE} row 8: ${relPath} does not define ${token}.`);
+    return m[1].trim();
+  }
+
+  for (const token of TOKENS) {
+    test(`${token} is the same in both token files`, () => {
+      assert.equal(
+        tokenValue(ADMIN_TOKENS, token),
+        tokenValue(FRONTEND_TOKENS, token),
+        `${GUIDE} row 8: ${token} differs between ${FRONTEND_TOKENS} and ${ADMIN_TOKENS}.`,
+      );
+    });
+  }
+
+  test("both heading stylesheets stack as many lanes as ERA_BAND_LANES", () => {
+    const placement = blankComments(
+      read("frontend/assets/js/timeline/timeline-era-heading-placement.js"),
+    );
+    const lanes = Number(/export const ERA_BAND_LANES\s*=\s*(\d+)/.exec(placement)[1]);
+    for (const rel of [
+      "frontend/assets/css/components/timeline-era-headings.css",
+      "admin/assets/css/admin-diagrams/timeline-era-headings.css",
+    ]) {
+      const css = blankComments(read(rel));
+      const m = /(\d+)\s*\*\s*var\(--timeline-heading-lane-height\)/.exec(css);
+      assert.ok(m, `${GUIDE} row 8: ${rel} has no "N * var(--timeline-heading-lane-height)" lane count.`);
+      assert.equal(
+        Number(m[1]),
+        lanes,
+        `${GUIDE} row 8: ${rel} stacks ${m[1]} lanes, but ERA_BAND_LANES is ${lanes}.`,
+      );
+    }
+  });
+});
+
 // ── Rows 5 and 6: load order and exports that readers rely on ─────────────────
 
 const globals = bridgeGlobals();

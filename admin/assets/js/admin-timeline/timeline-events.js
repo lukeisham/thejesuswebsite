@@ -5,7 +5,8 @@
  * and runs an edit panel for title and era. Positions come from each event's
  * timeline_period (AdminTimelineAxis) in fixed world coordinates
  * (AdminTimelineGeometry.BASE_PX_PER_PERIOD). Zoom is a CSS transform on the
- * wrapper, so every dot and heading shares one coordinate system.
+ * wrapper, so every dot shares one coordinate system. The era heading band sits
+ * in the canvas, outside that wrapper.
  *
  * Stored offsets (timeline_offset_x and timeline_offset_y) replace the cluster
  * position. The public page applies the same offsets in
@@ -44,6 +45,8 @@ let dragState = null;
  * Wire DOM events for the event edit panel.
  */
 Events.init = function () {
+  window.AdminTimelineZoom.onTransformChange(Events.syncEraBand);
+
   const saveBtn = document.getElementById("timeline-event-save-btn");
   if (saveBtn) saveBtn.addEventListener("click", Events.onSaveEvent);
 
@@ -88,27 +91,23 @@ Events.getEventById = function (id) {
 /* ── Rendering ─────────────────────────────────────────────────────────────── */
 
 /**
- * Render all event markers, labels and era headings onto the timeline axis.
- * Stored and staged offsets replace the cluster-computed positions.
+ * Render all event markers and labels onto the timeline axis, and make sure the
+ * era heading band exists. Stored and staged offsets replace the
+ * cluster-computed positions.
  */
 Events.renderEvents = function () {
   const axisEl = document.getElementById("timeline-axis");
   if (!axisEl) return;
 
-  // Remove existing event markers and era headings
+  // Remove existing event markers
   const existing = axisEl.querySelectorAll(".admin-timeline-event");
   for (let i = 0; i < existing.length; i++) {
     existing[i].remove();
-  }
-  const existingHeadings = axisEl.querySelectorAll(".admin-timeline-era-heading");
-  for (let i = 0; i < existingHeadings.length; i++) {
-    existingHeadings[i].remove();
   }
 
   // The same two scales convert a stored offset to pixels on the public page
   // (frontend/assets/js/timeline/timeline-render.js).
   const basePx = window.AdminTimelineGeometry.BASE_PX_PER_PERIOD;
-  const canvasHeightPx = window.AdminTimelineGeometry.CANVAS_HEIGHT_PX;
   const { LABEL_CLEARANCE_PCT, TIER_STEP_PCT } =
     window.AdminTimelineClusterLabelCollision;
   const { offsetXToPixels, offsetYToPixels, crossAxisToTopPercent } =
@@ -155,10 +154,6 @@ Events.renderEvents = function () {
     modeByEventId[labelModes[lm].event.id] = labelModes[lm].mode;
   }
 
-  // Event bounding boxes in world coordinates, so era headings avoid the dots
-  // (the public renderer collects the same boxes).
-  const eventBounds = [];
-
   for (const [period2, periodPositions2] of positions) {
     const baseX = window.AdminTimelineAxis.periodToX(period2, basePx);
 
@@ -195,14 +190,6 @@ Events.renderEvents = function () {
       const mode = modeByEventId[ev2.id] || "full";
       const el2 = Events.createEventElement(ev2, finalX, y, finalY, mode);
       axisEl.appendChild(el2);
-
-      eventBounds.push({
-        era: ev2.timeline_era || "",
-        x: finalX,
-        y: 0,
-        width: 10,
-        height: 10,
-      });
 
       // Labels are siblings of the dots, the same DOM shape as the public page.
       if (mode !== "hidden") {
@@ -261,79 +248,7 @@ Events.renderEvents = function () {
     );
   }
 
-  // Era headings use the placement module that the public page uses
-  // (cluster-logic-bridge/timeline-era-heading-placement-bridge.js). The editor
-  // is desktop only, so the mobile flag is false. Headings are placed after
-  // label collision so they avoid the final label positions, not only the dots.
-  if (
-    window.AdminTimelineEraHeadingPlacement &&
-    window.AdminTimelineEraHeadingPlacement.computeEraHeadingPositions
-  ) {
-    const eraBoundaries = window.AdminTimelineGeometry.ERA_BOUNDARIES;
-    const eraScale = window.AdminTimelineZoom ? window.AdminTimelineZoom.getScale() : 1.0;
-    const canvasWidth = window.AdminTimelineAxis.totalWidth(basePx);
-
-    const allBounds = eventBounds.concat(Events.measureLabelBounds(axisEl));
-
-    const headings = window.AdminTimelineEraHeadingPlacement.computeEraHeadingPositions(
-      eraBoundaries,
-      allBounds,
-      eraScale,
-      canvasWidth,
-      canvasHeightPx,
-      false,
-    );
-
-    for (let hi = 0; hi < (headings || []).length; hi++) {
-      const h = headings[hi];
-      const eraKebab = h.era
-        .replace(/([a-z])([A-Z])/g, "$1-$2")
-        .replace(/\s+/g, "-")
-        .toLowerCase();
-      const headingEl = document.createElement("h3");
-      headingEl.className = "admin-timeline-era-heading era--" + eraKebab + " tier-" + h.tier;
-      headingEl.style.position = "absolute";
-      headingEl.style.left = h.x + "px";
-      headingEl.style.top = h.y + "px";
-      headingEl.textContent = window.AdminTimelineGeometry.ERA_LABELS[h.era] || h.era;
-      axisEl.appendChild(headingEl);
-    }
-  } else {
-    console.warn(
-      "timeline-events.js: window.AdminTimelineEraHeadingPlacement is missing. Era headings are not drawn.",
-    );
-  }
-};
-
-/**
- * Measure each visible event label in world coordinates (the space of the
- * axis element), so era headings can avoid label text. Labels must already
- * be attached and their collision shifts applied.
- *
- * @param {HTMLElement} axisEl
- * @returns {Array<{era:string,x:number,y:number,width:number,height:number}>}
- */
-Events.measureLabelBounds = function (axisEl) {
-  var axisRect = axisEl.getBoundingClientRect();
-  // Screen size divided by layout size gives the current zoom scale.
-  var scale = axisEl.offsetWidth > 0 ? axisRect.width / axisEl.offsetWidth : 0;
-  if (!isFinite(scale) || scale <= 0) return [];
-
-  var bounds = [];
-  var labelEls = axisEl.querySelectorAll(".admin-timeline-event-label");
-  for (var i = 0; i < labelEls.length; i++) {
-    var rect = labelEls[i].getBoundingClientRect();
-    if (rect.width <= 0 || rect.height <= 0) continue;
-    bounds.push({
-      era: "",
-      kind: "label",
-      x: (rect.left - axisRect.left) / scale,
-      y: (rect.top - axisRect.top) / scale,
-      width: rect.width / scale,
-      height: rect.height / scale,
-    });
-  }
-  return bounds;
+  Events.renderEraBand();
 };
 
 /**
@@ -393,6 +308,129 @@ Events.createEventElement = function (ev, x, y, yOffset, labelMode) {
   });
 
   return el;
+};
+
+/* ── Era heading band ──────────────────────────────────────────────────────── */
+
+/** The band element, and the pieces of each era in it. */
+let bandEl = null;
+let bandTrackEl = null;
+/** @type {Array<{era: string, heading: HTMLElement, bar: HTMLElement, leader: HTMLElement}>} */
+let bandItems = [];
+/** Heading widths in px by era key. The heading size does not change with zoom. */
+let bandTextWidths = {};
+/** Zoom scale that the band was last laid out for. */
+let bandScale = null;
+
+/**
+ * Class suffix for an era key: "GalileeMinistry" becomes "galilee-ministry".
+ *
+ * @param {string} era
+ * @returns {string}
+ */
+function eraKebab(era) {
+  return era
+    .replace(/([a-z])([A-Z])/g, "$1-$2")
+    .replace(/\s+/g, "-")
+    .toLowerCase();
+}
+
+/**
+ * Build the era heading band at the top of the canvas, outside the zoomed
+ * world, and lay it out for the current zoom and pan. The placement comes from
+ * `computeEraBandLayout`, the function that the public timeline uses
+ * (cluster-logic-bridge/timeline-era-heading-placement-bridge.js). Called by
+ * `renderEvents`; the band is built once and kept.
+ *
+ * @param {boolean} [rebuild] - build it again, for example after fonts load
+ * @returns {void}
+ */
+Events.renderEraBand = function (rebuild) {
+  const canvasEl = document.getElementById("timeline-canvas");
+  if (!canvasEl) return;
+  if (!window.AdminTimelineEraHeadingPlacement) {
+    console.warn(
+      "timeline-events.js: window.AdminTimelineEraHeadingPlacement is missing. Era headings are not drawn.",
+    );
+    return;
+  }
+  if (bandEl && bandEl.isConnected && !rebuild) return;
+
+  const eraLabels = window.AdminTimelineGeometry.ERA_LABELS;
+  const eras = Object.keys(window.AdminTimelineGeometry.ERA_BOUNDARIES);
+
+  if (bandEl) bandEl.remove();
+  bandEl = document.createElement("div");
+  bandEl.className = "admin-timeline-heading-band";
+  bandTrackEl = document.createElement("div");
+  bandTrackEl.className = "admin-timeline-heading-band__track";
+  bandItems = [];
+
+  for (const era of eras) {
+    const kebab = eraKebab(era);
+    const heading = document.createElement("h3");
+    heading.className = "admin-timeline-era-heading era--" + kebab;
+    heading.textContent = eraLabels[era] || era;
+    const bar = document.createElement("span");
+    bar.className = "admin-timeline-era-bar era--" + kebab;
+    const leader = document.createElement("span");
+    leader.className = "admin-timeline-era-leader era--" + kebab;
+    bandTrackEl.append(bar, leader, heading);
+    bandItems.push({ era: era, heading: heading, bar: bar, leader: leader });
+  }
+
+  bandEl.appendChild(bandTrackEl);
+  canvasEl.appendChild(bandEl);
+
+  bandTextWidths = {};
+  for (const item of bandItems) {
+    bandTextWidths[item.era] = item.heading.offsetWidth;
+  }
+
+  bandScale = null;
+  const pan = window.AdminTimelineZoom.getPan();
+  Events.syncEraBand({ panX: pan.x, scale: window.AdminTimelineZoom.getScale() });
+
+  // Fonts that load late change the heading widths; measure again once.
+  if (!rebuild && document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(function () {
+      Events.renderEraBand(true);
+    });
+  }
+};
+
+/**
+ * Bring the band in step with the world transform. A zoom change lays the band
+ * out again; a pan only shifts the track. Registered with
+ * `AdminTimelineZoom.onTransformChange` in `Events.init`.
+ *
+ * @param {{panX: number, scale: number}} state
+ * @returns {void}
+ */
+Events.syncEraBand = function (state) {
+  if (!bandEl || !bandEl.isConnected) return;
+
+  if (state.scale !== bandScale) {
+    bandScale = state.scale;
+    const layout = window.AdminTimelineEraHeadingPlacement.computeEraBandLayout(
+      window.AdminTimelineGeometry.ERA_BOUNDARIES,
+      window.AdminTimelineGeometry.BASE_PX_PER_PERIOD * state.scale,
+      bandTextWidths,
+    );
+    for (const entry of layout) {
+      const item = bandItems.find(function (i) { return i.era === entry.era; });
+      if (!item) continue;
+      item.heading.style.left = entry.textX + "px";
+      item.heading.style.setProperty("--lane", String(entry.lane));
+      item.bar.style.left = entry.x + 1 + "px";
+      item.bar.style.width = Math.max(0, entry.width - 3) + "px";
+      item.leader.style.left = entry.x + 1 + "px";
+      item.leader.style.setProperty("--lane", String(entry.lane));
+      item.leader.hidden = !entry.leader;
+    }
+  }
+
+  bandTrackEl.style.transform = "translateX(" + Math.round(state.panX * 2) / 2 + "px)";
 };
 
 /* ── Selection & edit panel ────────────────────────────────────────────────── */
