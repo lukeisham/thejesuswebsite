@@ -1,4 +1,4 @@
-// Re-export only — no logic here. See ARCHITECTURE/node-cluster-logic.md.
+// Re-export only — no logic here. See ARCHITECTURE/Website_guide.md, "Admin editors reuse public code through bridges".
 /**
  * Admin timeline offset-maths bridge.
  *

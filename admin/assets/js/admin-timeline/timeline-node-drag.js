@@ -20,7 +20,7 @@
  * `AdminTimelineStaged.stageOffset`; they are saved by the toolbar button.
  *
  * The offset maths is `window.AdminTimelineOffsets`, the same module the public
- * renderer imports (setup/ARCHITECTURE/node-cluster-logic.md). The scales come
+ * renderer imports (setup/ARCHITECTURE/timeline.md). The scales come
  * from `AdminTimelineGeometry`. Listeners are attached by timeline-events.js
  * after every render. A drag sets `_timelineDragActive` on the dot; the dot's
  * click handler in timeline-events.js reads it, and the next pointer-down clears

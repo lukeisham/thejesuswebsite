@@ -9,7 +9,7 @@
  * The admin editor cannot import ES modules in its classic scripts, so it
  * keeps a copy of `BASE_PX_PER_PERIOD` and `TIMELINE_CANVAS_HEIGHT_PX` in
  * admin/assets/js/admin-timeline/timeline-geometry.js (`BASE_PX_PER_PERIOD`,
- * `CANVAS_HEIGHT_PX`). api/tests/guide-node-cluster-logic.test.js fails when
+ * `CANVAS_HEIGHT_PX`). api/tests/guide-timeline.test.js fails when
  * the two copies differ. A stored `timeline_offset_x` or `timeline_offset_y`
  * is converted to pixels with these two values on both sides, so a mismatch
  * shows a node at one spot in the editor and another on the public page.

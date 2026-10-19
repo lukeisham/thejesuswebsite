@@ -20,7 +20,7 @@
  * every stored node.
  *
  * `api/models/evidence.model.js` clamps the stored values to the same limits
- * (`validateOffsets`); api/tests/guide-node-cluster-logic.test.js fails when the
+ * (`validateOffsets`); api/tests/guide-timeline.test.js fails when the
  * two sets of numbers differ.
  *
  * @module cluster-logic/timeline-offsets

@@ -15,8 +15,8 @@
  * the same layout from the same stored offsets. Both convert offsets with
  * cluster-logic/timeline-offsets.js, and both read the label clearance and the
  * tier step from cluster-label-collision.js:
- * setup/ARCHITECTURE/node-cluster-logic.md lists the invariants and
- * api/tests/guide-node-cluster-logic.test.js checks them.
+ * setup/ARCHITECTURE/timeline.md lists the invariants and
+ * api/tests/guide-timeline.test.js checks them.
  *
  * @module timeline/timeline-render
  */

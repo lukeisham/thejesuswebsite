@@ -5,7 +5,7 @@
  * (frontend/assets/js/timeline/timeline-data.js and timeline-geometry.js), so
  * the editor draws dots, labels and era markers with the same dimensions.
  * The admin pages cannot import ES modules in their classic scripts, so the
- * values are repeated here. api/tests/guide-node-cluster-logic.test.js fails
+ * values are repeated here. api/tests/guide-timeline.test.js fails
  * when `BASE_PX_PER_PERIOD` or `CANVAS_HEIGHT_PX` differs from the frontend
  * value. A stored `timeline_offset_x` or `timeline_offset_y` is converted to
  * pixels with these two values, so a mismatch shows a node at one spot in the

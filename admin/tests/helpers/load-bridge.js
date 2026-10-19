@@ -13,7 +13,7 @@
 // Used by admin/tests/cluster-logic-bridges.test.js,
 // admin/tests/admin-timeline.test.js, admin-timeline-node-drag.test.js,
 // admin-timeline-node-bounds.test.js and maps.test.js. The guide
-// setup/ARCHITECTURE/node-cluster-logic.md says why bridges must stay pure.
+// setup/ARCHITECTURE/Website_guide.md ("Admin editors reuse public code through bridges") says why bridges must stay pure.
 
 const fs = require("fs");
 const path = require("path");

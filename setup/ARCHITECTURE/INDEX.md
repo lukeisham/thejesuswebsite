@@ -132,7 +132,9 @@ git already is one.
 | [`image-display.md`](image-display.md) | Figures vs thumbnails — the two image patterns, figure numbering, lazy loading |
 | [`esv-api.md`](esv-api.md) | ESV verse proxy and the `data-esv-ref` client contract |
 | [`journal-article-fields.md`](journal-article-fields.md) | Abstract, response strength and footnotes: columns, the `[fn:N]` marker, validation limits shared with the admin |
-| [`node-cluster-logic.md`](node-cluster-logic.md) | Timeline/map/arbor cluster placement, labels, edge routing |
+| [`timeline.md`](timeline.md) | Timeline: offsets and geometry shared by the editor and the public page, era band, zoom stacks, labels, snapshot |
+| [`arbor.md`](arbor.md) | Arbor: the edge route shared by the editor and the public page |
+| [`maps.md`](maps.md) | Maps: pin fanning shared by the editor and the public page |
 | [`error-notification.md`](error-notification.md) | Route error codes, the not-found code contract, and how pages show failures |
 | [`wikipedia-ranking-pipeline.md`](wikipedia-ranking-pipeline.md) | Scoring pipeline, deploy-time import, vector sidecar and store sync |
 | [`wikipedia-quality-grid.md`](wikipedia-quality-grid.md) | Signal grid, score panel, tooltip and copy button on the Wikipedia list |

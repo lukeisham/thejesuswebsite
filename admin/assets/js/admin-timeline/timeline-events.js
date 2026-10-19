@@ -11,7 +11,7 @@
  * Stored offsets (timeline_offset_x and timeline_offset_y) replace the cluster
  * position. The public page applies the same offsets in
  * frontend/assets/js/timeline/timeline-render.js, with the same two scales
- * (setup/ARCHITECTURE/node-cluster-logic.md). A node must land on the same spot
+ * (setup/ARCHITECTURE/timeline.md). A node must land on the same spot
  * in both places.
  *
  * Dragging is in timeline-node-drag.js (left drag past 4px, or right drag in
