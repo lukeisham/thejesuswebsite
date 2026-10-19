@@ -1,13 +1,16 @@
 /**
  * Admin timeline axis module.
  *
- * Renders the horizontal time-scale axis and era labels for the timeline
- * editor using fixed world coordinates (BASE_PX_PER_PERIOD = 100). Zoom
- * is applied by a CSS transform on the `.admin-timeline-world` wrapper
- * — the axis itself always renders at scale 1.
+ * Renders the horizontal axis line and the era divider lines for the timeline
+ * editor, in fixed world coordinates (`AdminTimelineGeometry.BASE_PX_PER_PERIOD`
+ * per period). The axis is `CANVAS_HEIGHT_PX` tall, the height of the public
+ * timeline's dot field, so a dot at a given percentage sits at the same pixel
+ * height as on the public page. Zoom is a CSS transform on the
+ * `.admin-timeline-world` wrapper; the axis itself always renders at scale 1.
+ * The era headings are in a separate band (timeline-events.js).
  *
- * All math functions are DOM-free and exported so tests can verify
- * round-trip stability and era-boundary mapping.
+ * The math functions are DOM-free and exported so tests can verify round-trip
+ * stability and era-boundary mapping.
  *
  * @module admin-timeline/timeline-axis
  */
@@ -22,7 +25,10 @@ const PERIOD_ORDER = window.AdminTimelineGeometry.TIMELINE_PERIODS;
 const ERA_STARTS = window.AdminTimelineGeometry.ERA_STARTS;
 
 /** Fixed world-coordinate base — zoom is applied by the transform wrapper. */
-const BASE_PX_PER_PERIOD = 100;
+const BASE_PX_PER_PERIOD = window.AdminTimelineGeometry.BASE_PX_PER_PERIOD;
+
+/** Height of the dot field; equal to the public timeline's. */
+const CANVAS_HEIGHT_PX = window.AdminTimelineGeometry.CANVAS_HEIGHT_PX;
 
 /* ── State ─────────────────────────────────────────────────────────────────── */
 
@@ -126,9 +132,8 @@ Axis.init = function (container) {
 };
 
 /**
- * Render the horizontal axis line and era labels (matching frontend exactly).
- * Positions use fixed world pixels at scale 1. Era bands and tick marks are
- * removed for parity with the frontend timeline.
+ * Render the horizontal axis line and the era divider lines. Positions use fixed
+ * world pixels at scale 1.
  */
 Axis.renderAxis = function () {
   if (!axisContainer) return;
@@ -136,12 +141,9 @@ Axis.renderAxis = function () {
 
   axisContainer.style.position = "relative";
   axisContainer.style.width = totalWidth + "px";
-  axisContainer.style.minHeight = "120px";
+  axisContainer.style.minHeight = CANVAS_HEIGHT_PX + "px";
 
-  // ── Era labels ───────────────────────────────────────────────────────
-  // Superseded by top-left .admin-timeline-era-heading elements rendered in
-  // timeline-events.js (shared placement module, SR-4). Era boundary data
-  // is still needed for the divider lines below.
+  // Era boundaries, for the divider lines below.
   var eraData = [];
   for (var e = 0; e < ERA_ORDER.length; e++) {
     var era = ERA_ORDER[e];
@@ -174,7 +176,7 @@ Axis.renderAxis = function () {
   axisLine.style.position = "absolute";
   axisLine.style.left = "0";
   axisLine.style.width = totalWidth + "px";
-  axisLine.style.top = "60px";
+  axisLine.style.top = CANVAS_HEIGHT_PX / 2 + "px";
   axisContainer.appendChild(axisLine);
 };
 

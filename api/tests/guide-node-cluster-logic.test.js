@@ -170,6 +170,16 @@ describe(`${GUIDE} row 3: admin geometry equals frontend geometry`, () => {
     }
   });
 
+  test("the admin axis is as tall as the public dot field", () => {
+    const axis = blankComments(read("admin/assets/js/admin-timeline/timeline-axis.js"));
+    assert.match(
+      axis,
+      /style\.minHeight\s*=\s*CANVAS_HEIGHT_PX/,
+      `${GUIDE} row 3: admin/assets/js/admin-timeline/timeline-axis.js must size the axis with CANVAS_HEIGHT_PX, ` +
+        "so a dot at a given percentage sits at the same pixel height as on the public page.",
+    );
+  });
+
   test("CANVAS_HEIGHT_PX equals TIMELINE_CANVAS_HEIGHT_PX", () => {
     assert.equal(
       numberAfter(ADMIN, /CANVAS_HEIGHT_PX:\s*(\d+)/),

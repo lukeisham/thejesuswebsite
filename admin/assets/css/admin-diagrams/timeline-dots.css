@@ -89,6 +89,15 @@
     max-width: 100px;
     text-align: center;
     transform: translateX(-50%);
+    /* A label glides to its new tier when a node is dragged. timeline-events.js
+       (Events.relayoutLabels) turns this off inline while it measures labels. */
+    transition: top var(--duration-fast) var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .admin-timeline-event-label {
+        transition: none;
+    }
 }
 
 /* Clustering label modes */

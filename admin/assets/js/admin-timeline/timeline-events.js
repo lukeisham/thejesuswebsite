@@ -108,8 +108,7 @@ Events.renderEvents = function () {
   // The same two scales convert a stored offset to pixels on the public page
   // (frontend/assets/js/timeline/timeline-render.js).
   const basePx = window.AdminTimelineGeometry.BASE_PX_PER_PERIOD;
-  const { LABEL_CLEARANCE_PCT, TIER_STEP_PCT } =
-    window.AdminTimelineClusterLabelCollision;
+  const { LABEL_CLEARANCE_PCT } = window.AdminTimelineClusterLabelCollision;
   const { offsetXToPixels, offsetYToPixels, crossAxisToTopPercent } =
     window.AdminTimelineOffsets;
 
@@ -160,11 +159,10 @@ Events.renderEvents = function () {
     for (let pi2 = 0; pi2 < periodPositions2.length; pi2++) {
       const pos = periodPositions2[pi2];
       const ev2 = pos.event;
-      const yOffset = pos.yOffset;
       const xFan = pos.xFan || 0;
 
       let finalX = baseX + xFan;
-      let finalY = yOffset;
+      let finalY = pos.yOffset;
 
       // Offset precedence: staged (if present) > saved API offset > cluster placement
       let stagedOffset = null;
@@ -198,7 +196,8 @@ Events.renderEvents = function () {
           labelText = labelText.slice(0, 26) + "…";
         }
         if (labelText) {
-          const labelTop = yOffset <= 0
+          // The side follows the final position, as on the public page.
+          const labelTop = finalY <= 0
             ? crossAxisToTopPercent(finalY) - LABEL_CLEARANCE_PCT
             : crossAxisToTopPercent(finalY) + LABEL_CLEARANCE_PCT;
           const label = document.createElement("span");
@@ -234,19 +233,7 @@ Events.renderEvents = function () {
     window.AdminTimelineNodeDrag.attachDragListeners();
   }
 
-  // Resolve label overlaps once, after every label is attached.
-  if (window.AdminTimelineLabelCollision) {
-    const labelEls = axisEl.querySelectorAll(".admin-timeline-event-label");
-    window.AdminTimelineLabelCollision.resolve(
-      Array.prototype.slice.call(labelEls),
-      "x",
-      TIER_STEP_PCT,
-    );
-  } else {
-    console.warn(
-      "timeline-events.js: window.AdminTimelineLabelCollision is missing. Labels are not collision-resolved.",
-    );
-  }
+  Events.relayoutLabels(false);
 
   Events.renderEraBand();
 };
@@ -308,6 +295,63 @@ Events.createEventElement = function (ev, x, y, yOffset, labelMode) {
   });
 
   return el;
+};
+
+/**
+ * Resolve label overlaps again for the labels that are on the axis now.
+ *
+ * Every label goes back to its base position (`data-original-top`, tier 0) and
+ * the collision adapter (timeline-label-collision.js) works out the tiers. This
+ * is also how `renderEvents` places labels, so a drag and a full render give the
+ * same result. `timeline-node-drag.js` calls it while a node is dragged and when
+ * it is dropped, after it has moved the dragged label's `data-original-top`.
+ *
+ * With `glide` true, each label moves from where it was to where it now goes
+ * instead of jumping (the `top` transition in timeline-dots.css). The
+ * transition is off while the adapter measures, because the adapter reads the
+ * labels' current rectangles.
+ *
+ * @param {boolean} glide - animate the move
+ * @returns {void}
+ */
+Events.relayoutLabels = function (glide) {
+  const axisEl = document.getElementById("timeline-axis");
+  if (!axisEl) return;
+  if (!window.AdminTimelineLabelCollision) {
+    console.warn(
+      "timeline-events.js: window.AdminTimelineLabelCollision is missing. Labels are not collision-resolved.",
+    );
+    return;
+  }
+
+  const labels = Array.prototype.slice.call(
+    axisEl.querySelectorAll(".admin-timeline-event-label"),
+  );
+  const before = labels.map(function (label) { return label.style.top; });
+
+  for (const label of labels) {
+    label.style.transition = "none";
+    label.style.top = label.dataset.originalTop;
+    label.dataset.tierIndex = "0";
+  }
+  window.AdminTimelineLabelCollision.resolve(
+    labels,
+    "x",
+    window.AdminTimelineClusterLabelCollision.TIER_STEP_PCT,
+  );
+
+  if (!glide) {
+    for (const label of labels) label.style.transition = "";
+    return;
+  }
+
+  const after = labels.map(function (label) { return label.style.top; });
+  labels.forEach(function (label, i) { label.style.top = before[i] || after[i]; });
+  void axisEl.offsetWidth; // flush the start position before the transition is back on
+  labels.forEach(function (label, i) {
+    label.style.transition = "";
+    label.style.top = after[i];
+  });
 };
 
 /* ── Era heading band ──────────────────────────────────────────────────────── */

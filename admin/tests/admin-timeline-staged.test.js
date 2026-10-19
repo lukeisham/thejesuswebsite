@@ -98,6 +98,40 @@ function loadStaged(opts) {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 describe("AdminTimelineStaged", function () {
+  // ── Save button count ──────────────────────────────────────────────────────
+
+  describe("save button count", function () {
+    test("shows the number of staged changes as soon as a node is dropped", function () {
+      var ctx = loadStaged();
+      ctx.Staged.stageOffset(1, 0.1, 0.2);
+      assert.equal(ctx.mockBtn.textContent, "Save Changes (1)");
+      ctx.Staged.stageOffset(2, -0.1, 0.0);
+      assert.equal(ctx.mockBtn.textContent, "Save Changes (2)");
+    });
+
+    test("moving the same node again does not raise the count", function () {
+      var ctx = loadStaged();
+      ctx.Staged.stageOffset(1, 0.1, 0.2);
+      ctx.Staged.stageOffset(1, 0.3, 0.1);
+      assert.equal(ctx.mockBtn.textContent, "Save Changes (1)");
+    });
+
+    test("counts placements, moves and unassigns too", function () {
+      var ctx = loadStaged();
+      ctx.Staged.stagePlacement(1, "LifeBaptism", "Life");
+      ctx.Staged.stageMove(2, "LifeTemptation");
+      ctx.Staged.stageUnassign(3);
+      assert.equal(ctx.mockBtn.textContent, "Save Changes (3)");
+    });
+
+    test("clear returns the button to its plain text", function () {
+      var ctx = loadStaged();
+      ctx.Staged.stageOffset(1, 0.1, 0.2);
+      ctx.Staged.clear();
+      assert.equal(ctx.mockBtn.textContent, "Save Changes");
+    });
+  });
+
   // ── Stage helpers ──────────────────────────────────────────────────────────
 
   describe("stagePlacement", function () {

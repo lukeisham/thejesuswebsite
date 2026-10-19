@@ -1,308 +1,266 @@
-// AdminTimelineNodeDrag math tests — node:test + node:assert.
-// Tests the core position-computation logic used by updateDotPosition
-// and the base-position capture at pointerdown, without requiring a
-// full DOM or pointer-event simulation.
-//
-// Key properties verified:
-//   1. Calling the position formula twice with the same offset produces
-//      the same result (no cumulative drift).
-//   2. The top formula matches the renderEvents formula exactly.
-//   3. Moving right increases left, moving left decreases it (monotonic).
+// AdminTimelineNodeDrag tests — node:test + node:assert.
+// Runs the real timeline-node-drag.js against a small hand-built fake DOM
+// (TEST-8): dots, labels, a document that keeps its listeners, and animation
+// frames that the test flushes. The offsets maths, the clamps and the axis are
+// the real admin files, loaded through the bridge helper.
 
 const { test, describe } = require("node:test");
 const assert = require("node:assert/strict");
+const { loadBridge, runClassicScript } = require("./helpers/load-bridge");
 
-// ── The renderEvents-compatible top formula ──────────────────────────────
+// ── Fake DOM ─────────────────────────────────────────────────────────────────
 
-/**
- * Compute the dot's vertical position in pixels from an offsetY fraction.
- * This is the formula used by renderEvents (timeline-events.js line 193):
- *   y = (280 * (50 + finalY / 2)) / 100   where finalY = offsetY * 280
- *
- * @param {number} offsetY - fraction of canvas height (e.g. 0, 0.2, -0.2)
- * @returns {number} pixel position
- */
-function renderTop(offsetY) {
-  var finalY = offsetY * 280;
-  return (280 * (50 + finalY / 2)) / 100;
+function makeDot(eventId, left, top) {
+  const handlers = {};
+  return {
+    dataset: { eventId: String(eventId) },
+    style: { left, top },
+    classList: {
+      names: new Set(),
+      add(n) { this.names.add(n); },
+      remove(n) { this.names.delete(n); },
+    },
+    handlers,
+    addEventListener(type, fn) { handlers[type] = fn; },
+    removeEventListener(type, fn) { if (handlers[type] === fn) delete handlers[type]; },
+    setPointerCapture() {},
+    releasePointerCapture() {},
+  };
 }
 
-// ── The drag horizontal-position formula ─────────────────────────────────
-
-/**
- * Compute the dot's horizontal position from a captured base position and
- * an offsetX fraction. The base is captured once at pointerdown as:
- *   baseLeftPx = dot.style.left - offsetXToPixel(startOffsetX, pxPerPeriod)
- *
- * @param {number} baseLeftPx - period-slot centre (pixels)
- * @param {number} offsetX - offset fraction
- * @param {number} pxPerPeriod - pixels per period slot
- * @returns {number} pixel position
- */
-function dragLeft(baseLeftPx, offsetX, pxPerPeriod) {
-  return baseLeftPx + offsetX * pxPerPeriod;
+function makeLabel(eventId) {
+  return { dataset: { eventId: String(eventId) }, style: {} };
 }
 
-describe("AdminTimelineNodeDrag — position math", () => {
-  describe("renderTop (vertical)", () => {
-    test("zero offset produces centre position", () => {
-      // When offsetY = 0: finalY = 0, top = 280 * 50 / 100 = 140
-      assert.strictEqual(renderTop(0), 140);
-    });
+/**
+ * Build a window with the real drag module loaded.
+ *
+ * @param {Object} opts
+ * @param {number} [opts.scale] - zoom scale
+ * @param {Array} opts.dots - fake dots
+ * @param {Object} opts.events - event id -> event
+ */
+function createEnv({ scale = 1, dots, events }) {
+  const win = Object.assign(
+    {},
+    loadBridge("timeline-offsets-bridge.js"),
+    loadBridge("cluster-label-collision-bridge.js"),
+    loadBridge("cluster-density-bridge.js"),
+  );
 
-    test("positive offset moves the dot down", () => {
-      // offsetY = 0.2: finalY = 56, top = 280 * (50 + 28) / 100 = 280 * 0.78 = 218.4
-      assert.strictEqual(renderTop(0.2), 218.4);
-      // offsetY = 0.4: finalY = 112, top = 280 * (50 + 56) / 100 = 280 * 1.06 = 296.8
-      assert.strictEqual(renderTop(0.4), 296.8);
-    });
+  const labels = {};
+  for (const dot of dots) labels[dot.dataset.eventId] = makeLabel(dot.dataset.eventId);
 
-    test("negative offset moves the dot up", () => {
-      // offsetY = -0.2: finalY = -56, top = 280 * (50 + (-28)) / 100 = 280 * 0.22 = 61.6
-      assert.strictEqual(renderTop(-0.2), 61.6);
-      // offsetY = -0.4: finalY = -112, top = 280 * (50 + (-56)) / 100 = 280 * (-0.06) = -16.8
-      assert.strictEqual(renderTop(-0.4), -16.8);
-    });
+  const listeners = {};
+  const document = {
+    querySelectorAll: () => dots,
+    querySelector: (sel) => {
+      const m = /data-event-id="(\d+)"/.exec(sel);
+      return m ? labels[m[1]] || null : null;
+    },
+    addEventListener(type, fn) { (listeners[type] ||= []).push(fn); },
+    removeEventListener(type, fn) {
+      listeners[type] = (listeners[type] || []).filter((f) => f !== fn);
+    },
+    dispatch(type, e) { (listeners[type] || []).slice().forEach((fn) => fn(e)); },
+  };
 
-    test("monotonic — larger offset always means larger top", () => {
-      assert.ok(renderTop(-0.3) < renderTop(-0.1));
-      assert.ok(renderTop(-0.1) < renderTop(0));
-      assert.ok(renderTop(0) < renderTop(0.1));
-      assert.ok(renderTop(0.1) < renderTop(0.3));
-    });
+  const frames = [];
+  const relayouts = [];
+  const staged = [];
+  win.AdminTimelineZoom = {
+    getScale: () => scale,
+    effectivePxPerPeriod: () => 100 * scale,
+  };
+  win.AdminTimelineEvents = {
+    getEventById: (id) => events[id],
+    relayoutLabels: (glide) => relayouts.push(glide),
+  };
+  win.AdminTimelineStaged = {
+    stageOffset: (id, x, y) => staged.push({ id, x, y }),
+  };
 
-    test("no vertical jump on drag start — formula matches render at zero offset", () => {
-      // The old code used (50 + offsetY * 280 / 2) which gave 50 at offset 0.
-      // The renderEvents formula gives 140 at offset 0 — a 90px jump if mismatched.
-      var oldFormula = 50 + 0 * 280 / 2;
-      assert.notStrictEqual(oldFormula, renderTop(0),
-        "old formula (50) should differ from render formula (140) — this is the bug");
-      assert.strictEqual(renderTop(0), 140,
-        "new formula must match renderEvents at zero offset");
-    });
+  const extra = {
+    document,
+    requestAnimationFrame: (fn) => frames.push(fn),
+    cancelAnimationFrame: (id) => { frames[id - 1] = null; },
+  };
+  runClassicScript("admin-timeline/timeline-geometry.js", win);
+  runClassicScript("admin-timeline/timeline-axis.js", win, extra);
+  runClassicScript("admin-timeline/timeline-node-bounds.js", win);
+  runClassicScript("admin-timeline/timeline-node-drag.js", win, extra);
+  win.AdminTimelineNodeDrag.attachDragListeners();
+
+  return {
+    document,
+    labels,
+    relayouts,
+    staged,
+    flushFrames() { while (frames.length) { const f = frames.shift(); if (f) f(); } },
+  };
+}
+
+/** A pointer event for a dot or the document. */
+function pointer(type, x, y, extra = {}) {
+  return {
+    type,
+    pointerId: 1,
+    button: 0,
+    clientX: x,
+    clientY: y,
+    preventDefault() {},
+    stopPropagation() {},
+    ...extra,
+  };
+}
+
+/** Press on a dot, move to each point, release at the last one. */
+function drag(env, dot, from, points) {
+  dot.handlers.pointerdown({ ...pointer("pointerdown", from[0], from[1]), currentTarget: dot });
+  for (const [x, y] of points) env.document.dispatch("pointermove", pointer("pointermove", x, y));
+  const last = points[points.length - 1] || from;
+  env.document.dispatch("pointerup", pointer("pointerup", last[0], last[1]));
+}
+
+// "OldTestament" is period 1, so its slot centre is x = 150.
+const EVENTS = { 7: { id: 7, timeline_period: "OldTestament" } };
+
+// ── Tests ────────────────────────────────────────────────────────────────────
+
+describe("AdminTimelineNodeDrag: attach and click", () => {
+  test("attachDragListeners puts a pointerdown handler on every dot", () => {
+    const dot = makeDot(7, "150px", "50%");
+    createEnv({ dots: [dot], events: EVENTS });
+    assert.equal(typeof dot.handlers.pointerdown, "function");
   });
 
-  describe("dragLeft (horizontal, base-anchored)", () => {
-    test("zero offset returns the base position", () => {
-      assert.strictEqual(dragLeft(200, 0, 100), 200);
-    });
-
-    test("positive offset moves right proportionally", () => {
-      // At 100 px/period, offsetX=0.25 = 25px right of base
-      assert.strictEqual(dragLeft(200, 0.25, 100), 225);
-      assert.strictEqual(dragLeft(200, 0.5, 100), 250);
-    });
-
-    test("negative offset moves left proportionally", () => {
-      assert.strictEqual(dragLeft(200, -0.25, 100), 175);
-      assert.strictEqual(dragLeft(200, -0.5, 100), 150);
-    });
-
-    test("monotonic — larger offset always means larger left", () => {
-      assert.ok(dragLeft(200, -0.3, 100) < dragLeft(200, -0.1, 100));
-      assert.ok(dragLeft(200, -0.1, 100) < dragLeft(200, 0, 100));
-      assert.ok(dragLeft(200, 0, 100) < dragLeft(200, 0.1, 100));
-      assert.ok(dragLeft(200, 0.1, 100) < dragLeft(200, 0.3, 100));
-    });
-
-    test("no drift — same offset always gives same position", () => {
-      // The old code re-read style.left each frame and re-subtracted
-      // pxPerPeriod/2, causing cumulative leftward drift. The base-anchored
-      // formula depends only on the captured base, not on live style values.
-      var base = 350;
-      for (var i = 0; i < 10; i++) {
-        assert.strictEqual(dragLeft(base, 0.15, 100), 350 + 0.15 * 100);
-      }
-    });
-
-    test("base capture formula — recovers slot centre from dot position", () => {
-      // Given a dot at left=380 with offsetX=0.25 at pxPerPeriod=100:
-      // baseLeftPx = 380 - 0.25 * 100 = 380 - 25 = 355
-      var dotLeft = 380;
-      var currentOffset = 0.25;
-      var pxPerPeriod = 100;
-      var baseLeftPx = dotLeft - currentOffset * pxPerPeriod;
-      assert.strictEqual(baseLeftPx, 355);
-      // Then dragging to offsetX=-0.1 should give 355 + (-0.1 * 100) = 345
-      assert.strictEqual(dragLeft(baseLeftPx, -0.1, pxPerPeriod), 345);
-    });
-
-    test("base capture handles negative current offset", () => {
-      // Dot at left=152 with offsetX=-0.4 at pxPerPeriod=100:
-      // baseLeftPx = 152 - (-0.4 * 100) = 152 + 40 = 192
-      var dotLeft = 152;
-      var currentOffset = -0.4;
-      var pxPerPeriod = 100;
-      var baseLeftPx = dotLeft - currentOffset * pxPerPeriod;
-      assert.strictEqual(baseLeftPx, 192);
-      // Dragging back to zero offset: 192 + 0 = 192
-      assert.strictEqual(dragLeft(baseLeftPx, 0, pxPerPeriod), 192);
-    });
+  test("a movement under 4 px is a click: nothing is staged", () => {
+    const dot = makeDot(7, "150px", "50%");
+    const env = createEnv({ dots: [dot], events: EVENTS });
+    drag(env, dot, [100, 100], [[103, 100]]);
+    assert.deepEqual(env.staged, []);
+    assert.equal(dot._timelineDragActive, undefined);
   });
 });
 
-// ── Left-drag candidate threshold logic ──────────────────────────────────
-//   Replicates the distance check in timeline-node-drag.js onDocPointerMove
-//   before a left-drag candidate activates (CANDIDATE_DRAG_PX = 4).
-
-describe("AdminTimelineNodeDrag — left-drag threshold", () => {
-  var CANDIDATE_DRAG_PX = 4;
-
-  /**
-   * Returns true if the pointer has moved far enough from the down position
-   * to activate the drag.
-   */
-  function exceedsThreshold(startX, startY, clientX, clientY) {
-    var dx = clientX - startX;
-    var dy = clientY - startY;
-    return Math.abs(dx) >= CANDIDATE_DRAG_PX || Math.abs(dy) >= CANDIDATE_DRAG_PX;
-  }
-
-  test("sub-threshold horizontal movement does NOT activate drag", () => {
-    assert.strictEqual(exceedsThreshold(100, 100, 103, 100), false);
+describe("AdminTimelineNodeDrag: the dot follows the pointer", () => {
+  test("x: 30 px of pointer is 30 world px at zoom 1", () => {
+    const dot = makeDot(7, "150px", "50%");
+    const env = createEnv({ dots: [dot], events: EVENTS });
+    drag(env, dot, [100, 100], [[110, 100], [130, 100]]);
+    assert.equal(dot.style.left, "180px");
+    assert.equal(env.staged.length, 1);
+    assert.ok(Math.abs(env.staged[0].x - 0.3) < 1e-9);
   });
 
-  test("sub-threshold vertical movement does NOT activate drag", () => {
-    assert.strictEqual(exceedsThreshold(100, 100, 100, 103), false);
+  test("a single jump past the threshold still moves the dot the whole distance", () => {
+    const dot = makeDot(7, "150px", "50%");
+    const env = createEnv({ dots: [dot], events: EVENTS });
+    drag(env, dot, [100, 100], [[130, 100]]);
+    assert.equal(dot.style.left, "180px");
   });
 
-  test("sub-threshold diagonal movement does NOT activate drag", () => {
-    assert.strictEqual(exceedsThreshold(100, 100, 102, 102), false);
+  test("x at zoom 2: the same pointer distance is half the world distance", () => {
+    const dot = makeDot(7, "150px", "50%");
+    const env = createEnv({ scale: 2, dots: [dot], events: EVENTS });
+    drag(env, dot, [100, 100], [[110, 100], [140, 100]]);
+    assert.equal(dot.style.left, "170px"); // 40 px of pointer = 20 world px
   });
 
-  test("supra-threshold horizontal movement activates drag", () => {
-    assert.strictEqual(exceedsThreshold(100, 100, 104, 100), true);
+  test("y: 28 px of pointer moves the dot 28 px of the 280 px field (10 percent)", () => {
+    const dot = makeDot(7, "150px", "50%");
+    const env = createEnv({ dots: [dot], events: EVENTS });
+    drag(env, dot, [100, 100], [[100, 110], [100, 128]]);
+    assert.ok(Math.abs(parseFloat(dot.style.top) - 60) < 1e-9);
+    assert.ok(Math.abs(env.staged[0].y - (10 * 2) / 280) < 1e-9);
   });
 
-  test("supra-threshold vertical movement activates drag", () => {
-    assert.strictEqual(exceedsThreshold(100, 100, 100, 104), true);
+  test("a dot at a cluster position moves from where it is shown, not from offset 0", () => {
+    const dot = makeDot(7, "154px", "46%");
+    const env = createEnv({ dots: [dot], events: EVENTS });
+    drag(env, dot, [100, 100], [[110, 100], [110, 100]]);
+    assert.equal(dot.style.left, "164px"); // 154 + 10
+    assert.ok(Math.abs(parseFloat(dot.style.top) - 46) < 1e-9); // no vertical move
   });
 
-  test("supra-threshold diagonal movement activates drag", () => {
-    assert.strictEqual(exceedsThreshold(100, 100, 104, 104), true);
+  test("x stops at the drag limit of 0.45 of a slot", () => {
+    const dot = makeDot(7, "150px", "50%");
+    const env = createEnv({ dots: [dot], events: EVENTS });
+    drag(env, dot, [100, 100], [[110, 100], [900, 100]]);
+    assert.equal(env.staged[0].x, 0.45);
+    assert.equal(dot.style.left, "195px");
   });
 
-  test("zero movement does NOT activate drag", () => {
-    assert.strictEqual(exceedsThreshold(100, 100, 100, 100), false);
-  });
-
-  test("negative movement (left/up) activates drag past threshold", () => {
-    assert.strictEqual(exceedsThreshold(100, 100, 96, 100), true);
-    assert.strictEqual(exceedsThreshold(100, 100, 100, 96), true);
+  test("y stops at the stored limit of 0.4", () => {
+    const dot = makeDot(7, "150px", "50%");
+    const env = createEnv({ dots: [dot], events: EVENTS });
+    drag(env, dot, [100, 100], [[100, 110], [100, 5000]]);
+    assert.equal(env.staged[0].y, 0.4);
   });
 });
 
-// ── Left-drag state machine / cleanup ─────────────────────────────────────
-//   Tests the dragState transitions: candidate → active → cleanup.
+describe("AdminTimelineNodeDrag: labels while dragging", () => {
+  test("the label follows the dot and keeps its clearance from it", () => {
+    const dot = makeDot(7, "150px", "50%");
+    const env = createEnv({ dots: [dot], events: EVENTS });
+    drag(env, dot, [100, 100], [[110, 100], [110, 128]]); // dot moves down: below the spine
+    const label = env.labels["7"];
+    assert.equal(label.style.left, dot.style.left);
+    assert.ok(Math.abs(parseFloat(label.dataset.originalTop) - 70) < 1e-9); // 60% + 10%
+  });
 
-describe("AdminTimelineNodeDrag — state machine", () => {
-  /**
-   * Simulate cleanup of a candidate drag that never activated.
-   * After cleanup, dragState is null and no offset was written.
-   */
-  function cleanupSubThreshold(dragState) {
-    if (!dragState._active) {
-      return null; // Let click fire
+  test("a dot above the spine puts its label above it", () => {
+    const dot = makeDot(7, "150px", "50%");
+    const env = createEnv({ dots: [dot], events: EVENTS });
+    drag(env, dot, [100, 100], [[110, 100], [110, 72]]);
+    assert.ok(Math.abs(parseFloat(env.labels["7"].dataset.originalTop) - 30) < 1e-9); // 40% - 10%
+  });
+
+  test("labels are laid out at most once per frame, and once more on drop", () => {
+    const dot = makeDot(7, "150px", "50%");
+    const env = createEnv({ dots: [dot], events: EVENTS });
+    dot.handlers.pointerdown({ ...pointer("pointerdown", 100, 100), currentTarget: dot });
+    for (const x of [110, 120, 130, 140]) {
+      env.document.dispatch("pointermove", pointer("pointermove", x, 100));
     }
-    return dragState; // Active drag — would stage offset
-  }
+    assert.deepEqual(env.relayouts, []);
+    env.flushFrames();
+    assert.deepEqual(env.relayouts, [true]);
+    env.document.dispatch("pointerup", pointer("pointerup", 140, 100));
+    assert.deepEqual(env.relayouts, [true, true]);
+  });
+});
 
-  test("sub-threshold click leaves dragState null (click fires)", () => {
-    var candidate = {
-      eventId: 42,
-      dot: {},
-      pointerId: 1,
-      startX: 100,
-      startY: 100,
-      button: 0,
-      _active: false,
-    };
-    var result = cleanupSubThreshold(candidate);
-    assert.strictEqual(result, null);
+describe("AdminTimelineNodeDrag: drop", () => {
+  test("a drop stages the offsets and keeps the click flag for the click that follows", () => {
+    const dot = makeDot(7, "150px", "50%");
+    const env = createEnv({ dots: [dot], events: EVENTS });
+    drag(env, dot, [100, 100], [[110, 100], [130, 100]]);
+    assert.equal(env.staged.length, 1);
+    assert.equal(dot._timelineDragActive, true);
   });
 
-  test("active drag after cleanup returns dragState (stages offset)", () => {
-    var active = {
-      eventId: 42,
-      dot: {},
-      pointerId: 1,
-      startX: 100,
-      startY: 100,
-      button: 0,
-      _active: true,
-      startOffsetX: 0.1,
-      startOffsetY: -0.05,
-    };
-    var result = cleanupSubThreshold(active);
-    assert.notStrictEqual(result, null);
-    assert.strictEqual(result.startOffsetX, 0.1);
+  test("the next pointer-down clears the flag from the earlier drag", () => {
+    const dot = makeDot(7, "150px", "50%");
+    const env = createEnv({ dots: [dot], events: EVENTS });
+    drag(env, dot, [100, 100], [[110, 100], [130, 100]]);
+    dot.handlers.pointerdown({ ...pointer("pointerdown", 100, 100), currentTarget: dot });
+    assert.equal(dot._timelineDragActive, undefined);
   });
 
-  test("right-drag is always active from the start", () => {
-    var rightDrag = {
-      eventId: 7,
-      dot: {},
-      pointerId: 2,
-      startX: 50,
-      startY: 50,
-      button: 2,
-      _active: true,
-      startOffsetX: 0,
-      startOffsetY: 0,
-    };
-    var result = cleanupSubThreshold(rightDrag);
-    assert.notStrictEqual(result, null);
-    assert.strictEqual(result.button, 2);
-  });
+  test("a right-click drag needs SPREAD density, which is zoom 1.2 or more", () => {
+    const dot = makeDot(7, "150px", "50%");
+    const env = createEnv({ scale: 1, dots: [dot], events: EVENTS });
+    dot.handlers.pointerdown({ ...pointer("pointerdown", 100, 100, { button: 2 }), currentTarget: dot });
+    env.document.dispatch("pointermove", pointer("pointermove", 160, 100, { button: 2 }));
+    env.document.dispatch("pointerup", pointer("pointerup", 160, 100, { button: 2 }));
+    assert.deepEqual(env.staged, []);
 
-  test("pointercancel on candidate cleans up — no offset written", () => {
-    var candidate = {
-      eventId: 99,
-      dot: {},
-      pointerId: 3,
-      startX: 200,
-      startY: 200,
-      button: 0,
-      _active: false,
-    };
-    var result = cleanupSubThreshold(candidate);
-    assert.strictEqual(result, null);
-  });
-
-  test("drag activation sets _active and flags the dot", () => {
-    var candidate = {
-      eventId: 5,
-      dot: {},
-      pointerId: 1,
-      startX: 100,
-      startY: 100,
-      button: 0,
-      _active: false,
-      startOffsetX: null,
-      startOffsetY: null,
-    };
-    candidate._active = true;
-    candidate.dot._timelineDragActive = true;
-    candidate.startOffsetX = 0.15;
-    candidate.startOffsetY = 0.05;
-
-    assert.strictEqual(candidate._active, true);
-    assert.strictEqual(candidate.dot._timelineDragActive, true);
-    assert.strictEqual(candidate.startOffsetX, 0.15);
-    assert.notStrictEqual(candidate.startOffsetY, null);
-  });
-
-  test("left-drag activation removes _timelineDragActive from dot on cleanup", () => {
-    var active = {
-      eventId: 10,
-      dot: { _timelineDragActive: true },
-      pointerId: 1,
-      button: 0,
-      _active: true,
-      startOffsetX: 0.2,
-      startOffsetY: 0,
-    };
-    delete active.dot._timelineDragActive;
-    assert.strictEqual(active.dot._timelineDragActive, undefined);
+    const dot2 = makeDot(7, "150px", "50%");
+    const env2 = createEnv({ scale: 2, dots: [dot2], events: EVENTS });
+    dot2.handlers.pointerdown({ ...pointer("pointerdown", 100, 100, { button: 2 }), currentTarget: dot2 });
+    env2.document.dispatch("pointermove", pointer("pointermove", 120, 100, { button: 2 }));
+    env2.document.dispatch("pointerup", pointer("pointerup", 120, 100, { button: 2 }));
+    assert.equal(env2.staged.length, 1);
   });
 });

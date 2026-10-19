@@ -32,6 +32,22 @@ window.AdminTimelineStaged = {};
 
   var _saving = false;
 
+  /* ── Save button ────────────────────────────────────────────────────────── */
+
+  /**
+   * Show the number of staged changes on the toolbar's save button. Runs after
+   * every stage call, so the count is right as soon as a node is dropped.
+   * `save()` writes its own text while it runs.
+   */
+  function refreshSaveButton() {
+    if (_saving || typeof document === "undefined") return;
+    var saveBtn = document.getElementById("timeline-save-btn");
+    if (!saveBtn) return;
+    saveBtn.textContent = self.hasChanges()
+      ? "Save Changes (" + self.pendingCount() + ")"
+      : "Save Changes";
+  }
+
   /* ── Public helpers ─────────────────────────────────────────────────────── */
 
   /** Total staged items across all four collections. */
@@ -53,6 +69,7 @@ window.AdminTimelineStaged = {};
    */
   self.stagePlacement = function (id, period, era) {
     _placements.push({ id: id, timeline_period: period, timeline_era: era });
+    refreshSaveButton();
   };
 
   /**
@@ -63,10 +80,12 @@ window.AdminTimelineStaged = {};
     for (var i = 0; i < _moves.length; i++) {
       if (_moves[i].id === id) {
         _moves[i].timeline_period = period;
+        refreshSaveButton();
         return;
       }
     }
     _moves.push({ id: id, timeline_period: period });
+    refreshSaveButton();
   };
 
   /**
@@ -74,6 +93,7 @@ window.AdminTimelineStaged = {};
    */
   self.stageUnassign = function (id) {
     _unassigns.push({ id: id });
+    refreshSaveButton();
   };
 
   /**
@@ -86,6 +106,7 @@ window.AdminTimelineStaged = {};
       if (_offsets[i].id === id) {
         _offsets[i].timeline_offset_x = offsetX;
         _offsets[i].timeline_offset_y = offsetY;
+        refreshSaveButton();
         return;
       }
     }
@@ -94,6 +115,7 @@ window.AdminTimelineStaged = {};
       timeline_offset_x: offsetX,
       timeline_offset_y: offsetY,
     });
+    refreshSaveButton();
   };
 
   /**
@@ -260,6 +282,7 @@ window.AdminTimelineStaged = {};
     _moves.length = 0;
     _unassigns.length = 0;
     _offsets.length = 0;
+    refreshSaveButton();
   };
 
   /* ── Expose internals for testing ───────────────────────────────────────── */

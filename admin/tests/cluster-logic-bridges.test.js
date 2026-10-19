@@ -75,6 +75,7 @@ const BRIDGES = [
       "pixelsToOffsetX",
       "offsetYToPixels",
       "pixelsToOffsetY",
+      "boxPixelsToCrossAxisPixels",
       "crossAxisToTopPercent",
       "clampDragOffsetX",
       "clampOffsetY",

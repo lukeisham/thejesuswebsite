@@ -1,6 +1,7 @@
 /* ==========================================================================
    Timeline Node Drag (Admin)
-   Visual feedback for right-click drag repositioning.
+   Visual feedback while a node is dragged (left or right button). The label
+   glide is in timeline-dots.css.
    ========================================================================== */
 
 /* Dragging state: grab cursor and visual scale feedback */

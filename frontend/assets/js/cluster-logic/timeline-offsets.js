@@ -83,6 +83,20 @@ export function pixelsToOffsetY(pixels) {
 }
 
 /**
+ * Cross-axis pixels for a distance measured on screen inside the dot field.
+ * A dot at `crossAxisToTopPercent(c)` moves `c / 2` percent of the field height
+ * for `c` cross-axis pixels, so a pointer that moves `boxPixels` must change the
+ * value by `boxPixels x 200 / field height`. The editor's drag uses this to keep
+ * the dot under the pointer.
+ *
+ * @param {number} boxPixels - distance in world pixels (screen distance divided by the zoom scale)
+ * @returns {number} cross-axis pixels, the unit of `offsetYToPixels`
+ */
+export function boxPixelsToCrossAxisPixels(boxPixels) {
+  return (boxPixels * 200) / TIMELINE_CANVAS_HEIGHT_PX;
+}
+
+/**
  * CSS `top` percentage of the inner box for a dot that sits `crossAxisPixels`
  * from the spine. The spine is at 50%. This is the mapping that stored
  * `timeline_offset_y` values already use (see the module comment).

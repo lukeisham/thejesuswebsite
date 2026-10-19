@@ -42,6 +42,20 @@ describe("timeline offsets: pixel conversion", () => {
   });
 });
 
+describe("timeline offsets: pointer distance", () => {
+  test("a pointer distance in the dot field moves the dot by the same distance", () => {
+    // The dot's on-screen top is crossAxisToTopPercent(c) percent of the 280 px field.
+    const fieldHeight = 280;
+    for (const boxPixels of [-60, -7, 0, 25, 100]) {
+      const c = offsets.boxPixelsToCrossAxisPixels(boxPixels);
+      const movedPixels =
+        ((offsets.crossAxisToTopPercent(c) - offsets.crossAxisToTopPercent(0)) / 100) *
+        fieldHeight;
+      assert.ok(Math.abs(movedPixels - boxPixels) < 1e-9);
+    }
+  });
+});
+
 describe("timeline offsets: clamps", () => {
   test("limits match the API limits and the drag margin", () => {
     assert.equal(offsets.OFFSET_LIMIT_X, 0.5);
