@@ -346,6 +346,34 @@ describe(`${GUIDE} row 10: cluster-logic modules use no document or window`, () 
   }
 });
 
+// ── Row 12: admin era dividers sit at slot edges, and the spine is in the world ──
+
+describe(`${GUIDE} row 12: era dividers and spine in the editor`, () => {
+  const AXIS = "admin/assets/js/admin-timeline/timeline-axis.js";
+  const CANVAS_CSS = "admin/assets/css/admin-diagrams/timeline-canvas.css";
+
+  test("eraStartX returns a slot edge, not a slot centre", () => {
+    const code = blankComments(read(AXIS));
+    const m = /Axis\.eraStartX\s*=\s*function[\s\S]*?\n\};/.exec(code);
+    assert.ok(m, `${GUIDE} row 12: ${AXIS} has no Axis.eraStartX.`);
+    assert.doesNotMatch(
+      m[0],
+      /periodToX/,
+      `${GUIDE} row 12: ${AXIS}:${lineOf(code, m.index)} eraStartX calls periodToX, which returns the slot centre. A divider must sit at the slot edge, like the era bars and the public era markers.`,
+    );
+  });
+
+  test("the editor canvas draws no spine of its own", () => {
+    const css = blankComments(read(CANVAS_CSS));
+    const m = /\.admin-timeline-canvas\s*::after/.exec(css);
+    assert.equal(
+      m,
+      null,
+      `${GUIDE} row 12: ${CANVAS_CSS}:${m ? lineOf(css, m.index) : 0} draws a spine on the canvas. It does not move with the zoom. The axis line inside .admin-timeline-world is the only spine.`,
+    );
+  });
+});
+
 // ── Row 11: the era-page snapshot carries both offsets ───────────────────────
 
 describe(`${GUIDE} row 11: the era-page snapshot carries the offsets`, () => {

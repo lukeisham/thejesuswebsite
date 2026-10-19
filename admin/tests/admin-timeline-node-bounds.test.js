@@ -69,6 +69,23 @@ describe("AdminTimelineNodeBounds", () => {
       assert.strictEqual(bounds.clampOffsetX(-0.45), -0.45);
       assert.strictEqual(bounds.clampOffsetX(0.45), 0.45);
     });
+
+    test("a dot saved past the drag limit keeps its start as the limit", () => {
+      const bounds = createSandbox();
+      assert.strictEqual(bounds.clampOffsetX(0.5, 0.5), 0.5);
+      assert.strictEqual(bounds.clampOffsetX(0.6, 0.5), 0.5);
+      assert.strictEqual(bounds.clampOffsetX(-0.5, -0.5), -0.5);
+    });
+
+    test("a dot saved past the drag limit can still move inwards", () => {
+      const bounds = createSandbox();
+      assert.strictEqual(bounds.clampOffsetX(0.3, 0.5), 0.3);
+    });
+
+    test("never exceeds the limit that the API stores", () => {
+      const bounds = createSandbox();
+      assert.strictEqual(bounds.clampOffsetX(2, 2), 0.5);
+    });
   });
 
   describe("clampOffsetY", () => {

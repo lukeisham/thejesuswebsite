@@ -23,12 +23,19 @@ window.AdminTimelineNodeBounds = {};
 
   /**
    * Clamp offsetX so the dot never visually exceeds its period slot boundary.
+   * The API stores up to `OFFSET_LIMIT_X`, wider than `DRAG_LIMIT_X`. A dot saved
+   * out there keeps its own start as the limit, so grabbing it does not pull it
+   * back across the slot. It can still move inwards.
    *
    * @param {number} fraction - offset fraction
-   * @returns {number} the fraction, limited to `DRAG_LIMIT_X` either way
+   * @param {number} [startFraction] - the offset where the drag began
+   * @returns {number} the fraction, limited either way to `DRAG_LIMIT_X` or to the start, whichever is wider
    */
-  self.clampOffsetX = function (fraction) {
-    return window.AdminTimelineOffsets.clampDragOffsetX(fraction);
+  self.clampOffsetX = function (fraction, startFraction) {
+    var Offsets = window.AdminTimelineOffsets;
+    var limit = Math.max(Offsets.DRAG_LIMIT_X, Math.abs(startFraction || 0));
+    limit = Math.min(limit, Offsets.OFFSET_LIMIT_X);
+    return Math.max(-limit, Math.min(limit, fraction));
   };
 
   /**

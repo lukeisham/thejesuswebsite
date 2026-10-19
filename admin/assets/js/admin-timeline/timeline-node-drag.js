@@ -114,7 +114,10 @@ window.AdminTimelineNodeDrag = {};
     var dyWorld = (clientY - state.startY) / scale;
     var Bounds = window.AdminTimelineNodeBounds;
     return {
-      x: Bounds.clampOffsetX(state.startOffsetX + Offsets.pixelsToOffsetX(dxWorld)),
+      x: Bounds.clampOffsetX(
+        state.startOffsetX + Offsets.pixelsToOffsetX(dxWorld),
+        state.startOffsetX,
+      ),
       y: Bounds.clampOffsetY(
         state.startOffsetY +
           Offsets.pixelsToOffsetY(Offsets.boxPixelsToCrossAxisPixels(dyWorld)),

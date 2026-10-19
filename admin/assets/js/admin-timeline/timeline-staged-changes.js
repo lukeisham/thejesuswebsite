@@ -35,14 +35,17 @@ window.AdminTimelineStaged = {};
   /* ── Save button ────────────────────────────────────────────────────────── */
 
   /**
-   * Show the number of staged changes on the toolbar's save button. Runs after
-   * every stage call, so the count is right as soon as a node is dropped.
-   * `save()` writes its own text while it runs.
+   * Show the number of staged changes on the toolbar's save button, and enable
+   * the button only while something is staged. Runs after every stage call.
+   * `save()` disables the button while it runs and writes its own text, so
+   * this must also re-enable it: without that, the first save leaves the button
+   * disabled for every later change.
    */
   function refreshSaveButton() {
     if (_saving || typeof document === "undefined") return;
     var saveBtn = document.getElementById("timeline-save-btn");
     if (!saveBtn) return;
+    saveBtn.disabled = !self.hasChanges();
     saveBtn.textContent = self.hasChanges()
       ? "Save Changes (" + self.pendingCount() + ")"
       : "Save Changes";
@@ -237,7 +240,7 @@ window.AdminTimelineStaged = {};
     _saving = false;
 
     if (saveBtn) {
-      saveBtn.disabled = self.pendingCount() === 0;
+      saveBtn.disabled = !self.hasChanges();
       saveBtn.textContent = self.hasChanges()
         ? "Save Changes (" + self.pendingCount() + " remaining)"
         : "Save Changes";
@@ -291,4 +294,7 @@ window.AdminTimelineStaged = {};
   self._moves = _moves;
   self._unassigns = _unassigns;
   self._offsets = _offsets;
+
+  // The button starts disabled: nothing is staged yet.
+  refreshSaveButton();
 })();

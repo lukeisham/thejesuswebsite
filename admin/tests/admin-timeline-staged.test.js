@@ -423,6 +423,33 @@ describe("AdminTimelineStaged", function () {
       assert.equal(ctx.mockBtn.disabled, true);
     });
 
+    test("button starts disabled and is enabled again by the next staged change", async function () {
+      var ctx = loadStaged({
+        saveEvent: async function () {
+          /* succeed */
+        },
+      });
+      assert.equal(ctx.mockBtn.disabled, true);
+      ctx.Staged.stageOffset(1, 0.1, 0.1);
+      await ctx.Staged.save();
+      assert.equal(ctx.mockBtn.disabled, true);
+
+      ctx.Staged.stageOffset(1, 0.2, 0.2);
+
+      assert.equal(ctx.mockBtn.disabled, false);
+      assert.equal(ctx.mockBtn.textContent, "Save Changes (1)");
+    });
+
+    test("button is disabled again when the last staged change is cleared", function () {
+      var ctx = loadStaged();
+      ctx.Staged.stageOffset(1, 0.1, 0.1);
+      assert.equal(ctx.mockBtn.disabled, false);
+
+      ctx.Staged.clear();
+
+      assert.equal(ctx.mockBtn.disabled, true);
+    });
+
     test("button shows remaining count after partial failure", async function () {
       var ctx = loadStaged({
         saveEvent: async function (id) {

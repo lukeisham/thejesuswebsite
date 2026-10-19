@@ -168,17 +168,14 @@ describe("periodToX", function () {
     assert.equal(periodToXCentered(5, 80), 440);
   });
 
-  test("dot and era label at same period index resolve to same transformed position", function () {
-    // Zoom is a CSS transform, not a coordinate change, so both
-    // periodToX and eraStartX always use the same fixed world scale.
-    // A dot at GalileeCallingTwelve and the GalileeMinistry era label
-    // (which starts at the same period) must map to identical X.
+  test("an era starts at the left edge of its first slot, half a slot before the dot there", function () {
+    // The era heading bars and the public era markers start at the slot edge.
+    // A dot at the first period of an era sits at the slot centre.
     var dotX = periodToX("GalileeCallingTwelve", 100);
     var eraX = eraStartX("GalileeMinistry", 100);
-    assert.equal(dotX, eraX);
-    // Same property holds at any scale.
-    assert.equal(periodToX("GalileeCallingTwelve", 80), eraStartX("GalileeMinistry", 80));
-    assert.equal(periodToX("GalileeCallingTwelve", 120), eraStartX("GalileeMinistry", 120));
+    assert.equal(dotX - eraX, 50);
+    assert.equal(periodToX("GalileeCallingTwelve", 80) - eraStartX("GalileeMinistry", 80), 40);
+    assert.equal(periodToX("GalileeCallingTwelve", 120) - eraStartX("GalileeMinistry", 120), 60);
   });
 });
 
@@ -275,25 +272,26 @@ describe("periodToX ↔ xToPeriod round-trip", function () {
 // ── eraStartX ────────────────────────────────────────────────────────────────
 
 describe("eraStartX", function () {
-  test("maps PreIncarnation era to PreIncarnation position", function () {
-    var x = eraStartX("PreIncarnation", 100);
-    assert.equal(x, periodToX("PreIncarnation", 100));
+  test("maps PreIncarnation era to the left edge of its slot", function () {
+    assert.equal(eraStartX("PreIncarnation", 100), 0);
   });
 
-  test("maps GalileeMinistry era to GalileeCallingTwelve position", function () {
-    var x = eraStartX("GalileeMinistry", 100);
-    assert.equal(x, periodToX("GalileeCallingTwelve", 100));
+  test("maps GalileeMinistry era to the left edge of GalileeCallingTwelve", function () {
+    // GalileeCallingTwelve is period index 9.
+    assert.equal(eraStartX("GalileeMinistry", 100), 900);
   });
 
-  test("maps PassionWeek era to PassionPalmSunday position", function () {
-    var x = eraStartX("PassionWeek", 100);
-    assert.equal(x, periodToX("PassionPalmSunday", 100));
+  test("maps PassionWeek era to the left edge of PassionPalmSunday", function () {
+    // PassionPalmSunday is period index 18.
+    assert.equal(eraStartX("PassionWeek", 100), 1800);
   });
 
   test("handles different basePx values", function () {
-    var x = eraStartX("GalileeMinistry", 120);
-    var expected = periodToX("GalileeCallingTwelve", 120);
-    assert.equal(x, expected);
+    assert.equal(eraStartX("GalileeMinistry", 120), 9 * 120);
+  });
+
+  test("returns 0 for an unknown era", function () {
+    assert.equal(eraStartX("NotAnEra", 100), 0);
   });
 });
 
@@ -387,7 +385,7 @@ describe("period ordering consistency", function () {
 
 describe("era-for-period mapping matches schema CHECK groupings", function () {
   // Era boundaries defined in the admin axis and matching the public timeline.
-  // These map each era to its first period — the same boundary used by eraStartX.
+  // Each era starts at the left edge of its first period slot, which is where eraStartX puts it.
   test("era boundaries match expected periods", function () {
     var expectedBoundaries = {
       PreIncarnation: "PreIncarnation",
@@ -404,8 +402,8 @@ describe("era-for-period mapping matches schema CHECK groupings", function () {
     for (var e = 0; e < eras.length; e++) {
       var era = eras[e];
       var firstPeriod = expectedBoundaries[era];
-      var x = eraStartX(era, 80, 0);
-      var expectedX = periodToX(firstPeriod, 80, 0);
+      var x = eraStartX(era, 80);
+      var expectedX = periodToX(firstPeriod, 80) - 40;
       assert.equal(
         x,
         expectedX,

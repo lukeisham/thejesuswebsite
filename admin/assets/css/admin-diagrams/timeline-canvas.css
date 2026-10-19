@@ -1,7 +1,7 @@
 /* ==========================================================================
    Timeline Canvas (Admin) — WYSIWYG restyle
    Matches the public timeline page: bg-primary background with dot-grid,
-   spine, era labels and divider lines.
+   spine and era divider lines.
    Tokens in timeline-tokens.css; dots and labels in timeline-dots.css.
    ========================================================================== */
 
@@ -55,30 +55,6 @@ main {
     /* The world starts below the era heading band (timeline-era-headings.css),
        which covers the top of the canvas. */
     padding-top: calc(var(--space-xl) + var(--timeline-heading-band-height));
-}
-
-/* Horizontal spine line at vertical center.
-   Not counter-scaled: this pseudo-element belongs to .admin-timeline-canvas
-   (the viewport), not .admin-timeline-world (the element zoom scale()'s) —
-   it never inherits the transform, so it already renders at a constant 2px
-   at every zoom level. Dividing by --timeline-zoom-scale here would actively
-   thin it out at high zoom instead of keeping it stable.
-   Deviation from plan task 106: the plan assumed the spine was inside
-   .admin-timeline-world and prescribed counter-scaling; that was incorrect
-   — the DOM hierarchy places it on the viewport, so no counter-scaling is
-   needed. Verified at scale 3.0 on production during Tier 3: spine renders
-   at a crisp 2px without any counter-scaling. */
-.admin-timeline-canvas::after {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: var(--border-strong);
-    pointer-events: none;
-    z-index: 0;
-    transform: translateY(-50%);
 }
 
 /* -------------------------------------------------------------------------
@@ -138,30 +114,21 @@ main {
 
 /* ── Axis ──────────────────────────────────────────────────────────────── */
 
-/* Counter-scaled: this line is a child of #timeline-axis, which lives
-   inside .admin-timeline-world, so it inherits its scale() transform and
-   would otherwise grow/shrink with zoom exactly like the era dividers did
-   before this fix — unlike the spine (.admin-timeline-canvas::after), which
-   lives on the un-transformed viewport and needs no counter-scaling.
-   Dividing by the live --timeline-zoom-scale (set in
-   admin-timeline/timeline-zoom.js's onChange) cancels that out; max(1px, ...)
-   stops it collapsing to nothing at high zoom. — setup/ISSUES/Issues_111_to_200.md #197 */
+/* The only spine. It is a child of #timeline-axis inside .admin-timeline-world,
+   so it pans and zooms with the dots, like the public .timeline-spine. A spine on
+   the canvas would stay still while the dots move. The inherited scale() thickens
+   the line, so the width is divided by the live --timeline-zoom-scale (set in
+   timeline-zoom.js). max(1px, ...) stops it vanishing at high zoom. */
 .admin-timeline-axis-line {
     background: var(--border-strong);
     height: max(1px, calc(2px / var(--timeline-zoom-scale, 1)));
 }
 
-/* ── Era Dividers (matching frontend: no bands, no ticks) ───────────────── */
-/* Era labels superseded by .admin-timeline-era-heading (timeline-era-headings.css) */
+/* ── Era Dividers ──────────────────────────────────────────────────────── */
 
-/* Matches frontend .timeline-era-marker: solid 1px line, faded.
-   Counter-scaled: dividers are children of #timeline-axis, which lives
-   inside .admin-timeline-world, so they inherit its scale() transform and
-   would otherwise grow/shrink with zoom (3px at scale 3.0). Dividing by the
-   live --timeline-zoom-scale (set in admin-timeline/timeline-zoom.js's
-   onChange) cancels that out; max(1px, ...) stops it collapsing to nothing
-   at high zoom (e.g. scale 3.0: 1px / 3 ≈ 0.33px). Only width is affected —
-   background and opacity are unchanged by this. */
+/* A faded 1px line at the left edge of each era's first slot, like the public
+   .timeline-era-marker. They are inside the world, so the width is divided by
+   --timeline-zoom-scale as for the spine above. */
 .admin-timeline-era-divider {
     width: max(1px, calc(1px / var(--timeline-zoom-scale, 1)));
     background: var(--border);

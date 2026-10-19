@@ -93,7 +93,10 @@ Axis.xToPeriod = function (x, basePx) {
 };
 
 /**
- * Convert a timeline era to the x-position where its band starts (world pixels).
+ * Convert a timeline era to the x-position where its band starts (world pixels):
+ * the left edge of its first period slot. The era heading bars
+ * (`computeEraBandLayout`) and the public `.timeline-era-marker` start there too,
+ * so a divider at the slot centre would sit half a slot inside the bar.
  *
  * @param {string} era
  * @param {number} [basePx=100]
@@ -103,7 +106,7 @@ Axis.eraStartX = function (era, basePx) {
   var scale = basePx || BASE_PX_PER_PERIOD;
   var firstPeriod = ERA_STARTS[era];
   if (!firstPeriod) return 0;
-  return Axis.periodToX(firstPeriod, scale);
+  return Axis.periodOrdinal(firstPeriod) * scale;
 };
 
 /**

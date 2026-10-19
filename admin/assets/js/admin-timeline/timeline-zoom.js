@@ -10,11 +10,10 @@
  * only the transform.
  *
  * Two things follow the transform:
- * - Line thickness. The era dividers sit inside the world, so `scale()` would
- *   thicken them. The `onChange` callback below publishes the live scale as
- *   `--timeline-zoom-scale` on the world element, and timeline-canvas.css
- *   divides the declared width by it. The spine belongs to the canvas, not the
- *   world, so it needs no correction.
+ * - Line thickness. The spine and the era dividers sit inside the world, so
+ *   `scale()` would thicken them. The `onChange` callback below publishes the
+ *   live scale as `--timeline-zoom-scale` on the world element, and
+ *   timeline-canvas.css divides the declared width by it.
  * - The era heading band. It sits in the canvas, outside the world.
  *   `Zoom.onTransformChange` lets timeline-events.js keep it in step with the
  *   zoom and pan (`Events.syncEraBand`).
