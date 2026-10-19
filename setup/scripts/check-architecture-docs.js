@@ -16,8 +16,8 @@
  * It cannot verify that a claim is TRUE, only that its anchors resolve. That is
  * deliberate: a checker that pretends to verify prose would be worse than none.
  *
- * Not wired into CI. The Definition of done in Website_guide.md is where an
- * agent is told to run it. (SR-1)
+ * Not wired into CI. CORE-5 in setup/Vibe_coding_rules.md and the "Keeping it
+ * true" section of ARCHITECTURE/INDEX.md tell an agent to run it. (SR-1)
  */
 
 const fs = require("fs");

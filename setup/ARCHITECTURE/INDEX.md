@@ -2,9 +2,8 @@
 
 Load-bearing decisions that span more than one file.
 
-`setup/ARCHITECTURE/Website_guide.md` is the entry point: the project map, the
-cross-module patterns, and the workflow. The other files in this directory each cover one
-subsystem. The same gate applies to all of them.
+`setup/ARCHITECTURE/Website_guide.md` is the entry point: the project map and the
+cross-module patterns. The other files in this directory each cover one subsystem. The same gate applies to all of them.
 
 ---
 
@@ -110,9 +109,10 @@ node setup/scripts/check-architecture-docs.js
 
 It cannot verify that a *claim* is true. It verifies only that the anchors resolve.
 
-**2. The workflow hook.** `Website_guide.md`'s *Definition of done* requires
-running the checker before you call work finished. That is the enforcement
-point — not a calendar reminder.
+**2. The workflow hook.** CORE-5 in `setup/Vibe_coding_rules.md` requires each
+guide to match the files you edit. Run `node setup/scripts/check-architecture-docs.js --touched`
+before you call work finished, and update or delete anything it flags as stale. That is the
+enforcement point — not a calendar reminder.
 
 **3. Deletion is maintenance.** A row you can no longer justify gets deleted,
 not marked deprecated or moved to a history section. There is no archive here;
@@ -128,7 +128,11 @@ git already is one.
 
 | File | Covers |
 |---|---|
-| [`Website_guide.md`](Website_guide.md) | Entry point — project map, cross-module patterns, deploy flow, workflow, caching, accessibility |
+| [`Website_guide.md`](Website_guide.md) | Entry point — project map, cross-module patterns (visual split, editor bridges, frontend/admin split), running locally |
+| [`publishing-pipeline.md`](publishing-pipeline.md) | Draft to publish, static pages, first-paint snapshots, partial saves, and the steps to add a content entity |
+| [`deployment.md`](deployment.md) | Local to GitHub to VPS, the deploy order, the webhook restart, the nginx symlink |
+| [`performance-and-caching.md`](performance-and-caching.md) | Cache lifetimes by file type, edge cache, lazy loading and the first-paint snapshot |
+| [`accessibility.md`](accessibility.md) | Heading order, skip link, focus, keyboard controls on the visuals, toasts |
 | [`image-display.md`](image-display.md) | Figures vs thumbnails — the two image patterns, figure numbering, lazy loading |
 | [`esv-api.md`](esv-api.md) | ESV verse proxy and the `data-esv-ref` client contract |
 | [`journal-article-fields.md`](journal-article-fields.md) | Abstract, response strength and footnotes: columns, the `[fn:N]` marker, validation limits shared with the admin |
