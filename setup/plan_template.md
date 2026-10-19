@@ -31,6 +31,19 @@ One or two sentences describing what this plan delivers and why.
 - [ ] **<Verb> <thing>** — one sentence. File: `path/to/file.ext`
 - [ ] **<Verb> <thing>** — one sentence. File: `path/to/file.ext`
 
+### Core Rules pass
+
+<!-- One task per file marked "modified" in the Per-file rule check table. Delete the group if the plan modifies no existing file. -->
+
+- [ ] **Bring `<modified file>` into line with the Core Rules** — apply the Touch rule and CORE-5 steps 1–4 to the whole file. Run `node setup/scripts/check-architecture-docs.js --touched` and compare each guide it lists with the file. Name the file in the final reply if you added a connection comment, a guide row, or a fix from CORE-5 step 4. File: `path/to/file.ext`
+
+### Guides and guide tests
+
+<!-- One task per guide the plan edits (including its CORE-6 purpose statement) and one per guide test file the plan adds or updates (TEST-10). Delete the group if the Guide tests section says "None". -->
+
+- [ ] **Update `<guide>`** — add or edit the row, bring the purpose statement to 40 words or fewer (CORE-6), and name the guide test next to the rows that it covers. File: `setup/ARCHITECTURE/<guide>.md`
+- [ ] **Add guide test for `<guide>`** — read the source files as text and fail when code breaks the row. Failure messages name the rule, the file and line, and the guide path. Each exception sits in a named list with a one-line reason. File: `api/tests/guide-<guide-name>.test.js`
+
 ### Deploy & verify
 
 <!-- Verification is a three-tier ladder. Tiers are CUMULATIVE, not alternatives:
@@ -49,7 +62,7 @@ One or two sentences describing what this plan delivers and why.
 
 Tier 3 supersedes Tier 2 *for the same page*, but a plan touching both public and admin surfaces carries both, each scoped to its own pages. Tier 1 is never dropped just because a higher tier applies.
 
-- [ ] **Tier 1 — Smoke test** — run the automated test suite plus a targeted check that exercises the changed behaviour: curl the affected API route and assert the response shape, run a migration against a copy, or execute the script and inspect its output.
+- [ ] **Tier 1 — Smoke test** — run the automated test suite for each area changed (`cd api && npm test` also runs the guide tests) plus a targeted check that exercises the changed behaviour: curl the affected API route and assert the response shape, run a migration against a copy, or execute the script and inspect its output.
 - [ ] **Tier 2 — Browser check (local)** — verify in the Claude Browser pane against the local dev server, **before** the push task below. Follow the **Tier 2 playbook**. Pages: `/<page>`.
 - [ ] **Push to GitHub** — stage, commit, and push the completed work. Run `git add -p`, `git commit -m "<feature name>"`, `git push`.
 - [ ] **Tier 3 — Chrome check (live, needs your sign-in)** — verify on the deployed site in the user's real Chrome. Follow the **Tier 3 playbook**. Pages: `https://thejesuswebsite.org/<page>`. <!-- If this touches /admin/, say so here: the page needs passkey auth and the user must sign in mid-test. -->
@@ -88,6 +101,23 @@ Tier 3 supersedes Tier 2 *for the same page*, but a plan touching both public an
 ## Files touched
 - `path/to/file.ext` — created / modified
 - `path/to/file.ext` — created / modified
+
+## Per-file rule check
+
+<!-- One row per file in "Files touched", and no other files. A modified file needs the Touch rule and CORE-5, with a task in the Core Rules pass group. A modified guide, style guide or README also needs its CORE-6 purpose statement. A created file meets the Core Rules from the first commit. Never add a file only to clean it. -->
+
+| File | Created / modified | Rules that apply | Core Rules pass |
+|---|---|---|---|
+| `path/to/file.ext` | modified | `<Rule ID>`, `<Rule ID>` | Touch rule + CORE-5 steps 1–4 |
+| `path/to/new-file.ext` | created | `<Rule ID>` | Meets Core Rules from the first commit |
+
+## Guide tests
+
+<!-- Answer all three questions (TEST-10). Write "None" and the reason if the plan adds or edits no guide row. -->
+
+1. **Guide rows added or edited:** `<guide>` row `<n>`, or "None".
+2. **Rows a text search can check** (a banned pattern, or a value that two files must share): each has a task to add or update `api/tests/guide-<guide-name>.test.js`.
+3. **Rows that stay prose** (meaning or behaviour): list them, or "None".
 
 ## Error notification
 

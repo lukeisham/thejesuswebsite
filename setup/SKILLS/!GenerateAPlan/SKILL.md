@@ -59,7 +59,7 @@ payoff is catching design collisions before they become code.
 Keep these in mind for the rest of the plan:
 - **Architecture reference**: subsystem-level mechanics — how features currently work under the hood.
 - **Style guide**: UI/UX patterns, component specs, layout, print styles.
-- **Vibe Coding Rules**: file structure, JS/CSS/HTML conventions, performance, accessibility.
+- **Vibe Coding Rules**: file structure, JS/CSS/HTML conventions, performance, accessibility. Read the **Checklist** at the top and the Core Rules (Touch rule, CORE-1 to CORE-6) with extra care. The plan must make every file that it edits meet them (Step 2, "Per-file rule check"). Read TEST-10 too, because it decides which guide rows need a guide test (Step 2, "Guide tests").
 - **Schema**: table definitions, column types, constraints, FK relationships.
 - **Website guide**: overall project structure, folder layout, and philosophy.
 
@@ -88,9 +88,61 @@ The required sections are:
 3. **Coding rules to keep in mind** — list any Vibe Coding Rules that are especially relevant to this plan. Reference them by ID (e.g. `JS-5`, `CSS-2`).
 4. **Tasks** — grouped by layer (Database, API, Frontend, etc.) in dependency order, ending with a **Deploy & verify** group carrying the three-tier verification ladder (see below).
 5. **Files touched** — every file that will be created or modified, with `— created` or `— modified`.
-6. **Error notification** — answer two questions: **(a)** does this plan impact existing error handling (changes to a route, model, or frontend component that produces or displays errors)? If yes, list which `E-*` error codes are affected and whether new codes are needed. **(b)** Should the plan add, update, or remove any error notification behaviour (new error toast calls, new `sendError`/`sendValidationError` usage, changes to `error-fallback.js`, etc.)? Reference `setup/ARCHITECTURE/Website_guide.md` § Error Notification for the encoding architecture.
-7. **Notes** — edge cases, constraints, ordering dependencies, anything non-obvious.
-8. **Completion Protocol** — always present, copied/adapted from `plan_template.md`'s own Completion Protocol section (see below). Every plan carries this verbatim so an implementing agent that only reads the plan file — not this skill — still knows how to finish it correctly.
+6. **Per-file rule check** — a table with one row for each file in **Files touched**. See "Per-file rule check section" below.
+7. **Guide tests** — which guide rows the plan adds or edits, and which of them get a guide test (TEST-10). See "Guide tests section" below.
+8. **Error notification** — answer two questions: **(a)** does this plan impact existing error handling (changes to a route, model, or frontend component that produces or displays errors)? If yes, list which `E-*` error codes are affected and whether new codes are needed. **(b)** Should the plan add, update, or remove any error notification behaviour (new error toast calls, new `sendError`/`sendValidationError` usage, changes to `error-fallback.js`, etc.)? Reference `setup/ARCHITECTURE/Website_guide.md` § Error Notification for the encoding architecture.
+9. **Notes** — edge cases, constraints, ordering dependencies, anything non-obvious.
+10. **Completion Protocol** — always present, copied/adapted from `plan_template.md`'s own Completion Protocol section (see below). Every plan carries this verbatim so an implementing agent that only reads the plan file — not this skill — still knows how to finish it correctly.
+
+### Per-file rule check section (required in every plan)
+
+Every file in **Files touched** gets one row in this table. The table is how the plan proves
+that each file meets the Vibe Coding Rules when the work is complete.
+
+```markdown
+| File | Created / modified | Rules that apply | Core Rules pass |
+|---|---|---|---|
+| `path/to/file.js` | modified | `JS-6`, `JS-7`, `CORE-2` | Touch rule + CORE-5 steps 1–4 |
+| `path/to/new-file.js` | created | `JS-3`, `SR-8` | Meets Core Rules from the first commit |
+```
+
+How to fill the table:
+
+- **Rules that apply** lists the rule IDs for that file type, from the sections of
+  `Vibe_coding_rules.md` (`JS-*`, `CSS-*`, `API-*`, `SQL-*`, `MIG-*`, `TEST-*`, `PY-*`,
+  `HTML-6`, `SVG-*`). List only the rules that the change can break.
+- **A modified file** needs the **Touch rule** and **CORE-5**. The implementer cleans the whole
+  file, not only the changed lines: comments give the *why* and the links to other files
+  (CORE-2), cross-app behaviour is in a guide or README, and the file matches that guide.
+- **A modified guide, style guide, or README** also needs its purpose statement to meet CORE-6
+  (guide purpose: 40 words or fewer). Delete history, dates, and status notes from it.
+- **A created file** must meet the Core Rules from the first commit. It has no clean-up pass.
+- **Never add a file only to clean it.** The Touch rule says: do not open or edit a file only
+  to clean it. A file is in the table only because the plan edits it for another reason.
+
+### Guide tests section (required in every plan)
+
+A guide test reads source files as text and fails when code breaks a rule that a guide in
+`setup/ARCHITECTURE/` states (TEST-10). Answer these questions in the plan:
+
+1. **Which guide rows does the plan add or edit?** Name the guide and the row. If the plan
+   adds or edits no guide row, write "None" and say why. Then stop.
+2. **Can a text search check each row?** Two examples: a banned pattern, and a value that two
+   files must share. If yes, the plan has a task to add or update the guide test in
+   `api/tests/guide-<guide-name>.test.js`.
+3. **Which rows stay prose?** A rule about meaning or behaviour gets no guide test. Say so, or
+   give it a real behaviour test.
+
+Rules for the guide-test tasks:
+
+- Put all the tests for one guide in one file named after the guide. `npm test` in `api/` runs it.
+- Each failure message names the rule, the file and line, and the guide path.
+- Each allowed exception is in a named list in the test file, with a one-line reason. The test
+  fails when an exception names a file that no longer exists.
+- The guide names its guide test next to the rows that the test covers. Add this edit to the
+  guide task.
+- Do not add guide tests for rows that the plan does not touch (TEST-10, AG-1).
+- Never add an exception or widen a pattern only to make a red test pass (AG-4).
 
 ### Completion Protocol section (required in every plan)
 
@@ -132,6 +184,19 @@ Rules:
 - Task titles use an imperative verb: `Add`, `Create`, `Update`, `Extend`, `Write`.
 - Reference the **actual file path** in every task, not just a description.
 - Respect SR-1 (one file, one function) — never bundle unrelated changes into one task.
+- **A modified file gets a Core Rules pass task.** Add a group named **Core Rules pass**. Put it
+  after the implementation groups and before **Close out** and **Deploy & verify**. The group
+  has one task for each file marked `modified` in the **Per-file rule check** table. Each task
+  tells the implementer to:
+  1. Apply the Touch rule and CORE-5 steps 1–4 to the whole file.
+  2. Run `node setup/scripts/check-architecture-docs.js --touched` to list the guides that make
+     claims about the file. Read each guide and compare it with the file.
+  3. Name the file in the final reply if they added a connection comment, a guide row, or a
+     fix from CORE-5 step 4.
+- **A guide row gets a guide task.** Add a group named **Guides and guide tests** next to the
+  Core Rules pass. It has one task for each guide that the plan edits (including its CORE-6
+  purpose statement), and one task for each guide test file that the plan adds or updates
+  (TEST-10). A plan with no guide row writes no group, and says "None" in the Guide tests section.
 - **Automated tests are mandatory for code-facing plans.** If the plan touches any `.js` file in `api/`, `admin/`, or `mcp-server/`, include at least one task to create or update a corresponding test file in the project's test directory (e.g. `api/tests/` for API code). If a plan legitimately needs no automated tests, explain why in the Notes section.
 
 ---
@@ -176,8 +241,14 @@ If the file already exists, append a new section for this plan rather than overw
 ### Code-review checks
 - [ ] <Rule ID> — <check description>
 - [ ] <Rule ID> — <check description>
+- [ ] Touch rule + CORE-5 — `<modified file>`: comments give the why and the links, the guide matches the file
+- [ ] TEST-10 — `<guide test file>`: fails with the rule, file, line and guide path; exceptions are named with a reason
 - [ ] <Any additional checks specific to this feature>
 ```
+
+Write one Touch rule + CORE-5 line for each file marked `modified` in the plan's **Per-file
+rule check** table, and one TEST-10 line for each guide test file in the plan. If the plan has
+no guide test, omit the TEST-10 line.
 
 ---
 
@@ -191,6 +262,15 @@ Review every file you created or edited in Steps 2–4 for these plan-level issu
 - Every implementation file listed in "Files touched" appears in at least one task. Config, dependency, and environment files (`package.json`, `.env`, etc.) that are implicitly updated by a task are exempt.
 - Tasks are in dependency order — nothing depends on a later task.
 - No task bundles unrelated changes (SR-1).
+
+**Per-file rule check and guide tests:**
+- The **Per-file rule check** table has one row for every file in **Files touched**, and no other files.
+- Every row marked `modified` has a matching task in the **Core Rules pass** group.
+- No file is in the plan only to clean it (Touch rule).
+- Every modified guide, style guide, or README has its CORE-6 purpose statement in the plan's tasks.
+- The **Guide tests** section answers all three questions. Every row that a text search can check has a guide test task. Every guide test task names `api/tests/guide-<guide-name>.test.js`.
+- Every guide test task has a matching guide task that names the test next to its rows.
+- The **Tier 1 — Smoke test** task runs the guide tests (`cd api && npm test`), because TEST-2a requires a run for each area changed.
 
 **Verification tiers:**
 - A **Tier 1 — Smoke test** task is present. No exceptions, whatever other tiers apply.
@@ -215,6 +295,7 @@ Review every file you created or edited in Steps 2–4 for these plan-level issu
 **Checklist consistency:**
 - The checklist covers every module the plan touches.
 - Code-review checks include the rule IDs relevant to the files being created/modified (not a generic copy of every rule).
+- Code-review checks include a Touch rule + CORE-5 line for each modified file, and a TEST-10 line for each guide test.
 
 Fix any issues you find in files you just created. If you find pre-existing issues in files you did not edit, note them for Step 6 — do not fix them here.
 
@@ -312,6 +393,8 @@ After completing all steps, tell the user:
 5. Any issues logged to `setup/ISSUES/issues.md` (number of rows added, or "none").
 6. Confirm the plan ends with a **Deploy & verify** group, and state **which verification tiers it carries and why** — e.g. "Tiers 1+3: the admin editor UI can't be checked without a login." Tier 1 is present in every plan without exception.
 7. Confirm the plan includes a **Completion Protocol** section, and — if it fixes existing issue-log row(s) — a task to mark those rows `resolved`.
+8. State the **Per-file rule check** result: how many files are `modified` (each with a Core Rules pass task) and how many are `created`.
+9. State the **Guide tests** result: which guide tests the plan adds or updates, or "none" with the reason.
 
 
 
