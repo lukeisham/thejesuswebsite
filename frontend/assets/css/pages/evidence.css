@@ -1,11 +1,9 @@
 /* ==========================================================================
    Evidence Detail Page
    Hero, content sections, and dates.
+   Markup: frontend/evidence/[slug].html. frontend/assets/js/evidence-detail.js
+   fills it and toggles `hidden` on the section ids used below.
    ========================================================================== */
-
-/* -------------------------------------------------------------------------
-   Evidence Detail Page
-   ------------------------------------------------------------------------- */
 
 .evidence-detail {
     max-width: var(--container-max);
@@ -14,8 +12,9 @@
 }
 
 /* Hero */
+/* No bottom padding: the verse block's own margin is the gap to the pictures. */
 .evidence-hero {
-    padding: var(--space-2xl) var(--space-md);
+    padding: var(--space-2xl) var(--space-md) 0;
     text-align: left;
 }
 
@@ -43,18 +42,16 @@
     margin-bottom: var(--space-md);
 }
 
-/* Hide Pictures / Description section headings per design request.
-   The border-top divider between sections is produced by the
-   .evidence-section + .evidence-section rule above, which applies
-   to the section element itself — it stays intact. */
+/* The divider between sections comes from `.evidence-section + .evidence-section`,
+   which targets the section element, so hiding the heading keeps the divider. */
 #evidence-pictures-section .evidence-section__heading,
 #evidence-description-section .evidence-section__heading {
     display: none;
 }
 
-/* Pull the pictures section closer to the verse block above it. */
+/* The first figure's margin already separates it from the verse block above. */
 #evidence-pictures-section {
-    padding-top: var(--space-sm);
+    padding-top: 0;
 }
 
 /* Dates line */
