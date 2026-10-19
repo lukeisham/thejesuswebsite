@@ -1,12 +1,10 @@
 # Technical Summary
 
-This is a modular full-stack web application built with **vanilla HTML, CSS, and JavaScript** — no frameworks and no build step. The browser code uses no third-party libraries except display assets (the Feather SVG sprite). Each Node package lists its own dependencies in its `package.json`, and the Wikipedia ranking runs a Python sidecar (`wikipedia-ranking-pipeline.md`). A new dependency needs sign-off (SR-2). The public frontend and the admin panel are two separate design systems (D-017).
+The site turns historical evidence about Jesus, entered by an admin, into public pages and interactive timelines, arbor diagrams and maps. Two functions make this work: passkey-gated editing with a draft-to-publish step, and read-only access for visitors and AI agents to published content only.
 
-The public frontend presents historical data about Jesus through static pages, interactive timelines, arbor (network) diagrams, and geographic maps. Published content is public to guests and automated agents.
+The site is **vanilla HTML, CSS, and JavaScript** with no framework and no build step. The browser code uses no third-party libraries except display assets (the Feather SVG sprite). Each Node package lists its own dependencies in its `package.json`, and the Wikipedia ranking runs a Python sidecar (`wikipedia-ranking-pipeline.md`). A new dependency needs sign-off (SR-2). The public frontend and the admin panel are two separate design systems (D-017).
 
-Content is managed through an admin interface that talks to a Node.js/Express API backed by SQLite. The admin panel has visual editors for timelines, arbor diagrams, and maps. Admin access uses WebAuthn passkeys only (D-016).
-
-An MCP (Model Context Protocol) server exposes published content as read-only tools for AI agents.
+Both frontends talk to a Node.js/Express API backed by SQLite. The admin panel has visual editors for timelines, arbor (network) diagrams, and maps. Admin access uses WebAuthn passkeys only (D-016). An MCP (Model Context Protocol) server exposes published content as read-only tools for AI agents.
 
 **How to use this document:** read it before starting any refactor, bug fix, or new feature. The *Project Map* and *Cross-module patterns* sections show what lives where and how the parts connect; the *Feature & Refactoring Guide* tells you the workflow and checklists to follow.
 
