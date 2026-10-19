@@ -42,28 +42,8 @@
 <text x="492" y="566" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="9" fill="#8B7A6D">Mt. Ebal</text>
 <circle cx="486" cy="652" r="20" fill="rgba(196,181,163,0.12)" stroke="#C4B5A3" stroke-width="0.8" stroke-dasharray="3,2"/>
 <text x="486" y="627" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="9" fill="#8B7A6D">Mt. of Olives</text>
-<!-- Hand-drawn overlay: levant
-  Features with no modern Natural Earth dataset:
-  - Region boundaries (Galilee, Samaria, Judea, Idumea, Decapolis, Perea)
-  - Via Maris route segment
-  - Jordan River approximate course (natural course may differ from modern)
-  All coordinates are in the viewBox space (900×1000).
--->
-<g id="overlay-levant" fill="none" stroke="#A89680" stroke-width="1.5" stroke-dasharray="6,4" stroke-linecap="round" stroke-linejoin="round">
-  <!-- Via Maris (coastal route) -->
-  <polyline points="180,120 200,220 220,320 250,420 280,520 310,620"/>
-  <!-- Trade road from coast to Damascus -->
-  <polyline points="250,420 320,400 400,340 500,280 600,240"/>
-</g>
-<!-- Region boundaries (approximate) -->
-<g fill="none" stroke="#C4B5A3" stroke-width="0.8" stroke-dasharray="2,4" stroke-linecap="round">
-  <!-- Galilee / Samaria boundary -->
-  <polyline points="320,240 380,240 430,250 480,270 540,260 600,240"/>
-  <!-- Samaria / Judea boundary -->
-  <polyline points="310,370 360,370 420,380 480,380 540,370 600,340"/>
-  <!-- Judea / Idumea boundary -->
-  <polyline points="300,520 350,520 410,530 470,540 530,520"/>
-</g>
+<g id="geo-boundaries" fill="none" stroke="#C4B5A3" stroke-width="0.8" stroke-dasharray="2,4" stroke-linecap="round"><polyline points="442.5,556.3 472.5,565 495,567.5 525,562.5 534,560"/><polyline points="442.5,612.5 472.5,615 499.5,618.8 525,618.8"/><polyline points="390,675 420,675 465,675 507,677.5"/></g>
+<g id="geo-roads" fill="none" stroke="#A89680" stroke-width="1.5" stroke-dasharray="6,4" stroke-linecap="round" stroke-linejoin="round"><polyline points="82.5,745 180,746.2 270,733.8 336,712.5 370.5,687.5 387,667.5 415.5,641.2 435,631.3 442.5,612.5 435,562.5 477,552.5 525,522.5 528,516.3 536.2,515 535.5,497.5 553.5,468.8 643.5,436.3"/></g>
 <text x="150" y="500" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="13" font-style="italic" font-weight="normal" letter-spacing="0.3em" fill="#6B7F8A">MEDITERRANEAN SEA</text>
 <text x="503" y="531" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-style="normal" font-weight="normal" letter-spacing="0.2em" fill="#8B7D6B">GALILEE</text>
 <text x="400" y="600" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-style="normal" font-weight="normal" letter-spacing="0.2em" fill="#8B7D6B">SAMARIA</text>

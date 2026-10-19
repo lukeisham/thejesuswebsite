@@ -19,29 +19,9 @@
 <text x="401" y="606" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="9" fill="#8B7A6D">Mt. Tabor</text>
 <circle cx="286" cy="308" r="18" fill="rgba(196,181,163,0.12)" stroke="#C4B5A3" stroke-width="0.8" stroke-dasharray="3,2"/>
 <text x="286" y="285" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-size="9" fill="#8B7A6D">Upper Galilee hills</text>
-<!-- Hand-drawn overlay: galilee
-  Features with no modern Natural Earth dataset:
-  - Ancient roads (Via Maris segment, Capernaum corridor)
-  - Lake Huleh historical extent (drained 1950s; may be absent from Natural Earth)
-  - Upper/Lower Galilee regional boundary
-  All coordinates are in the viewBox space (900×1000).
--->
-<g id="overlay-galilee" fill="none" stroke="#A89680" stroke-width="1.5" stroke-dasharray="6,4" stroke-linecap="round" stroke-linejoin="round">
-  <!-- Via Maris (coastal segment) -->
-  <polyline points="100,200 150,300 200,400 250,500 300,580"/>
-  <!-- Road from coast inland to Capernaum area -->
-  <polyline points="250,500 340,480 420,450 500,430 580,420"/>
-  <!-- Road: Nazareth → Sea of Galilee -->
-  <polyline points="380,350 420,380 460,410 500,430"/>
-</g>
-<!-- Lake Huleh historical extent (hand-drawn ellipse) -->
-<g fill="#C9D4D8" fill-opacity="0.6" stroke="#9FB0B6" stroke-width="0.8">
-  <ellipse cx="580" cy="170" rx="35" ry="18"/>
-</g>
-<!-- Upper / Lower Galilee boundary -->
-<g fill="none" stroke="#C4B5A3" stroke-width="0.8" stroke-dasharray="2,4" stroke-linecap="round">
-  <polyline points="120,280 200,280 280,290 360,300 440,300 520,280 600,260 680,240"/>
-</g>
+<g id="geo-lakes"><polygon fill="#C9D4D8" fill-opacity="0.6" stroke="#9FB0B6" stroke-width="0.8" points="595.6,307.7 592.6,286.5 584.2,271.1 572.8,265.4 561.2,271.1 553,286.5 549.8,307.7 553,328.8 561.2,344.3 572.8,350 584.2,344.3 592.6,328.8"/></g>
+<g id="geo-boundaries" fill="none" stroke="#C4B5A3" stroke-width="0.8" stroke-dasharray="2,4" stroke-linecap="round"><polyline points="40.9,730.8 204.6,784.6 327.2,800 491,769.2 540,753.8"/><polyline points="163.6,423.1 286.4,438.5 409.1,438.5 507.2,430.8"/></g>
+<g id="geo-roads" fill="none" stroke="#A89680" stroke-width="1.5" stroke-dasharray="6,4" stroke-linecap="round" stroke-linejoin="round"><polyline points="30.7,1000 0,769.2 229.1,707.7 491,523.1 507.2,484.6 552.2,476.9 548.2,369.2 646.4,192.3 900,89"/><polyline points="330.1,615.7 392.8,592.3 450,569.2 515.4,546.2"/></g>
 <text x="565" y="515" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="10" font-style="italic" font-weight="normal" letter-spacing="0.15em" fill="#6B8B9A">SEA OF GALILEE</text>
 <text x="327" y="346" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-style="normal" font-weight="normal" letter-spacing="0.2em" fill="#8B7D6B">UPPER GALILEE</text>
 <text x="368" y="577" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="11" font-style="normal" font-weight="normal" letter-spacing="0.2em" fill="#8B7D6B">LOWER GALILEE</text>

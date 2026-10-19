@@ -24,6 +24,7 @@ const path = require("path");
 const { getConfig, MAP_CONFIGS } = require("./map-configs");
 const { loadGeoJSON, projectParts, clipGeometryToBBox, expandBBox } = require("./project");
 const { buildSVG } = require("./svg-builder");
+const { buildGeoOverlay } = require("./geo-overlay");
 
 // Margin (as a fraction of the bbox range) added before clipping, so
 // geometry just outside the map's bbox isn't harshly truncated at the
@@ -144,8 +145,8 @@ function generateMap(mapKey) {
     rivers: projected.rivers || [],
   };
 
-  // Load hand-drawn overlay
-  const overlaySVG = loadOverlay(mapKey);
+  // Hand-drawn pixel overlay first, then the roads, boundaries and lakes projected from lon/lat.
+  const overlaySVG = [loadOverlay(mapKey), buildGeoOverlay(mapKey, cfg)].filter(Boolean).join("\n");
 
   // Build SVG
   const svg = buildSVG(cfg, mapped, overlaySVG);

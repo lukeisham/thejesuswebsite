@@ -394,3 +394,24 @@ describe("generated SVG coordinate bounds", () => {
     }
   });
 });
+
+describe("geo-overlay", () => {
+  const { buildGeoOverlay } = require("../scripts/generate-maps/geo-overlay");
+
+  test("draws the roads, boundaries and lake that name the galilee map", () => {
+    const svg = buildGeoOverlay("galilee", MAP_CONFIGS.galilee);
+    assert.match(svg, /id="geo-lakes"/);
+    assert.match(svg, /id="geo-boundaries"/);
+    assert.match(svg, /id="geo-roads"/);
+  });
+
+  test("puts a point at the projected pixel position of its lon/lat", () => {
+    // Nazareth–Tiberias starts at Nazareth (35.3035°E, 32.6996°N).
+    const { x, y } = projectPoint(35.3035, 32.6996, MAP_CONFIGS.galilee.bbox, MAP_CONFIGS.galilee.viewBox, 1);
+    assert.ok(buildGeoOverlay("galilee", MAP_CONFIGS.galilee).includes(`points="${x},${y} `));
+  });
+
+  test("draws nothing on a map that no feature names", () => {
+    assert.equal(buildGeoOverlay("jerusalem", MAP_CONFIGS.jerusalem), "");
+  });
+});

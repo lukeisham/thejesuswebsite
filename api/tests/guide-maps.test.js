@@ -45,3 +45,23 @@ describe(`${GUIDE} row 1: pins are fanned by computePinOffsets`, () => {
     );
   });
 });
+
+// ── Row 2: the generator and the checker read the same feature file ─────────
+
+describe(`${GUIDE} row 2: one feature file for the generator and the checker`, () => {
+  const featureFile = "ancient-features.geo.json";
+
+  test("geo-overlay.js and the checker's index.js both load the feature file through geo-overlay.js", () => {
+    const generator = "api/scripts/generate-maps/geo-overlay.js";
+    assert.ok(
+      blankComments(read(generator)).includes(`"${featureFile}"`),
+      `${GUIDE} row 2: ${generator} does not read ${featureFile}.`,
+    );
+    const checker = "api/scripts/check-maps/index.js";
+    const code = blankComments(read(checker));
+    assert.ok(
+      /require\(\s*["']\.\.\/generate-maps\/geo-overlay["']\s*\)/.test(code) && code.includes("loadAncientFeatures"),
+      `${GUIDE} row 2: ${checker} does not load features through generate-maps/geo-overlay.js. It must judge the shapes that the generator draws.`,
+    );
+  });
+});
