@@ -256,3 +256,81 @@ describe("TimelineZoom — roundToGrid", () => {
     }
   });
 });
+
+// ── Re-render keeps the zoom (real module, fake DOM) ─────────────────────────
+// timeline-render.js builds a new .timeline-world on every render and calls
+// mountZoomControls again. The new world must get the current zoom, and the pan
+// listeners must not be bound a second time.
+
+const path = require("path");
+const { pathToFileURL } = require("url");
+
+function fakeElement() {
+  return {
+    style: {
+      props: {},
+      transform: "",
+      setProperty(name, value) { this.props[name] = value; },
+    },
+    classList: { add() {}, remove() {} },
+    children: [],
+    className: "",
+    innerHTML: "",
+    appendChild(child) { this.children.push(child); },
+    setAttribute() {},
+    addEventListener() {},
+    dispatchEvent() {},
+  };
+}
+
+describe("timeline zoom: a re-render keeps the zoom", () => {
+  test("the new world element gets the scale that the buttons already use", async () => {
+    const windowListeners = [];
+    globalThis.window = {
+      matchMedia: () => ({ matches: false }),
+      addEventListener: (type) => windowListeners.push(type),
+      removeEventListener() {},
+    };
+    globalThis.document = { createElement: fakeElement };
+
+    const zoom = await import(
+      pathToFileURL(path.resolve(__dirname, "..", "timeline-zoom.js")).href
+    );
+
+    const viewport = fakeElement();
+    viewport.world = fakeElement();
+    viewport.controls = null;
+    viewport.querySelector = function (selector) {
+      if (selector === ".timeline-world") return this.world;
+      if (selector === ".timeline-controls") return this.controls;
+      return null;
+    };
+    viewport.appendChild = function (child) {
+      if (child.className === "timeline-controls") this.controls = child;
+    };
+
+    zoom.mountZoomControls(viewport);
+    zoom.zoomIn();
+    assert.match(viewport.world.style.transform, /scale\(1\.25\)/);
+
+    // A render replaces the world and the controls.
+    viewport.world = fakeElement();
+    viewport.controls = null;
+    zoom.mountZoomControls(viewport);
+
+    assert.match(viewport.world.style.transform, /scale\(1\.25\)/);
+    assert.equal(viewport.world.style.props["--timeline-zoom-scale"], "1.25");
+    assert.equal(windowListeners.filter((t) => t === "mousemove").length, 1);
+  });
+
+  test("a registered transform listener runs after a zoom", async () => {
+    const zoom = await import(
+      pathToFileURL(path.resolve(__dirname, "..", "timeline-zoom.js")).href
+    );
+    const seen = [];
+    zoom.onTransformChange((state) => seen.push(state.scale));
+    zoom.zoomOut();
+    assert.equal(seen.length, 1);
+    assert.ok(Math.abs(seen[0] - 1) < 1e-9); // 1.25 / 1.25
+  });
+});

@@ -1,0 +1,74 @@
+/* ==========================================================================
+   Timeline Zoom Stacks
+   When the view is zoomed out, close events gather in a column with a count
+   badge. timeline-render.js (applyZoomStacks) builds the .timeline-stack button
+   and sets inline `left`, `top` and the `--stack-count` custom property;
+   timeline-interactions.js zooms to the stack when the button is activated.
+   ========================================================================== */
+
+/* The button is a fixed screen size at every zoom: the world scales it, so the
+   transform divides that scale out (the live --timeline-zoom-scale, set by
+   timeline-zoom.js). The box holds the dot column at the bottom and the count
+   badge at the top, so it is moved up by half the badge row to centre the column
+   on the spine. */
+.timeline-stack {
+    position: absolute;
+    width: 2rem;
+    height: calc(var(--stack-count, 2) * var(--timeline-stack-spacing) + 1.5rem);
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    z-index: 3;
+    transform:
+        translate(-50%, -50%)
+        scale(calc(1 / var(--timeline-zoom-scale, 1)))
+        translateY(-0.75rem);
+}
+
+.timeline-stack__count {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    min-width: 1.25rem;
+    padding: 0 var(--space-xs);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    font-size: var(--text-2xs);
+    font-weight: 600;
+    line-height: 1.125rem;
+    text-align: center;
+}
+
+.timeline-stack:hover .timeline-stack__count {
+    border-color: var(--accent);
+}
+
+.timeline-stack:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.timeline-stack.filtered-out {
+    opacity: 0.15;
+    pointer-events: none;
+}
+
+/* A dot in a stack is not a target of its own; the stack button is. Its label
+   is hidden; the count badge stands for it. */
+.timeline-dot--stacked {
+    pointer-events: none;
+}
+
+.timeline-label.label--stacked {
+    display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .timeline-stack {
+        transition: none;
+    }
+}

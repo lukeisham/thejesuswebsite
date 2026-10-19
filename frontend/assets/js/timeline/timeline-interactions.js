@@ -1,9 +1,9 @@
 /**
  * Timeline interactions module.
  *
- * Handles dot hover → tooltip, dot click → detail panel, era filter chips,
- * cluster hover highlight, zoom/pan (delegated to timeline-zoom), and panel
- * dismiss. Uses event delegation (JS-6).
+ * Handles dot hover → tooltip, dot click → detail panel, stack click → zoom to
+ * the stack, era filter chips, cluster hover highlight, zoom/pan (delegated to
+ * timeline-zoom), and panel dismiss. Uses event delegation (JS-6).
  *
  * The old drag/momentum horizontal scroll is removed — zoom and pan are now
  * handled by the Arbor-style transform model in timeline-zoom.js.
@@ -30,6 +30,9 @@ import { readEmbeddedData } from "../api.js";
 import { announce } from "../utils/announce.js";
 import { revalidateInBackground } from "../utils/data-revalidation.js";
 import { jumpToEra } from "./timeline-nav.js";
+import { getPan, setTransform, SCALE_MIN, SCALE_MAX } from "./timeline-zoom.js";
+import { fitStackView } from "../cluster-logic/timeline-zoom-stacks.js";
+import { TIMELINE_CANVAS_HEIGHT_PX } from "./timeline-geometry.js";
 
 // ─── DOM references ────────────────────────────────────────────────────────────
 
@@ -184,6 +187,42 @@ function hideDetailPanel() {
   focusReturnTarget = null;
 }
 
+// ─── Zoom stacks ───────────────────────────────────────────────────────────────
+
+/** Largest zoom that a stack click asks for. A tighter zoom would show too
+ * little of the timeline around the stack. */
+const STACK_ZOOM_MAX = 2;
+
+/**
+ * Zoom to a stack so that its events sit at their exact positions, with the
+ * stack in the middle of the view. The scale and the horizontal pan come from
+ * `fitStackView`; the vertical pan puts the spine in the middle of the view.
+ *
+ * @param {HTMLElement} stack - the stack button; its `data-min-x` and `data-max-x` hold the events' range
+ */
+function zoomToStack(stack) {
+  if (!container) return;
+  const minX = Number(stack.dataset.minX);
+  const maxX = Number(stack.dataset.maxX);
+  if (!Number.isFinite(minX) || !Number.isFinite(maxX)) {
+    console.warn("timeline-interactions: stack button has no usable x range", stack.dataset);
+    return;
+  }
+
+  const { scale, panX } = fitStackView(
+    minX,
+    maxX,
+    container.clientWidth,
+    SCALE_MIN,
+    Math.min(SCALE_MAX, STACK_ZOOM_MAX),
+  );
+  const world = container.querySelector(".timeline-world");
+  const worldTop = world ? world.offsetTop : 0;
+  const panY = container.clientHeight / 2 - worldTop - (TIMELINE_CANVAS_HEIGHT_PX / 2) * scale;
+  setTransform(panX, panY, scale);
+  announce(`${stack.getAttribute("aria-label") || "Stack"} Zoomed in.`);
+}
+
 // ─── Era Filters ───────────────────────────────────────────────────────────────
 
 /**
@@ -336,6 +375,12 @@ async function init() {
         showDetailPanel(dot);
         announce(`${dot.dataset.title || "Event"}, details shown`);
       }
+    });
+
+    // ── Wire stack button → zoom to its events ───────────────────────────
+    // A stack is a real button, so Enter and Space fire this click too.
+    delegate(container, ".timeline-stack", "click", (_e, stack) => {
+      zoomToStack(stack);
     });
 
     // ── Cluster hover highlight ─────────────────────────────────────────

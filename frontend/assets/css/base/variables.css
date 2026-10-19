@@ -203,6 +203,9 @@
        The band holds three heading lanes and the era bar; ERA_BAND_LANES in
        timeline-era-heading-placement.js must stay 3 while the band height is
        this value. */
+    /* Distance between dots in a zoom stack. STACK_SPACING_PX in
+       cluster-logic/timeline-zoom-stacks.js must equal this value in pixels. */
+    --timeline-stack-spacing: 0.8125rem;
     --timeline-heading-font-size: 0.75rem;
     --timeline-heading-lane-height: 1.125rem;
     --timeline-heading-bar-height: 0.3125rem;

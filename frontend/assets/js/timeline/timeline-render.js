@@ -58,6 +58,7 @@ import {
   computeLeaderLine,
   DOT_CLEARANCE_PX,
 } from "../cluster-logic/cluster-label-layout.js";
+import { computeZoomStacks } from "../cluster-logic/timeline-zoom-stacks.js";
 import {
   offsetXToPixels,
   offsetYToPixels,
@@ -559,7 +560,8 @@ function buildHorizontalLayout(groupedEvents, activeEra) {
       const topPercent = crossAxisToTopPercent(yOffset);
       const dotStyle = `left:${finalX}px;top:${topPercent}%`;
 
-      inner.appendChild(createDot(event, dotStyle, isFiltered));
+      const dotEl = createDot(event, dotStyle, isFiltered);
+      inner.appendChild(dotEl);
 
       // The label starts at the dot; layoutHorizontalLabels moves it beside the
       // dot once the labels are attached and measured.
@@ -575,6 +577,7 @@ function buildHorizontalLayout(groupedEvents, activeEra) {
       inner.appendChild(label);
       labelDescriptors.push({
         el: label,
+        dot: dotEl,
         x: finalX,
         y: (topPercent / 100) * TIMELINE_CANVAS_HEIGHT_PX,
         eventId: event.id,
@@ -738,19 +741,24 @@ function resolveLabelCollisions(descriptors) {
  * line for each label that had to move. The placement comes from
  * `layoutLabelsBesideNodes`, the same function that the admin editor calls, so a
  * title sits where the editor showed it. The labels must be attached to the
- * document so they can be measured.
+ * document so they can be measured. A dot that sits in a stack at the current
+ * zoom (`stacked`) gets no label; its dot still blocks the other labels.
  *
  * @param {HTMLElement} inner — the attached .timeline-inner element
- * @param {Array<{el: HTMLElement, x: number, y: number, eventId: number, era: string, filtered: boolean}>} descriptors
+ * @param {Array<{el: HTMLElement, cx: number, cy: number, stacked: boolean, eventId: number, era: string, filtered: boolean}>} descriptors
+ *   `cx` and `cy` are the dot's current position, which is not its exact
+ *   position while it is in a stack or moving towards one
  */
 function layoutHorizontalLabels(inner, descriptors) {
+  inner.querySelector(".timeline-leaders")?.remove();
   if (descriptors.length === 0) return;
 
   const nodes = descriptors.map((d) => {
-    const hidden = d.el.classList.contains("label--hidden");
+    const hidden = d.stacked || d.el.classList.contains("label--hidden");
+    d.el.classList.toggle("label--stacked", Boolean(d.stacked));
     return {
-      x: d.x,
-      y: d.y,
+      x: d.cx,
+      y: d.cy,
       width: hidden ? 0 : d.el.offsetWidth,
       height: hidden ? 0 : d.el.offsetHeight,
     };
@@ -777,7 +785,11 @@ function layoutHorizontalLabels(inner, descriptors) {
     d.el.classList.toggle("timeline-label--left", spot.side === "left");
 
     if (!spot.leader) return;
-    const { x1, y1, x2, y2 } = computeLeaderLine(d, DOT_CLEARANCE_PX - 2, spot);
+    const { x1, y1, x2, y2 } = computeLeaderLine(
+      { x: d.cx, y: d.cy },
+      DOT_CLEARANCE_PX - 2,
+      spot,
+    );
     const line = document.createElementNS(svgNs, "line");
     line.setAttribute("class", d.filtered ? "timeline-leader filtered-out" : "timeline-leader");
     line.setAttribute("x1", String(x1));
@@ -790,6 +802,95 @@ function layoutHorizontalLabels(inner, descriptors) {
 
   inner.appendChild(svg);
 }
+
+// ─── Zoom stacks (horizontal layout) ────────────────────────────────────────
+
+/** What the stacks were last computed for; null in the vertical layout. */
+let stackState = null;
+
+/**
+ * Put every dot where it belongs at this zoom, show a stack button over each
+ * stack, and place the labels again. Zoomed out, close nodes sit in a column at
+ * their mean position; zoomed in, each sits at the exact spot the admin gave it
+ * (cluster-logic/timeline-zoom-stacks.js has the rules).
+ *
+ * @param {HTMLElement} inner — the attached .timeline-inner element
+ * @param {Array<Object>} descriptors — the label descriptors of the layout
+ * @param {number} scale — current zoom scale
+ */
+function applyZoomStacks(inner, descriptors, scale) {
+  const result = computeZoomStacks(
+    descriptors.map((d) => ({ x: d.x, y: d.y })),
+    scale,
+    TIMELINE_CANVAS_HEIGHT_PX / 2,
+  );
+  if (result.positions.length !== descriptors.length) return;
+
+  descriptors.forEach((d, i) => {
+    const p = result.positions[i];
+    d.cx = p.x;
+    d.cy = p.y;
+    d.stacked = result.collapsed && p.stackIndex >= 0;
+    d.dot.style.left = `${p.x}px`;
+    d.dot.style.top = `${(p.y / TIMELINE_CANVAS_HEIGHT_PX) * 100}%`;
+    d.dot.classList.toggle("timeline-dot--stacked", d.stacked);
+    d.dot.tabIndex = d.stacked || d.filtered ? -1 : 0;
+  });
+
+  inner.querySelectorAll(".timeline-stack").forEach((el) => el.remove());
+  if (result.collapsed) {
+    for (const stack of result.stacks) {
+      inner.appendChild(createStackButton(stack, descriptors));
+    }
+  }
+
+  layoutHorizontalLabels(inner, descriptors);
+}
+
+/**
+ * Build the button that stands for a stack. It is a real button, so Enter and
+ * Space work; timeline-interactions.js zooms to the stack when it is activated.
+ *
+ * @param {{members:number[], x:number, y:number, count:number, minX:number, maxX:number}} stack
+ * @param {Array<{era:string, filtered:boolean}>} descriptors
+ * @returns {HTMLElement}
+ */
+function createStackButton(stack, descriptors) {
+  const members = stack.members.map((i) => descriptors[i]);
+  const button = createElement("button", {
+    className: "timeline-stack",
+    style: `left:${stack.x}px;top:${(stack.y / TIMELINE_CANVAS_HEIGHT_PX) * 100}%;--stack-count:${stack.count}`,
+    type: "button",
+    "aria-label": `${stack.count} events. Zoom in to see them.`,
+  });
+  button.appendChild(
+    createElement("span", {
+      className: "timeline-stack__count",
+      textContent: String(stack.count),
+    }),
+  );
+  button.dataset.minX = String(stack.minX);
+  button.dataset.maxX = String(stack.maxX);
+  button.dataset.eras = [...new Set(members.map((m) => m.era))].join(",");
+  const allFiltered = members.every((m) => m.filtered);
+  button.classList.toggle("filtered-out", allFiltered);
+  button.tabIndex = allFiltered ? -1 : 0;
+  return button;
+}
+
+/**
+ * Keep the stacks in step with the zoom. Runs after every transform
+ * (timeline-zoom.js `onTransformChange`); a pan does not change the stacks.
+ *
+ * @param {{scale: number}} state
+ */
+function syncZoomStacks({ scale }) {
+  if (!stackState || !stackState.inner.isConnected || scale === stackState.scale) return;
+  stackState.scale = scale;
+  applyZoomStacks(stackState.inner, stackState.descriptors, scale);
+}
+
+onTransformChange(syncZoomStacks);
 
 /**
  * Measure each visible label in world coordinates (the space of the
@@ -911,9 +1012,15 @@ export function renderTimeline(groupedEvents, activeEra) {
 
     // ── Place the labels once, after elements are attached ─────────────────
     if (built.vertical) {
+      stackState = null;
       resolveLabelCollisions(built.labelDescriptors);
     } else {
-      layoutHorizontalLabels(innerEl, built.labelDescriptors);
+      stackState = {
+        inner: innerEl,
+        descriptors: built.labelDescriptors,
+        scale: getScale(),
+      };
+      applyZoomStacks(innerEl, built.labelDescriptors, stackState.scale);
     }
 
     // ── Era headings last. Mobile headings avoid the final label positions;
@@ -964,6 +1071,7 @@ export function clearFilteredOut() {
     const allFiltered = container.querySelectorAll(".filtered-out");
     for (const el of allFiltered) {
       el.classList.remove("filtered-out");
+      if (el.classList.contains("timeline-stack")) el.tabIndex = 0;
     }
   });
 }
@@ -1004,13 +1112,19 @@ export function applyEraFilter(activeEra) {
   batchWrite(() => {
     for (let i = 0; i < dots.length; i++) {
       dots[i].classList.toggle("filtered-out", faded.includes(i));
-      dots[i].tabIndex = faded.includes(i) ? -1 : 0;
+      dots[i].tabIndex =
+        faded.includes(i) || dots[i].classList.contains("timeline-dot--stacked") ? -1 : 0;
     }
     for (let i = 0; i < labels.length; i++) {
       labels[i].classList.toggle("filtered-out", faded.includes(i));
     }
     for (const leader of container.querySelectorAll(".timeline-leader")) {
       leader.classList.toggle("filtered-out", leader.dataset.era !== activeEra);
+    }
+    for (const stack of container.querySelectorAll(".timeline-stack")) {
+      const inEra = stack.dataset.eras.split(",").includes(activeEra);
+      stack.classList.toggle("filtered-out", !inEra);
+      stack.tabIndex = inEra ? 0 : -1;
     }
   });
 }

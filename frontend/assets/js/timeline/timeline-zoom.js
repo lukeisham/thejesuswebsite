@@ -40,8 +40,8 @@ let panY = 0;
 /** Zoom step multiplier. */
 const ZOOM_FACTOR = 1.25;
 /** Scale bounds — mirrors old [30, 300] px-per-period with BASE_PX_PER_PERIOD=100. */
-const SCALE_MIN = 0.3;
-const SCALE_MAX = 3.0;
+export const SCALE_MIN = 0.3;
+export const SCALE_MAX = 3.0;
 
 /** Mobile breakpoint — 768px, matching arbor. */
 const MOBILE_QUERY = "(max-width: 767px)";
@@ -52,6 +52,9 @@ const MOBILE_QUERY = "(max-width: 767px)";
 let worldEl = null;
 /** @type {HTMLElement|null} */
 let viewportEl = null;
+
+/** The viewport that the pan listeners are bound to, so a re-render does not bind them again. */
+let wiredViewport = null;
 
 // ─── Pan state ────────────────────────────────────────────────────────────────
 
@@ -199,10 +202,11 @@ export function zoomOut() {
  */
 function onPanStart(point, originalEvent) {
   if (isVerticalMode()) return;
-  // Don't start pan if clicking a dot or control
+  // Don't start pan if clicking a dot, a stack or a control
   if (originalEvent && originalEvent.target) {
     if (
       originalEvent.target.closest(".timeline-dot") ||
+      originalEvent.target.closest(".timeline-stack") ||
       originalEvent.target.closest(".timeline-controls") ||
       originalEvent.target.closest(".timeline-era-filters")
     ) {
@@ -331,6 +335,10 @@ export function mountZoomControls(viewport) {
   if (!worldEl) {
     console.warn("TimelineZoom.mountZoomControls: .timeline-world not found in viewport");
     // Still create controls — they'll be wired when world is available
+  } else {
+    // A render builds a new world element. Give it the zoom and pan that the
+    // buttons and the stacks already use, or the picture and the scale disagree.
+    applyTransform();
   }
 
   // Don't mount controls in vertical/mobile mode
@@ -362,7 +370,9 @@ export function mountZoomControls(viewport) {
   controls.appendChild(zoomInBtn);
   viewport.appendChild(controls);
 
-  // Wire pan events on the viewport
+  // Wire pan events once per viewport
+  if (wiredViewport === viewport) return;
+  wiredViewport = viewport;
   viewport.addEventListener("mousedown", onMouseDown);
   window.addEventListener("mousemove", onMouseMove);
   window.addEventListener("mouseup", onMouseUp);

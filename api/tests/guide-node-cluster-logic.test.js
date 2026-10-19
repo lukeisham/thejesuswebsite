@@ -282,6 +282,48 @@ describe(`${GUIDE} row 8: era heading band tokens and lanes agree`, () => {
   });
 });
 
+// ── Row 9: zoom stacks are public only, and the spacing matches the CSS ──────
+
+describe(`${GUIDE} row 9: zoom stacks`, () => {
+  const STACKS = "frontend/assets/js/cluster-logic/timeline-zoom-stacks.js";
+
+  test("the stacks module is pure: it uses no document or window", () => {
+    const code = blankStrings(blankComments(read(STACKS)));
+    const m = /\b(document|window)\b/.exec(code);
+    assert.equal(
+      m,
+      null,
+      `${GUIDE} row 9: ${STACKS}:${m ? lineOf(code, m.index) : 0} uses ${m && m[1]}. The module takes numbers in and returns numbers.`,
+    );
+  });
+
+  test("no admin file uses the stacks: the editor always shows exact positions", () => {
+    for (const rel of jsFilesUnder("admin/assets/js")) {
+      const code = blankComments(read(rel));
+      assert.doesNotMatch(
+        code,
+        /timeline-zoom-stacks|computeZoomStacks/,
+        `${GUIDE} row 9: ${rel} uses the zoom stacks. An admin must drag exact dots, so only the public timeline stacks.`,
+      );
+    }
+  });
+
+  test("STACK_SPACING_PX equals --timeline-stack-spacing", () => {
+    const px = Number(
+      /export const STACK_SPACING_PX\s*=\s*(\d+)/.exec(blankComments(read(STACKS)))[1],
+    );
+    const css = /--timeline-stack-spacing:\s*([\d.]+)rem/.exec(
+      blankComments(read("frontend/assets/css/base/variables.css")),
+    );
+    assert.ok(css, `${GUIDE} row 9: --timeline-stack-spacing is missing in variables.css.`);
+    assert.equal(
+      Number(css[1]) * 16,
+      px,
+      `${GUIDE} row 9: --timeline-stack-spacing (${css[1]}rem) differs from STACK_SPACING_PX (${px}px) in ${STACKS}.`,
+    );
+  });
+});
+
 // ── Rows 5 and 6: load order and exports that readers rely on ─────────────────
 
 const globals = bridgeGlobals();
