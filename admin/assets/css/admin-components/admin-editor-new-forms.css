@@ -1,9 +1,8 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    Admin Editor "New" Forms (CSS-1)
-   Rules duplicated byte-for-byte across the inline <style> blocks of the
-   five record creators (blog, debate, essays, evidence, historiography).
-   Mirrors admin-editor-shared-forms.css's pattern for the sibling
-   edit-[id].html editors.
+   Form furniture shared by the new.html record creators (blog, debate,
+   essays, evidence, historiography). The sibling edit-[id].html editors use
+   admin-editor-shared-forms.css.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .admin-form-actions {
@@ -21,9 +20,14 @@
     padding: var(--space-lg);
 }
 
+/* A card that follows another card in the sidebar column. */
+.admin-form-card--stacked {
+    margin-top: var(--space-md);
+}
+
 .admin-form-card__title {
     font-size: 13px;
-    font-weight: 600;
+    font-weight: var(--admin-font-weight-semibold);
     color: var(--admin-text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.03em;
@@ -51,8 +55,23 @@
 .admin-error {
     padding: var(--space-md);
     color: var(--admin-danger);
-    background: rgba(220, 53, 69, 0.08);
-    border: 1px solid rgba(220, 53, 69, 0.2);
+    background: color-mix(in srgb, var(--admin-danger) 8%, transparent);
+    border: 1px solid color-mix(in srgb, var(--admin-danger) 20%, transparent);
     border-radius: var(--admin-radius);
     margin-bottom: var(--space-md);
+}
+
+/* Per-field error text under an input. Shown and hidden by script. */
+.admin-form-hint--error {
+    color: var(--admin-danger);
+}
+
+/* "Saving…" and success text under the form buttons. */
+.admin-submit-status {
+    margin-top: var(--space-md);
+    text-align: center;
+}
+
+.admin-submit-status--success {
+    color: var(--admin-success);
 }

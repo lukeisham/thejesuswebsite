@@ -193,8 +193,7 @@
                         link.href = "edit-[id].html?id=" + p.id;
                         link.textContent =
                             p.blog_title || p.slug || "(untitled)";
-                        link.style.cssText =
-                            "color:var(--admin-accent);text-decoration:none;font-weight:500;";
+                        link.className = "admin-list-link";
                         tdTitle.appendChild(link);
                         tr.appendChild(tdTitle);
 

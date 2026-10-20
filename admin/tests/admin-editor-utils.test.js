@@ -148,6 +148,32 @@ describe("AdminEditorUtils.esc", () => {
     assert.equal(AdminEditorUtils.esc(null), "");
     assert.equal(AdminEditorUtils.esc(undefined), "");
   });
+
+  test("escapes single quotes and converts non-strings without throwing", () => {
+    var { AdminEditorUtils } = makeSandbox();
+    assert.equal(AdminEditorUtils.esc("it's"), "it&#x27;s");
+    assert.equal(AdminEditorUtils.esc(42), "42");
+    assert.equal(AdminEditorUtils.esc(0), "0");
+  });
+
+  test("output equals the frontend escapeHTML for the same input", async () => {
+    var { escapeHTML } = await import(
+      path.resolve(__dirname, "..", "..", "frontend", "assets", "js", "utils", "escape-html.js")
+    );
+    var { AdminEditorUtils } = makeSandbox();
+    var samples = [
+      `<a href="x">&Tom's</a>`,
+      "plain text",
+      "",
+      null,
+      undefined,
+      7,
+      `"'&<>`,
+    ];
+    samples.forEach(function (sample) {
+      assert.equal(AdminEditorUtils.esc(sample), escapeHTML(sample));
+    });
+  });
 });
 
 // ── clearErrors / validate ───────────────────────────────────────────────
@@ -201,6 +227,45 @@ describe("AdminEditorUtils.clearErrors / validate", () => {
 });
 
 // ── wireInsertImageButton ────────────────────────────────────────────────
+
+describe("AdminEditorUtils.validate slug check", () => {
+  function runSlug(value) {
+    var { AdminEditorUtils } = makeSandbox();
+    var input = makeElement();
+    input.value = value;
+    var errEl = makeElement();
+    var valid = AdminEditorUtils.validate(makeElement(), [
+      { input: input, errEl: errEl, label: "Slug", slug: true },
+    ]);
+    return { valid, message: errEl.textContent };
+  }
+
+  test("accepts a lowercase hyphenated slug", () => {
+    assert.equal(runSlug("the-historical-jesus").valid, true);
+  });
+
+  test("rejects uppercase, spaces and doubled hyphens with a message", () => {
+    ["Bad-Slug", "has space", "a--b", "-lead"].forEach(function (value) {
+      var result = runSlug(value);
+      assert.equal(result.valid, false, value);
+      assert.equal(result.message, "Slug must be lowercase letters, numbers, and hyphens.");
+    });
+  });
+
+  test("a blank slug still reports required", () => {
+    assert.equal(runSlug("  ").message, "Slug is required.");
+  });
+
+  test("SLUG_PATTERN equals the API pattern in journal-field-validation.js", () => {
+    var apiSource = fs.readFileSync(
+      path.resolve(__dirname, "..", "..", "api", "lib", "journal-field-validation.js"),
+      "utf8",
+    );
+    var apiPattern = apiSource.match(/const SLUG_PATTERN = (\/.+\/);/)[1];
+    var { AdminEditorUtils } = makeSandbox();
+    assert.equal(String(AdminEditorUtils.SLUG_PATTERN), apiPattern);
+  });
+});
 
 describe("AdminEditorUtils.wireInsertImageButton", () => {
   test("creates a button after the content field and wires AdminInsertImage", () => {

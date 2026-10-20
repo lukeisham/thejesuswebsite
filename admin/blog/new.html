@@ -164,12 +164,9 @@
                                     search results.</span
                                 >
                                 <span
-                                    class="admin-form-hint"
+                                    class="admin-form-hint admin-form-hint--error"
                                     id="title-error"
-                                    style="
-                                        display: none;
-                                        color: var(--admin-danger);
-                                    "
+                                    style="display: none"
                                     role="alert"
                                 ></span>
                             </div>
@@ -196,12 +193,9 @@
                                     from title.</span
                                 >
                                 <span
-                                    class="admin-form-hint"
+                                    class="admin-form-hint admin-form-hint--error"
                                     id="slug-error"
-                                    style="
-                                        display: none;
-                                        color: var(--admin-danger);
-                                    "
+                                    style="display: none"
                                     role="alert"
                                 ></span>
                             </div>
@@ -280,8 +274,7 @@
                         </div>
 
                         <div
-                            class="admin-form-card"
-                            style="margin-top: var(--space-md)"
+                            class="admin-form-card admin-form-card--stacked"
                         >
                             <div class="admin-form-card__title">
                                 Bibliography
@@ -290,8 +283,7 @@
                         </div>
 
                         <div
-                            class="admin-form-card"
-                            style="margin-top: var(--space-md)"
+                            class="admin-form-card admin-form-card--stacked"
                         >
                             <div class="admin-form-card__title">
                                 Thumbnail
@@ -321,11 +313,15 @@
                     >
                 </div>
 
+                <span class="admin-form-hint"
+                    >Ctrl+Enter saves. Ctrl+Shift+Enter publishes.</span
+                >
+
                 <div
                     id="submit-status"
                     role="status"
                     aria-live="polite"
-                    style="margin-top: var(--space-md); text-align: center"
+                    class="admin-submit-status"
                 ></div>
             </main>
         </div>
@@ -387,26 +383,20 @@
 
                 AdminShortcodeHelp.mountFormattingReference(sidebarEl);
 
-                // The server validates the slug shape too (API-4); the
-                // regex here must stay in step with it.
                 function validate() {
-                    var valid = AdminEditorUtils.validate(formError, [
+                    return AdminEditorUtils.validate(formError, [
                         {
                             input: titleInput,
                             errEl: titleError,
                             label: "Title",
                         },
-                        { input: slugInput, errEl: slugError, label: "Slug" },
+                        {
+                            input: slugInput,
+                            errEl: slugError,
+                            label: "Slug",
+                            slug: true,
+                        },
                     ]);
-                    var slug = slugInput.value.trim();
-                    if (slug && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
-                        slugError.textContent =
-                            "Slug must be lowercase letters, numbers, and hyphens.";
-                        slugError.style.display = "block";
-                        slugInput.classList.add("admin-input--error");
-                        valid = false;
-                    }
-                    return valid;
                 }
 
                 function buildPayload(publish) {
@@ -429,6 +419,7 @@
 
                 async function submit(publish) {
                     submitStatus.textContent = "";
+                    submitStatus.classList.remove("admin-submit-status--success");
                     if (!validate()) {
                         titleInput.focus();
                         return;
@@ -446,8 +437,10 @@
                             "/blog-posts",
                             payload,
                         );
-                        submitStatus.innerHTML =
-                            '<span style="color:var(--admin-success)">Blog post created successfully!</span>';
+                        submitStatus.textContent = "Blog post created successfully!";
+                        submitStatus.classList.add(
+                            "admin-submit-status--success",
+                        );
                         setTimeout(function () {
                             window.location.href =
                                 "edit-[id].html?id=" + result.id;
@@ -477,7 +470,7 @@
                 document.addEventListener("keydown", function (e) {
                     if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
                         e.preventDefault();
-                        submit(false);
+                        submit(e.shiftKey);
                     }
                 });
             });

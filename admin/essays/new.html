@@ -162,12 +162,9 @@
                                     search results.</span
                                 >
                                 <span
-                                    class="admin-form-hint"
+                                    class="admin-form-hint admin-form-hint--error"
                                     id="title-error"
-                                    style="
-                                        display: none;
-                                        color: var(--admin-danger);
-                                    "
+                                    style="display: none"
                                     role="alert"
                                 ></span>
                             </div>
@@ -194,12 +191,9 @@
                                     from title.</span
                                 >
                                 <span
-                                    class="admin-form-hint"
+                                    class="admin-form-hint admin-form-hint--error"
                                     id="slug-error"
-                                    style="
-                                        display: none;
-                                        color: var(--admin-danger);
-                                    "
+                                    style="display: none"
                                     role="alert"
                                 ></span>
                             </div>
@@ -275,8 +269,7 @@
                         </div>
 
                         <div
-                            class="admin-form-card"
-                            style="margin-top: var(--space-md)"
+                            class="admin-form-card admin-form-card--stacked"
                         >
                             <div class="admin-form-card__title">
                                 Bibliography
@@ -285,8 +278,7 @@
                         </div>
 
                         <div
-                            class="admin-form-card"
-                            style="margin-top: var(--space-md)"
+                            class="admin-form-card admin-form-card--stacked"
                         >
                             <div class="admin-form-card__title">Images</div>
                             <div id="essay-images-mount"></div>
@@ -314,11 +306,15 @@
                     >
                 </div>
 
+                <span class="admin-form-hint"
+                    >Ctrl+Enter saves. Ctrl+Shift+Enter publishes.</span
+                >
+
                 <div
                     id="submit-status"
                     role="status"
                     aria-live="polite"
-                    style="margin-top: var(--space-md); text-align: center"
+                    class="admin-submit-status"
                 ></div>
             </main>
         </div>
@@ -377,54 +373,20 @@ const titleInput = document.getElementById("essay-title");
                     { initialSourceIds: [] },
                 );
 
-                function clearErrors() {
-                    formError.style.display = "none";
-                    formError.textContent = "";
-                    titleError.style.display = "none";
-                    titleError.textContent = "";
-                    slugError.style.display = "none";
-                    slugError.textContent = "";
-                    titleInput.classList.remove("admin-input--error");
-                    slugInput.classList.remove("admin-input--error");
-                }
-
-                function showFieldError(input, errorEl, message) {
-                    input.classList.add("admin-input--error");
-                    errorEl.textContent = message;
-                    errorEl.style.display = "block";
-                }
-
                 function validate() {
-                    clearErrors();
-                    var valid = true;
-                    if (!titleInput.value.trim()) {
-                        showFieldError(
-                            titleInput,
-                            titleError,
-                            "Title is required.",
-                        );
-                        valid = false;
-                    }
-                    if (!slugInput.value.trim()) {
-                        showFieldError(
-                            slugInput,
-                            slugError,
-                            "Slug is required.",
-                        );
-                        valid = false;
-                    } else if (
-                        !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(
-                            slugInput.value.trim(),
-                        )
-                    ) {
-                        showFieldError(
-                            slugInput,
-                            slugError,
-                            "Slug must be lowercase letters, numbers, and hyphens.",
-                        );
-                        valid = false;
-                    }
-                    return valid;
+                    return AdminEditorUtils.validate(formError, [
+                        {
+                            input: titleInput,
+                            errEl: titleError,
+                            label: "Title",
+                        },
+                        {
+                            input: slugInput,
+                            errEl: slugError,
+                            label: "Slug",
+                            slug: true,
+                        },
+                    ]);
                 }
 
                 function buildPayload(publish) {
@@ -445,8 +407,8 @@ const titleInput = document.getElementById("essay-title");
                 }
 
                 async function submit(publish) {
-                    clearErrors();
                     submitStatus.textContent = "";
+                    submitStatus.classList.remove("admin-submit-status--success");
                     if (!validate()) {
                         titleInput.focus();
                         return;
@@ -461,8 +423,10 @@ const titleInput = document.getElementById("essay-title");
 
                     try {
                         var result = await Admin.api.post("/essays", payload);
-                        submitStatus.innerHTML =
-                            '<span style="color:var(--admin-success)">Essay created successfully!</span>';
+                        submitStatus.textContent = "Essay created successfully!";
+                        submitStatus.classList.add(
+                            "admin-submit-status--success",
+                        );
                         setTimeout(function () {
                             window.location.href =
                                 "edit-[id].html?id=" + result.id;

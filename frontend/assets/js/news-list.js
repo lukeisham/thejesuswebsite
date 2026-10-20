@@ -1,7 +1,8 @@
 /**
  * News list page: fetch paginated news articles, render row-based cards
  * with thumbnail, title, meta (Author · Publisher · Date), and infinite scroll.
- * Items open the external article URL in a new tab. (JS-5, JS-6)
+ * Items open a safe external article URL in a new tab and otherwise link to
+ * the site's own article page. (JS-5, JS-6)
  *
  * @module news-list
  */
@@ -9,6 +10,7 @@
 import { getNewsArticles } from './api.js';
 import { showToast } from './utils/toasts.js';
 import { delegate } from './utils/dom.js';
+import { safeHref } from './utils/safe-url.js';
 
 const SENTINEL_ID = 'scroll-sentinel';
 const CARD_GRID_ID = 'card-grid';
@@ -173,16 +175,31 @@ async function loadPage() {
 
 // ─── Rendering (JS-6: DOM construction, no innerHTML for user data) ───────────
 
+/**
+ * Choose where a row links. A stored article URL opens in a new tab only when
+ * safeHref accepts it as an absolute http(s) URL; any other value (a
+ * `javascript:` URL, a relative path, junk) falls back to the site's own
+ * article page.
+ *
+ * @param {{news_article_url?: *, slug?: string}} item
+ * @returns {{href: string, external: boolean}}
+ */
+export function resolveRowLink(item) {
+  const articleUrl = safeHref(item.news_article_url);
+  if (/^https?:/i.test(articleUrl)) return { href: articleUrl, external: true };
+  return { href: `/news-and-blog/news/${encodeURIComponent(item.slug || '')}`, external: false };
+}
+
 function renderCards(items) {
   if (!$grid) return;
 
   items.forEach((item) => {
-    const url = item.news_article_url || `/news-and-blog/news/${encodeURIComponent(item.slug || '')}`;
+    const { href, external } = resolveRowLink(item);
 
     const row = document.createElement('a');
     row.className = 'news-blog-row';
-    row.href = url;
-    if (item.news_article_url) {
+    row.href = href;
+    if (external) {
       row.setAttribute('target', '_blank');
       row.setAttribute('rel', 'noopener noreferrer');
     }

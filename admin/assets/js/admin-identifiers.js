@@ -109,6 +109,18 @@ function hasValue(value) {
   return value !== null && value !== undefined && String(value).trim() !== "";
 }
 
+// Mirrors safeHref in frontend/assets/js/utils/safe-url.js, which this
+// non-module script cannot import. Only absolute http(s) URLs become links.
+function isHttpUrl(value) {
+  if (typeof value !== "string") return false;
+  try {
+    var protocol = new URL(value.trim()).protocol;
+    return protocol === "http:" || protocol === "https:";
+  } catch (err) {
+    return false;
+  }
+}
+
 /**
  * Which type group a record belongs to — the first group with any field set.
  * @returns {string} the group's label, or an em dash when nothing is filled.
@@ -342,14 +354,17 @@ function buildRow(item) {
   tr.appendChild(tdTitle);
 
   var tdUrl = document.createElement("td");
-  if (hasValue(item.external_url)) {
+  if (isHttpUrl(item.external_url)) {
     var link = document.createElement("a");
     link.className = "identifier-url";
-    link.href = item.external_url;
+    link.href = item.external_url.trim();
     link.target = "_blank";
     link.rel = "noopener noreferrer";
     link.textContent = item.external_url;
     tdUrl.appendChild(link);
+  } else if (hasValue(item.external_url)) {
+    // Not http(s), so it is not made a link (a javascript: URL would run on click).
+    tdUrl.textContent = item.external_url;
   } else {
     tdUrl.textContent = EM_DASH;
   }

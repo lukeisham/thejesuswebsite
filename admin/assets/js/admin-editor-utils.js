@@ -1,9 +1,10 @@
-// Shared helpers duplicated identically (or near-identically) across the five
-// admin record editors (evidence, essays, blog, debate/responses,
-// historiography). Extracted so a fix here — e.g. the mla_source_id -> id
-// bibliography bug — only has to happen once instead of five times.
+// Form helpers shared by the admin record editors: id-list parsing, the admin's
+// single HTML escaper, required/slug validation, and mounting of the image and
+// bibliography panels. One copy here means a fix reaches every editor.
 //
 // Used by: admin/{evidence,essays,blog,debate,historiography}/edit-[id].html
+// and the new.html pages of essays, blog, debate and historiography.
+// Tested by: admin/tests/admin-editor-utils.test.js
 
 window.AdminEditorUtils = {};
 
@@ -29,20 +30,37 @@ AdminEditorUtils.parseIdList = function (str) {
     });
 };
 
+// Admin scripts are classic scripts and cannot import the ES module
+// frontend/assets/js/utils/escape-html.js, so this is the admin's one escaper
+// (JS-6). It must produce the same output as that module; the test in
+// admin/tests/admin-editor-utils.test.js compares the two.
+var ESCAPE_MAP = {
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  '"': "&quot;",
+  "'": "&#x27;",
+};
+
 /**
- * Escape a string for safe interpolation into an HTML attribute/text
- * position. Null/undefined are treated as empty string.
+ * Escape a value for HTML text content and quoted attributes. Never use it
+ * for a URL, an inline script or a style. Null/undefined give an empty
+ * string; other non-strings are converted to strings first.
  *
- * @param {string} val
+ * @param {*} val
  * @returns {string}
  */
 AdminEditorUtils.esc = function (val) {
-  return (val || "")
-    .replace(/&/g, "&amp;")
-    .replace(/"/g, "&quot;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
+  var str = typeof val === "string" ? val : String(val == null ? "" : val);
+  return str.replace(/[&<>"']/g, function (c) {
+    return ESCAPE_MAP[c];
+  });
 };
+
+// Must equal SLUG_PATTERN in api/lib/journal-field-validation.js, which
+// rejects any slug this pattern rejects. If the two differ, the form accepts a
+// slug that the API then refuses.
+AdminEditorUtils.SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 /**
  * Clear the form-level error banner and any per-field error state.
@@ -68,18 +86,25 @@ AdminEditorUtils.clearErrors = function (formError, fields) {
 
 /**
  * Clear errors, then validate that every field in `fields` is non-blank.
- * Mirrors the title/slug "required" validation duplicated in every editor.
+ * A field with `slug: true` must also match SLUG_PATTERN.
  *
  * @param {HTMLElement} formError
- * @param {Array<{input: HTMLElement, errEl: HTMLElement, label: string}>} fields
+ * @param {Array<{input: HTMLElement, errEl: HTMLElement, label: string, slug?: boolean}>} fields
  * @returns {boolean} true if every field is valid
  */
 AdminEditorUtils.validate = function (formError, fields) {
   AdminEditorUtils.clearErrors(formError, fields);
   var valid = true;
   (fields || []).forEach(function (field) {
-    if (!field.input.value.trim()) {
-      field.errEl.textContent = field.label + " is required.";
+    var value = field.input.value.trim();
+    var message = "";
+    if (!value) {
+      message = field.label + " is required.";
+    } else if (field.slug && !AdminEditorUtils.SLUG_PATTERN.test(value)) {
+      message = field.label + " must be lowercase letters, numbers, and hyphens.";
+    }
+    if (message) {
+      field.errEl.textContent = message;
       field.errEl.style.display = "block";
       field.input.classList.add("admin-input--error");
       valid = false;
@@ -171,9 +196,8 @@ AdminEditorUtils.mountFigureCaptionsPanel = function (containerEl, textareaId) {
 /**
  * Build the "Bibliography" card (title + mount point) and mount
  * AdminMlaSources into it, seeded from this record's existing MLA source
- * links. Always reads `link.id` — this is the field the mla_source_id ->
- * id regression bug got wrong in all five editors, so baking the correct
- * read in here means it can only ever be broken once, not five times.
+ * links. Always reads `link.id`, the field the API returns for a linked MLA
+ * source, so no editor reads a different key.
  *
  * @param {HTMLElement} containerEl   element to append the Bibliography card to
  * @param {Array<{id: number}>} mlaSources  the record's existing mla_sources links

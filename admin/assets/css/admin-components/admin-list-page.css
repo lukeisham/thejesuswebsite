@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    Admin List-Page Furniture (CSS-1)
-   Rules duplicated byte-for-byte across the inline <style> blocks of the
+   Loading, empty and error states, section titles and row links shared by the
    admin list pages (dashboard, blog, debate, essays, historiography,
    collections, identifiers, news, wikipedia, evidence bulk).
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -20,7 +20,14 @@
 
 .admin-section-title {
     font-size: 1rem;
-    font-weight: 600;
+    font-weight: var(--admin-font-weight-semibold);
     color: var(--admin-text-primary);
     margin-bottom: var(--space-md);
+}
+
+/* Title link in a list-page table row. */
+.admin-list-link {
+    color: var(--admin-accent);
+    text-decoration: none;
+    font-weight: var(--admin-font-weight-medium);
 }

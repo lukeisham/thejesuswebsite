@@ -191,8 +191,7 @@
                         link.href = "edit-[id].html?id=" + e.id;
                         link.textContent =
                             e.essay_title || e.slug || "(untitled)";
-                        link.style.cssText =
-                            "color:var(--admin-accent);text-decoration:none;font-weight:500;";
+                        link.className = "admin-list-link";
                         tdTitle.appendChild(link);
                         tr.appendChild(tdTitle);
 

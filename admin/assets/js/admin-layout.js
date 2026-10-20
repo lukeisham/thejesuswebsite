@@ -1,7 +1,7 @@
-// Shared admin-shell sidebar/topbar builder, extracted out of the five
-// record editors (evidence, essays, blog, debate/responses, historiography)
-// where the nav markup was duplicated verbatim except for which item is
-// active. Built via DOM factories (JS-6) — no innerHTML with computed data.
+// Builds the admin-shell sidebar and topbar for the record edit pages. The nav
+// markup is the same on every page except which item is active, so it is built
+// here from one table. Built via DOM factories (JS-6) — no innerHTML with
+// computed data.
 //
 // Used by: admin/{evidence,essays,blog,debate,historiography}/edit-[id].html
 
