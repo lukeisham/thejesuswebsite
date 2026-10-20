@@ -9,6 +9,7 @@ import { getBlogPosts } from './api.js';
 import { showToast } from './utils/toasts.js';
 import { delegate } from './utils/dom.js';
 import { renderExcerpt } from './utils/excerpt.js';
+import { formatDateShort } from './utils/date-format.js';
 
 const SENTINEL_ID = 'scroll-sentinel';
 const CARD_GRID_ID = 'card-grid';
@@ -22,7 +23,9 @@ const PAGE_SIZE = 20;
 const SCROLL_THRESHOLD = 300;
 
 // Versioned key: excerpts are rendered via innerHTML, so a cache written in an
-// older plain-text format must never be read under this key.
+// older plain-text format must never be read under this key. The entry holds
+// the items with the paging state; a bare array is the older format without
+// paging state, and restoreFromCache() discards it.
 const STORAGE_KEY_ITEMS = 'blog_list_items_v2';
 const STORAGE_KEY_SCROLL = 'blog_list_scroll';
 
@@ -56,75 +59,55 @@ function hideAllStates() {
   [$loading, $empty, $error, $end].forEach((el) => el && (el.hidden = true));
 }
 
-// ─── Helpers (JS-2: validated input) ──────────────────────────────────────────
-
-function formatDate(dateStr) {
-  if (!dateStr) return '';
-  const date = new Date(dateStr);
-  if (Number.isNaN(date.getTime())) {
-    console.warn('blog-list formatDate: unparseable date', dateStr);
-    return '';
-  }
-  return date.toLocaleDateString('en-GB', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
-}
-
 // ─── Data fetching (JS-5: async/await, centralized fetch) ─────────────────────
 
 // Called by loadPage inside its try/catch, so a bad record shows the error
-// state instead of leaving the loading state on screen.
+// state instead of leaving the loading state on screen. `data` is the
+// { items, totalPages } envelope the API sends when page and limit are given.
 function handleLoadedPosts(data) {
-  if (!data || data.length === 0) {
+  const posts = data?.items ?? [];
+
+  if (posts.length === 0) {
     if (allItems.length === 0) {
       showState('empty');
     } else {
       hasMore = false;
       $sentinel && ($sentinel.hidden = true);
-      showState('end');
-      const total = allItems.length;
-      if ($end) $end.textContent = `All ${total} post${total !== 1 ? 's' : ''} loaded`;
+      showEndOfList();
     }
     return;
   }
 
-  const normalized = data.map((post) => ({
+  // The list rows carry a prefix of blog_content, which is all renderExcerpt
+  // needs for a 150-character excerpt.
+  const pageItems = posts.map((post) => ({
     ...post,
     _title: post.blog_title,
     _date: post.blog_date || post.created_at,
     _excerpt: renderExcerpt(post.blog_content, 150),
   }));
 
-  const start = (currentPage - 1) * PAGE_SIZE;
-  const pageItems = normalized.slice(start, start + PAGE_SIZE);
-
-  if (pageItems.length === 0) {
-    hasMore = false;
-    $sentinel && ($sentinel.hidden = true);
-    showState('end');
-    const total = allItems.length;
-    if ($end) $end.textContent = `All ${total} post${total !== 1 ? 's' : ''} loaded`;
-    return;
-  }
-
   allItems = [...allItems, ...pageItems];
   renderCards(pageItems);
+
+  hasMore = currentPage < data.totalPages;
+  if (hasMore) currentPage++;
   cacheItems();
 
-  if (pageItems.length < PAGE_SIZE || start + pageItems.length >= data.length) {
-    hasMore = false;
+  if (!hasMore) {
     $sentinel && ($sentinel.hidden = true);
-    showState('end');
-    const total = allItems.length;
-    if ($end) $end.textContent = `All ${total} post${total !== 1 ? 's' : ''} loaded`;
+    showEndOfList();
   } else {
-    currentPage++;
     hideAllStates();
     $sentinel && ($sentinel.hidden = false);
     if (observer && $sentinel) observer.observe($sentinel);
   }
+}
+
+function showEndOfList() {
+  showState('end');
+  const total = allItems.length;
+  if ($end) $end.textContent = `All ${total} post${total !== 1 ? 's' : ''} loaded`;
 }
 
 async function loadPage() {
@@ -132,7 +115,10 @@ async function loadPage() {
   isLoading = true;
   showState('loading');
 
-  const { data, error } = await getBlogPosts();
+  const { data, error } = await getBlogPosts({
+    page: currentPage,
+    limit: PAGE_SIZE,
+  });
 
   isLoading = false;
 
@@ -191,7 +177,7 @@ function renderCards(items) {
     if (item._date) {
       const meta = document.createElement('p');
       meta.className = 'news-blog-row-meta';
-      meta.textContent = formatDate(item._date);
+      meta.textContent = formatDateShort(item._date);
       body.appendChild(meta);
     }
 
@@ -233,7 +219,10 @@ function initInfiniteScroll() {
 
 function cacheItems() {
   try {
-    sessionStorage.setItem(STORAGE_KEY_ITEMS, JSON.stringify(allItems));
+    sessionStorage.setItem(
+      STORAGE_KEY_ITEMS,
+      JSON.stringify({ items: allItems, currentPage, hasMore }),
+    );
     sessionStorage.setItem(STORAGE_KEY_SCROLL, String(window.scrollY));
   } catch { /* quota exceeded — non-critical */ }
 }
@@ -249,20 +238,30 @@ function restoreFromCache() {
   try {
     const cached = sessionStorage.getItem(STORAGE_KEY_ITEMS);
     if (cached) {
-      allItems = JSON.parse(cached);
-      hasMore = false;
-      $sentinel && ($sentinel.hidden = true);
+      const state = JSON.parse(cached);
+      if (!Array.isArray(state?.items) || !Number.isInteger(state.currentPage)) {
+        clearCachedItems();
+        return false;
+      }
+      allItems = state.items;
+      currentPage = state.currentPage;
+      hasMore = state.hasMore === true;
       if ($grid) $grid.innerHTML = '';
       renderCards(allItems);
-      showState('end');
-      const total = allItems.length;
-      if ($end) $end.textContent = `All ${total} post${total !== 1 ? 's' : ''} loaded`;
+      if (hasMore) {
+        hideAllStates();
+        $sentinel && ($sentinel.hidden = false);
+      } else {
+        $sentinel && ($sentinel.hidden = true);
+        showEndOfList();
+      }
       return true;
     }
   } catch (err) {
     console.warn('blog-list restoreFromCache: discarding unreadable cache', err);
     clearCachedItems();
     allItems = [];
+    currentPage = 1;
     hasMore = true;
   }
   return false;

@@ -1,9 +1,6 @@
-// Shared model helpers — pure functions extracted from duplicated logic across
-// the 18 model files (JS-3: keep each function small and single-purpose; DRY
-// without abstraction frameworks).
-//
-// Every function here is a drop-in replacement for the inline code that
-// existed in each model before extraction. Behavior must be byte-identical.
+// Shared model helpers used by the files in models/: whitelisted writes, unique
+// slugs, bounded public lists and the per-database statement cache. Each function
+// is small and single-purpose so that no model repeats the logic (SR-4).
 
 const ERRORS = require("../lib/error-codes");
 
@@ -20,6 +17,41 @@ const SLUG_UNIQUE_TABLES = new Set([
   "wikipedia_articles",
   "collections",
 ]);
+
+// One statement cache per database object. Keying on the db means a test (or
+// any caller) that hands a model a different database never gets a statement
+// compiled against the old one: tests replace `../config` through
+// Module._cache with their own in-memory db, and a statement from another db
+// would read the wrong data.
+const statementCaches = new WeakMap();
+
+/**
+ * Prepare `sql` once per database and return the same compiled statement on
+ * every later call (SQL-1). better-sqlite3 compiles on every `db.prepare()`,
+ * so the public list and detail reads call this instead.
+ *
+ * Compiles on first use, never at require time: route and guard tests load a
+ * model against a partial in-memory schema, where an eager prepare() throws.
+ * `sql` must come from a bounded set of fixed strings (SQL-2, SQL-4): every
+ * distinct string stays in the cache for the life of the database.
+ *
+ * @param {object} db  - better-sqlite3 database instance.
+ * @param {string} sql - Fixed SQL text with `?` placeholders for values.
+ * @returns {object} The better-sqlite3 Statement.
+ */
+function cachedStatement(db, sql) {
+  let cache = statementCaches.get(db);
+  if (!cache) {
+    cache = new Map();
+    statementCaches.set(db, cache);
+  }
+  let statement = cache.get(sql);
+  if (!statement) {
+    statement = db.prepare(sql);
+    cache.set(sql, statement);
+  }
+  return statement;
+}
 
 /**
  * Keep only whitelisted columns from an arbitrary input object.
@@ -128,14 +160,14 @@ function runUpdate(db, table, row, id) {
 
 /**
  * Shared bounded-list pattern for public `getAllPublished`-style model
- * functions (API-8). Extracted from evidence.model.js's original inline
- * implementation so every list endpoint clamps its response the same way
- * instead of copy-pasting the logic (SR-4).
+ * functions (API-8). Every list endpoint clamps its response the same way
+ * through this one function (SR-4).
  *
  * No `page`/`limit` in `options` → runs `itemsSql` unmodified and returns a
  * flat array (backward compatible with every existing caller). `page`/`limit`
  * given → validates `page`, clamps `limit` to 1–100, and returns
- * `{ items, total, page, limit, totalPages }`.
+ * `{ items, total, page, limit, totalPages }`. Statements come from
+ * cachedStatement(), so `itemsSql` and `countSql` must be fixed strings.
  *
  * @param {object} db        - better-sqlite3 database instance.
  * @param {string} itemsSql  - SELECT statement (no LIMIT/OFFSET) for the page of rows.
@@ -151,7 +183,7 @@ function paginate(db, itemsSql, countSql, params, options = {}) {
   const { page, limit } = options;
 
   if (page === undefined && limit === undefined) {
-    return db.prepare(itemsSql).all(...params);
+    return cachedStatement(db, itemsSql).all(...params);
   }
 
   let pageNum = 1;
@@ -167,11 +199,13 @@ function paginate(db, itemsSql, countSql, params, options = {}) {
 
   const limitNum = Math.min(Math.max(Number(limit) || 20, 1), 100);
 
-  const { total } = db.prepare(countSql).get(...params);
+  const { total } = cachedStatement(db, countSql).get(...params);
   const offset = (pageNum - 1) * limitNum;
-  const items = db
-    .prepare(`${itemsSql} LIMIT ? OFFSET ?`)
-    .all(...params, limitNum, offset);
+  const items = cachedStatement(db, `${itemsSql} LIMIT ? OFFSET ?`).all(
+    ...params,
+    limitNum,
+    offset,
+  );
 
   return {
     items,
@@ -188,4 +222,5 @@ module.exports = {
   runUpdate,
   validateSlug,
   paginate,
+  cachedStatement,
 };

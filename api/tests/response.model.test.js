@@ -661,3 +661,34 @@ describe("response.model: createComposite atomicity", () => {
     assert.equal(fetched.breakouts.length, 2, "breakouts should persist");
   });
 });
+
+// ── Named-column reads (SQL-9) ──────────────────────────────────────────────
+
+describe("response.model: named-column reads return every table column", () => {
+  beforeEach(clearTables);
+
+  // A column added to schema.sql but missing from the model's column list
+  // would silently drop out of every read.
+  const tableColumns = () =>
+    testDb.prepare("PRAGMA table_info(responses)").all().map((col) => col.name).sort();
+
+  test("getAllPublished, getByChallenge, getBySlug and getById return exactly the table columns", () => {
+    const created = seedMinimalResponse({ slug: "named-columns" });
+    const expected = tableColumns();
+
+    assert.deepEqual(Object.keys(responseModel.getAllPublished()[0]).sort(), expected);
+    assert.deepEqual(Object.keys(responseModel.getByChallenge(created.challenge_id)[0]).sort(), expected);
+    assert.deepEqual(Object.keys(responseModel.getBySlug("named-columns")).sort(), expected);
+    assert.deepEqual(Object.keys(responseModel.getById(created.id)).sort(), expected);
+  });
+
+  test("getDetailBySlug keeps the challenge join columns next to the response columns", () => {
+    seedMinimalResponse({ slug: "detail-columns" });
+    const detail = responseModel.getDetailBySlug("detail-columns");
+
+    for (const column of tableColumns()) assert.ok(column in detail, `missing ${column}`);
+    assert.equal(detail.challenge_title, "Test Challenge");
+    assert.equal(detail.challenge_slug, "challenge-1");
+    assert.ok("challenge_type" in detail);
+  });
+});

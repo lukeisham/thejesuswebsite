@@ -15,6 +15,7 @@ const {
   generateUniqueSlug,
   runUpdate,
   paginate,
+  cachedStatement,
 } = require("./model-helpers");
 
 // Columns the admin is allowed to write. Listed explicitly so a stray field in
@@ -36,6 +37,20 @@ const WRITABLE_COLUMNS = [
   "historiography_period",
   "period_sort_order",
 ];
+
+// Public list rows carry only what frontend/assets/js/historiography-list.js
+// renders, plus the period fields the list is grouped and ordered by. The body
+// and the other columns are on the detail read (SR-3, API-8).
+const LIST_COLUMNS = [
+  "id",
+  "slug",
+  "essay_title",
+  "essay_author",
+  "historiography_period",
+  "period_sort_order",
+  "created_at",
+  "updated_at",
+].join(", ");
 
 /**
  * Map DB-native column names to the names the frontend JS expects. Admin
@@ -68,7 +83,8 @@ function normalizeForPublic(item) {
 
 /**
  * Published historiography essays for the public site, grouped by period
- * (period_sort_order ascending), newest first within a period.
+ * (period_sort_order ascending), newest first within a period. Rows hold
+ * LIST_COLUMNS only, without the body; the full essay is on getDetailBySlug().
  *
  * When `page` and `limit` are provided, returns a paginated response:
  *   { items: [...], total: N, page: N, limit: N, totalPages: N }
@@ -76,8 +92,7 @@ function normalizeForPublic(item) {
  */
 function getAllPublished(filters = {}) {
   const { page, limit } = filters;
-  const itemsSql =
-    "SELECT * FROM historiography WHERE published_draft = 1 ORDER BY period_sort_order ASC, created_at DESC";
+  const itemsSql = `SELECT ${LIST_COLUMNS} FROM historiography WHERE published_draft = 1 ORDER BY period_sort_order ASC, created_at DESC`;
   const countSql =
     "SELECT COUNT(*) AS total FROM historiography WHERE published_draft = 1";
   const result = paginate(db, itemsSql, countSql, [], { page, limit });
@@ -90,11 +105,10 @@ function getAllPublished(filters = {}) {
  * Single published historiography essay by its public slug, or undefined if not found.
  */
 function getBySlug(slug) {
-  return db
-    .prepare(
-      "SELECT * FROM historiography WHERE slug = ? AND published_draft = 1",
-    )
-    .get(slug);
+  return cachedStatement(
+    db,
+    "SELECT * FROM historiography WHERE slug = ? AND published_draft = 1",
+  ).get(slug);
 }
 
 /**

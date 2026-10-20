@@ -5,7 +5,7 @@
 const { test, describe, beforeEach } = require("node:test");
 const assert = require("node:assert/strict");
 const { createTestDb } = require("./helpers/db");
-const { pickWritable, generateUniqueSlug, runUpdate, paginate } = require("../models/model-helpers");
+const { pickWritable, generateUniqueSlug, runUpdate, paginate, cachedStatement } = require("../models/model-helpers");
 const ERRORS = require("../lib/error-codes");
 
 const WRITABLE = ["slug", "title", "content", "published_draft"];
@@ -227,5 +227,33 @@ describe("paginate", () => {
         return true;
       },
     );
+  });
+});
+
+// ── cachedStatement() ─────────────────────────────────────────────────────────
+
+describe("cachedStatement", () => {
+  const SQL = "SELECT COUNT(*) AS total FROM collections";
+
+  test("returns the same compiled statement for the same db and sql", () => {
+    const db = createTestDb();
+    assert.equal(cachedStatement(db, SQL), cachedStatement(db, SQL));
+  });
+
+  test("a different database gets its own statement and reads its own data", () => {
+    const first = createTestDb();
+    const second = createTestDb();
+    first.prepare("INSERT INTO collections (slug, title) VALUES ('a', 'A')").run();
+
+    assert.equal(cachedStatement(first, SQL).get().total, 1);
+    assert.notEqual(cachedStatement(first, SQL), cachedStatement(second, SQL));
+    assert.equal(cachedStatement(second, SQL).get().total, 0);
+  });
+
+  test("a statement that fails to compile throws and is not cached", () => {
+    const db = createTestDb();
+    assert.throws(() => cachedStatement(db, "SELECT * FROM no_such_table"), /no such table/);
+    db.exec("CREATE TABLE no_such_table (id INTEGER)");
+    assert.ok(cachedStatement(db, "SELECT * FROM no_such_table"));
   });
 });

@@ -15,6 +15,7 @@ const {
   generateUniqueSlug,
   runUpdate,
   paginate,
+  cachedStatement,
 } = require("./model-helpers");
 
 /**
@@ -124,14 +125,13 @@ function getAllPublished(filters = {}) {
 
 /** Single published item by its public slug, or undefined if not found. */
 function getBySlug(slug) {
-  return db
-    .prepare("SELECT * FROM evidence WHERE slug = ? AND published_draft = 1")
+  return cachedStatement(db, "SELECT * FROM evidence WHERE slug = ? AND published_draft = 1")
     .get(slug);
 }
 
 /** Single item by id regardless of publish state — for the admin panel. */
 function getById(id) {
-  return db.prepare("SELECT * FROM evidence WHERE id = ?").get(id);
+  return cachedStatement(db, "SELECT * FROM evidence WHERE id = ?").get(id);
 }
 
 /**

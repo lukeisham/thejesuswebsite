@@ -8,6 +8,7 @@ const {
   generateUniqueSlug,
   runUpdate,
   paginate,
+  cachedStatement,
 } = require("./model-helpers");
 const { getChildren, replaceChildren } = require("./relations/child-rows");
 const {
@@ -41,19 +42,17 @@ const ALL_COLUMNS = ["id", ...WRITABLE_COLUMNS, "created_at", "updated_at"].join
   ", ",
 );
 
-// SQL-1: fixed-SQL statements compile once, on first use. Lazy rather than at
-// require time because route and guard tests load this module against a
-// partial in-memory schema, where an eager prepare() would throw.
-const statements = new Map();
-
-function cachedStatement(name, sql) {
-  let stmt = statements.get(name);
-  if (!stmt) {
-    stmt = db.prepare(sql);
-    statements.set(name, stmt);
-  }
-  return stmt;
-}
+// Public list rows carry only what frontend/assets/js/essays-list.js renders
+// (title, author, slug, date). The body and the other columns are on the
+// detail read (SR-3, API-8).
+const LIST_COLUMNS = [
+  "id",
+  "slug",
+  "essay_title",
+  "essay_author",
+  "created_at",
+  "updated_at",
+].join(", ");
 
 /**
  * Map DB-native column names to the names the frontend JS expects. Admin
@@ -91,13 +90,14 @@ function normalizeForPublic(item) {
  */
 function getAllAdmin() {
   return cachedStatement(
-    "selectAllAdmin",
+    db,
     `SELECT ${ALL_COLUMNS} FROM context_essays ORDER BY created_at DESC`,
   ).all();
 }
 
 /**
- * Published essays for the public site, newest first.
+ * Published essays for the public site, newest first. Rows hold LIST_COLUMNS
+ * only, without the body; the full essay is on getDetailBySlug().
  *
  * When `page` and `limit` are provided, returns a paginated response:
  *   { items: [...], total: N, page: N, limit: N, totalPages: N }
@@ -108,7 +108,7 @@ function getAllAdmin() {
  */
 function getAllPublished(filters = {}) {
   const { page, limit } = filters;
-  const itemsSql = `SELECT ${ALL_COLUMNS} FROM context_essays WHERE published_draft = 1 ORDER BY created_at DESC`;
+  const itemsSql = `SELECT ${LIST_COLUMNS} FROM context_essays WHERE published_draft = 1 ORDER BY created_at DESC`;
   const countSql = `SELECT COUNT(*) AS total FROM context_essays WHERE published_draft = 1`;
   const result = paginate(db, itemsSql, countSql, [], { page, limit });
 
@@ -124,7 +124,7 @@ function getAllPublished(filters = {}) {
  */
 function getBySlug(slug) {
   return cachedStatement(
-    "selectPublishedBySlug",
+    db,
     `SELECT ${ALL_COLUMNS} FROM context_essays WHERE slug = ? AND published_draft = 1`,
   ).get(slug);
 }
@@ -137,7 +137,7 @@ function getBySlug(slug) {
  */
 function getById(id) {
   return cachedStatement(
-    "selectById",
+    db,
     `SELECT ${ALL_COLUMNS} FROM context_essays WHERE id = ?`,
   ).get(id);
 }
@@ -439,7 +439,7 @@ function updateComposite(id, data) {
  */
 function remove(id) {
   const result = cachedStatement(
-    "deleteById",
+    db,
     "DELETE FROM context_essays WHERE id = ?",
   ).run(id);
   return result.changes > 0;

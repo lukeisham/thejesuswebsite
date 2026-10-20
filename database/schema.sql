@@ -709,6 +709,9 @@ CREATE INDEX idx_evidence_map_location     ON evidence (map_location);
 CREATE INDEX idx_blog_posts_published         ON blog_posts (published_draft, created_at);
 CREATE INDEX idx_historiography_published     ON historiography (published_draft, period_sort_order, created_at);
 CREATE INDEX idx_context_essays_published     ON context_essays (published_draft, created_at);
+-- Admin lists sort every row by created_at with no WHERE clause
+CREATE INDEX idx_blog_posts_created_at        ON blog_posts (created_at);
+CREATE INDEX idx_context_essays_created_at    ON context_essays (created_at);
 CREATE INDEX idx_responses_published          ON responses (published_draft, created_at);
 CREATE INDEX idx_challenges_published         ON challenges (published_draft, academic_popular, challenge_rank_number);
 CREATE INDEX idx_wikipedia_articles_published ON wikipedia_articles (published_draft, wikipedia_article_rank_number);

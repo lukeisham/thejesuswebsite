@@ -8,6 +8,7 @@ const {
   generateUniqueSlug,
   runUpdate,
   paginate,
+  cachedStatement,
 } = require("./model-helpers");
 const { getChildren, replaceChildren } = require("./relations/child-rows");
 const {
@@ -37,8 +38,13 @@ const WRITABLE_COLUMNS = [
   "strength",
 ];
 
-// Compiled on first use (SQL-1); see getDetailBySlug().
-let publishedWithChallengeStatement;
+// SQL-9: named columns instead of SELECT * — the full WRITABLE_COLUMNS set
+// plus id and the timestamps, which is every column of the table.
+const ALL_COLUMN_NAMES = ["id", ...WRITABLE_COLUMNS, "created_at", "updated_at"];
+const ALL_COLUMNS = ALL_COLUMN_NAMES.join(", ");
+
+// The same list qualified with the `r` alias that getDetailBySlug() joins on.
+const ALL_COLUMNS_ALIASED = ALL_COLUMN_NAMES.map((name) => `r.${name}`).join(", ");
 
 /**
  * Published responses for the public site, optionally narrowed to one challenge.
@@ -56,7 +62,7 @@ function getAllPublished(filters = {}) {
   }
 
   const whereClause = conditions.join(" AND ");
-  const itemsSql = `SELECT * FROM responses WHERE ${whereClause} ORDER BY created_at ASC`;
+  const itemsSql = `SELECT ${ALL_COLUMNS} FROM responses WHERE ${whereClause} ORDER BY created_at ASC`;
   const countSql = `SELECT COUNT(*) AS total FROM responses WHERE ${whereClause}`;
 
   return paginate(db, itemsSql, countSql, params, { page, limit });
@@ -67,27 +73,29 @@ function getAllPublished(filters = {}) {
  * Returns responses ordered by creation (oldest first, typically).
  */
 function getByChallenge(challengeId) {
-  return db
-    .prepare(
-      "SELECT * FROM responses WHERE challenge_id = ? AND published_draft = 1 ORDER BY created_at ASC",
-    )
-    .all(challengeId);
+  return cachedStatement(
+    db,
+    `SELECT ${ALL_COLUMNS} FROM responses WHERE challenge_id = ? AND published_draft = 1 ORDER BY created_at ASC`,
+  ).all(challengeId);
 }
 
 /**
  * Single published response by its public slug, or undefined if not found.
  */
 function getBySlug(slug) {
-  return db
-    .prepare("SELECT * FROM responses WHERE slug = ? AND published_draft = 1")
-    .get(slug);
+  return cachedStatement(
+    db,
+    `SELECT ${ALL_COLUMNS} FROM responses WHERE slug = ? AND published_draft = 1`,
+  ).get(slug);
 }
 
 /**
  * Single response by id regardless of publish state — for admin.
  */
 function getById(id) {
-  return db.prepare("SELECT * FROM responses WHERE id = ?").get(id);
+  return db
+    .prepare(`SELECT ${ALL_COLUMNS} FROM responses WHERE id = ?`)
+    .get(id);
 }
 
 /**
@@ -129,14 +137,14 @@ function addPublicNames(detail) {
  * published challenges, so a draft challenge yields null fields and no link.
  */
 function getDetailBySlug(slug) {
-  publishedWithChallengeStatement ??= db.prepare(
-    `SELECT r.*, c.challenge_title, c.slug AS challenge_slug,
+  const response = cachedStatement(
+    db,
+    `SELECT ${ALL_COLUMNS_ALIASED}, c.challenge_title, c.slug AS challenge_slug,
             c.academic_popular AS challenge_type
      FROM responses r
      LEFT JOIN challenges c ON c.id = r.challenge_id AND c.published_draft = 1
      WHERE r.slug = ? AND r.published_draft = 1`,
-  );
-  const response = publishedWithChallengeStatement.get(slug);
+  ).get(slug);
   if (!response) return undefined;
   return addPublicNames(assembleDetail(response));
 }

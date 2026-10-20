@@ -453,14 +453,13 @@ describe("historiography.model: detail assembly", () => {
 describe("historiography.model: metadata_keywords normalization", () => {
   beforeEach(clearTable);
 
-  test("getAllPublished parses metadata_keywords into array", () => {
+  test("getDetailBySlug parses metadata_keywords into array", () => {
     seedMinimalHistoriography({
       published_draft: 1,
       metadata_keywords: "jesus, resurrection, faith",
     });
 
-    const results = historiographyModel.getAllPublished();
-    const keywords = results[0].keywords;
+    const keywords = historiographyModel.getDetailBySlug("test-essay").keywords;
     assert.deepEqual(keywords, ["jesus", "resurrection", "faith"]);
   });
 
@@ -470,7 +469,25 @@ describe("historiography.model: metadata_keywords normalization", () => {
       metadata_keywords: null,
     });
 
-    const results = historiographyModel.getAllPublished();
-    assert.deepEqual(results[0].keywords, []);
+    const detail = historiographyModel.getDetailBySlug("test-essay");
+    assert.deepEqual(detail.keywords, []);
+  });
+
+  test("getAllPublished rows carry the list fields and no body", () => {
+    seedMinimalHistoriography({ published_draft: 1, essay_content: "Long body" });
+
+    // Compared as sent over HTTP: undefined-valued keys are dropped.
+    const [row] = JSON.parse(JSON.stringify(historiographyModel.getAllPublished()));
+    assert.deepEqual(Object.keys(row).sort(), [
+      "author",
+      "created_at",
+      "historiography_period",
+      "id",
+      "keywords",
+      "period_sort_order",
+      "slug",
+      "title",
+      "updated_at",
+    ]);
   });
 });

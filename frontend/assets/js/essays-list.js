@@ -21,6 +21,9 @@ const RETRY_ID = "retry-load";
 const PAGE_SIZE = 20;
 const SCROLL_THRESHOLD = 300;
 
+// One entry holds the items with the paging state, so a restored list can keep
+// loading where it stopped. An entry that is a bare array is the older format
+// without paging state; restoreFromCache() discards it.
 const STORAGE_KEY_ITEMS = "essays_list_items";
 const STORAGE_KEY_SCROLL = "essays_list_scroll";
 
@@ -92,14 +95,15 @@ async function loadPage() {
 
   allItems = [...allItems, ...pageItems];
   renderCards(pageItems);
+
+  hasMore = currentPage < data.totalPages;
+  if (hasMore) currentPage++;
   cacheItems();
 
-  if (currentPage >= data.totalPages) {
-    hasMore = false;
+  if (!hasMore) {
     $sentinel && ($sentinel.hidden = true);
     showState("end");
   } else {
-    currentPage++;
     hideAllStates();
     $sentinel && ($sentinel.hidden = false);
     if (observer && $sentinel) observer.observe($sentinel);
@@ -170,7 +174,10 @@ function initInfiniteScroll() {
 
 function cacheItems() {
   try {
-    sessionStorage.setItem(STORAGE_KEY_ITEMS, JSON.stringify(allItems));
+    sessionStorage.setItem(
+      STORAGE_KEY_ITEMS,
+      JSON.stringify({ items: allItems, currentPage, hasMore }),
+    );
     sessionStorage.setItem(STORAGE_KEY_SCROLL, String(window.scrollY));
   } catch {
     /* quota exceeded — non-critical */
@@ -190,12 +197,23 @@ function restoreFromCache() {
   try {
     const cached = sessionStorage.getItem(STORAGE_KEY_ITEMS);
     if (cached) {
-      allItems = JSON.parse(cached);
-      hasMore = false;
-      $sentinel && ($sentinel.hidden = true);
+      const state = JSON.parse(cached);
+      if (!Array.isArray(state?.items) || !Number.isInteger(state.currentPage)) {
+        clearCachedItems();
+        return false;
+      }
+      allItems = state.items;
+      currentPage = state.currentPage;
+      hasMore = state.hasMore === true;
       if ($grid) $grid.innerHTML = "";
       renderCards(allItems);
-      showState("end");
+      if (hasMore) {
+        hideAllStates();
+        $sentinel && ($sentinel.hidden = false);
+      } else {
+        $sentinel && ($sentinel.hidden = true);
+        showState("end");
+      }
       return true;
     }
   } catch (err) {

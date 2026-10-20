@@ -1,13 +1,12 @@
 /**
  * Safe date formatting utilities for the frontend.
  *
- * Every function here guarantees a string return value (never "Invalid Date"),
- * so callers can interpolate the result directly into DOM content without
- * conditional checks.
- *
- * These replace the ad-hoc `new Date(x).toLocaleDateString(...)` patterns
- * scattered across ~10 frontend files that currently produce "Invalid Date"
- * in the UI when the input is null, undefined, or un-parseable.
+ * Every function here returns a string and never "Invalid Date", so a caller
+ * can put the result straight into DOM content. Use these instead of
+ * `new Date(x).toLocaleDateString(...)`, which prints "Invalid Date" for a
+ * null or un-parseable input. Imported by essay-detail.js, response-detail.js,
+ * blog-detail.js, about.js and blog-list.js; changing a format changes every
+ * page that imports it.
  *
  * @module utils/date-format
  */
@@ -44,32 +43,34 @@ export function formatDate(iso, fallback = "\u2014") {
 }
 
 /**
- * Format an ISO 8601 date string into a short-form date (e.g. "15/03/2024").
- * Handles the same edge cases as `formatDate`.
+ * Format an ISO 8601 date string into an abbreviated-month date for list
+ * cards, e.g. "15 Mar 2024". Unlike `formatDate`, a missing or un-parseable
+ * date gives an empty string by default, so a card can leave its date line out;
+ * an un-parseable string also logs a warning (JS-2). Uses en-GB, not en-NZ,
+ * to keep the blog list's existing look.
  *
  * @param {string|null|undefined} iso           - ISO 8601 date string.
- * @param {string}                [fallback="—"] - Returned for invalid/missing dates.
+ * @param {string}                [fallback=""] - Returned for invalid/missing dates.
  * @returns {string} Short formatted date or fallback.
  *
  * @example
- * formatDateShort("2024-03-15")  // "15/03/2024"
- * formatDateShort(null)          // "—"
+ * formatDateShort("2024-03-15T12:00:00Z")  // "15 Mar 2024"
+ * formatDateShort(null)                    // ""
  */
-export function formatDateShort(iso, fallback = "\u2014") {
+export function formatDateShort(iso, fallback = "") {
   if (typeof iso !== "string" || iso.length === 0) return fallback;
 
   const date = new Date(iso);
-  if (isNaN(date.getTime())) return fallback;
-
-  try {
-    return new Intl.DateTimeFormat("en-NZ", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    }).format(date);
-  } catch {
+  if (isNaN(date.getTime())) {
+    console.warn("formatDateShort: unparseable date", iso);
     return fallback;
   }
+
+  return new Intl.DateTimeFormat("en-GB", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  }).format(date);
 }
 
 /**

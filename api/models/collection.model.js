@@ -3,7 +3,7 @@
 // No HTTP concerns in this file: no req, no res, no status codes.
 
 const db = require('../config');
-const { pickWritable, generateUniqueSlug, runUpdate, paginate } = require('./model-helpers');
+const { pickWritable, generateUniqueSlug, runUpdate, paginate, cachedStatement } = require('./model-helpers');
 
 // Columns the admin is allowed to write for collection creation/updates.
 const WRITABLE_COLUMNS = [
@@ -48,14 +48,12 @@ function getAllPublished(filters = {}) {
  * Single published collection by slug, with all evidence items, or undefined if not found.
  */
 function getBySlug(slug) {
-    const collection = db
-        .prepare('SELECT * FROM collections WHERE slug = ? AND published_draft = 1')
+    const collection = cachedStatement(db, 'SELECT * FROM collections WHERE slug = ? AND published_draft = 1')
         .get(slug);
 
     if (!collection) return undefined;
 
-    const evidence = db
-        .prepare(
+    const evidence = cachedStatement(db, 
             `
         SELECT
             e.id,

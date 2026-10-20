@@ -4,7 +4,7 @@
 
 const db = require("../config");
 const evidenceModel = require("./evidence.model");
-const { pickWritable, runUpdate } = require("./model-helpers");
+const { pickWritable, runUpdate, cachedStatement } = require("./model-helpers");
 const ERRORS = require("../lib/error-codes");
 
 // Columns the admin is allowed to write for arbor edge creation/updates.
@@ -112,7 +112,7 @@ function getAllEdges() {
         LEFT JOIN evidence t ON ae.target_id = t.id
         ORDER BY ae.sort_order, ae.created_at
     `;
-  return db.prepare(sql).all().map(parseEdgeRow);
+  return cachedStatement(db, sql).all().map(parseEdgeRow);
 }
 
 /**
@@ -181,7 +181,7 @@ function getById(id) {
         LEFT JOIN evidence t ON ae.target_id = t.id
         WHERE ae.id = ?
     `;
-  return parseEdgeRow(db.prepare(sql).get(id));
+  return parseEdgeRow(cachedStatement(db, sql).get(id));
 }
 
 /**
@@ -264,7 +264,10 @@ function getNodesAndEdges({ includeDrafts } = {}) {
   // (e.g. a holding-pen chip dropped standalone). Without this, such
   // nodes have an arbor_nodes row — so they leave the pen — but never
   // render on the canvas, becoming invisible "ghost" nodes.
-  const placedRows = db.prepare("SELECT evidence_id FROM arbor_nodes").all();
+  const placedRows = cachedStatement(
+    db,
+    "SELECT evidence_id FROM arbor_nodes",
+  ).all();
   for (const row of placedRows) {
     idSet.add(row.evidence_id);
   }

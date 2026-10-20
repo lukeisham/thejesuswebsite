@@ -9,7 +9,12 @@ const {
   getLinkedIdentifiers,
   replaceLinks,
 } = require("./relations/junctions");
-const { pickWritable, runUpdate, paginate } = require("./model-helpers");
+const {
+  pickWritable,
+  runUpdate,
+  paginate,
+  cachedStatement,
+} = require("./model-helpers");
 
 // Columns the admin is allowed to write. Listed explicitly so a stray field in
 // the request body can never reach the database (JS-2: predictable, no surprises).
@@ -33,7 +38,7 @@ const WRITABLE_COLUMNS = [
  * challenge_title → title, challenge_summary → summary,
  * challenge_body → body, mla_sources → bibliography.
  * Kept separate so the admin path (getAdminById) still returns raw keys
- * the Plan 03 editors expect.
+ * the admin editors expect.
  */
 function normalizeForPublic(row) {
   if (!row) return row;
@@ -139,8 +144,7 @@ function getAllAdmin() {
  * Single published academic challenge by slug, or undefined if not found.
  */
 function getBySlug(slug) {
-  return db
-    .prepare(
+  return cachedStatement(db, 
       "SELECT * FROM challenges WHERE slug = ? AND academic_popular = ? AND published_draft = 1",
     )
     .get(slug, "academic");

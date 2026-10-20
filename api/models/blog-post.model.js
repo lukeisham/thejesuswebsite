@@ -11,6 +11,7 @@ const {
   generateUniqueSlug,
   runUpdate,
   paginate,
+  cachedStatement,
 } = require("./model-helpers");
 const { getChildren, replaceChildren } = require("./relations/child-rows");
 const {
@@ -46,19 +47,24 @@ const ALL_COLUMNS = [
   "updated_at",
 ].join(", ");
 
-// SQL-1: fixed-SQL statements compile once, on first use. Lazy rather than at
-// require time because route and guard tests load this module against a
-// partial in-memory schema, where an eager prepare() would throw.
-const statements = new Map();
-
-function cachedStatement(name, sql) {
-  let stmt = statements.get(name);
-  if (!stmt) {
-    stmt = db.prepare(sql);
-    statements.set(name, stmt);
-  }
-  return stmt;
-}
+// Public list rows carry only what the list cards render. blog_content is cut
+// to a prefix because frontend/assets/js/blog-list.js and news-and-blog.js
+// build their excerpt from it with renderExcerpt(), which strips markdown to
+// plain text and keeps 150 characters; the prefix is long enough to survive
+// leading shortcodes and tables. The field keeps its name so both callers read
+// it unchanged. The full body is only on the detail read (SR-3, API-8).
+const LIST_EXCERPT_SOURCE_CHARS = 1500;
+const LIST_COLUMNS = [
+  "id",
+  "slug",
+  "blog_title",
+  "blog_date",
+  `SUBSTR(blog_content, 1, ${LIST_EXCERPT_SOURCE_CHARS}) AS blog_content`,
+  "blog_thumbnail",
+  "hero_image",
+  "created_at",
+  "updated_at",
+].join(", ");
 
 /**
  * Every blog post — published and draft alike — raw DB column names, for the
@@ -71,13 +77,14 @@ function cachedStatement(name, sql) {
  */
 function getAllAdmin() {
   return cachedStatement(
-    "selectAllAdmin",
+    db,
     `SELECT ${ALL_COLUMNS} FROM blog_posts ORDER BY created_at DESC`,
   ).all();
 }
 
 /**
- * Published blog posts for the public site, newest first.
+ * Published blog posts for the public site, newest first. Rows hold LIST_COLUMNS
+ * only, with a prefix of blog_content; the full post is on getDetailBySlug().
  *
  * When `page` and `limit` are provided, returns a paginated response:
  *   { items: [...], total: N, page: N, limit: N, totalPages: N }
@@ -88,7 +95,7 @@ function getAllAdmin() {
  */
 function getAllPublished(filters = {}) {
   const { page, limit } = filters;
-  const itemsSql = `SELECT ${ALL_COLUMNS} FROM blog_posts WHERE published_draft = 1 ORDER BY created_at DESC`;
+  const itemsSql = `SELECT ${LIST_COLUMNS} FROM blog_posts WHERE published_draft = 1 ORDER BY created_at DESC`;
   const countSql =
     "SELECT COUNT(*) AS total FROM blog_posts WHERE published_draft = 1";
   return paginate(db, itemsSql, countSql, [], { page, limit });
@@ -102,7 +109,7 @@ function getAllPublished(filters = {}) {
  */
 function getBySlug(slug) {
   return cachedStatement(
-    "selectPublishedBySlug",
+    db,
     `SELECT ${ALL_COLUMNS} FROM blog_posts WHERE slug = ? AND published_draft = 1`,
   ).get(slug);
 }
@@ -115,7 +122,7 @@ function getBySlug(slug) {
  */
 function getById(id) {
   return cachedStatement(
-    "selectById",
+    db,
     `SELECT ${ALL_COLUMNS} FROM blog_posts WHERE id = ?`,
   ).get(id);
 }
@@ -172,7 +179,7 @@ function update(id, data) {
  */
 function remove(id) {
   const result = cachedStatement(
-    "deleteById",
+    db,
     "DELETE FROM blog_posts WHERE id = ?",
   ).run(id);
   return result.changes > 0;

@@ -3,7 +3,7 @@
 // No HTTP concerns in this file: no req, no res, no status codes.
 
 const db = require("../config");
-const { pickWritable, runUpdate } = require("./model-helpers");
+const { pickWritable, runUpdate, cachedStatement } = require("./model-helpers");
 const evidenceModel = require("./evidence.model");
 
 // Columns the admin is allowed to write for map creation/updates.
@@ -49,7 +49,7 @@ function getAllMaps() {
         GROUP BY m.id
         ORDER BY m.map_key
     `;
-  return db.prepare(sql).all();
+  return cachedStatement(db, sql).all();
 }
 
 /**
@@ -80,7 +80,7 @@ function getMapById(id, { includeDrafts } = {}) {
  * @returns {Object|undefined}
  */
 function getMapByKey(mapKey, { includeDrafts } = {}) {
-  const map = db.prepare("SELECT * FROM maps WHERE map_key = ?").get(mapKey);
+  const map = cachedStatement(db, "SELECT * FROM maps WHERE map_key = ?").get(mapKey);
   if (!map) return undefined;
 
   let pinsSql = `
@@ -110,7 +110,7 @@ function getMapByKey(mapKey, { includeDrafts } = {}) {
 
   pinsSql += " ORDER BY mp.label";
 
-  const pins = db.prepare(pinsSql).all(...params);
+  const pins = cachedStatement(db, pinsSql).all(...params);
 
   return { ...map, pins };
 }
@@ -393,7 +393,7 @@ function getPinsByMap(mapId, { includeDrafts } = {}) {
 
   sql += " ORDER BY mp.label";
 
-  return db.prepare(sql).all(...params);
+  return cachedStatement(db, sql).all(...params);
 }
 
 /**

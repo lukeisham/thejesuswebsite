@@ -3,7 +3,12 @@
 // No HTTP concerns in this file: no req, no res, no status codes.
 
 const db = require("../config");
-const { pickWritable, runUpdate, paginate } = require("./model-helpers");
+const {
+  pickWritable,
+  runUpdate,
+  paginate,
+  cachedStatement,
+} = require("./model-helpers");
 const {
   getLinked,
   getLinkedMlaSources,
@@ -33,7 +38,7 @@ const WRITABLE_COLUMNS = [
  * challenge_title → title, challenge_summary → summary,
  * challenge_body → body, mla_sources → bibliography.
  * Kept separate so the admin path (getAdminById) still returns raw keys
- * the Plan 03 editors expect.
+ * the admin editors expect.
  */
 function normalizeForPublic(row) {
   if (!row) return row;
@@ -139,8 +144,7 @@ function getAllAdmin() {
  * Single published popular challenge by slug, or undefined if not found.
  */
 function getBySlug(slug) {
-  return db
-    .prepare(
+  return cachedStatement(db, 
       "SELECT * FROM challenges WHERE slug = ? AND academic_popular = ? AND published_draft = 1",
     )
     .get(slug, "popular");

@@ -344,12 +344,16 @@ describe("essays: composite CRUD", () => {
 
     assert.equal(item.title, "The Title");
     assert.equal(item.author, "The Author");
-    assert.equal(item.body, "The Body");
-    assert.deepEqual(item.keywords, ["one", "two", "three"]);
     assert.equal(item.essay_title, undefined);
     assert.equal(item.essay_author, undefined);
+    // The list leaves out the body and keywords; the detail read has them.
+    assert.equal(item.body, undefined);
     assert.equal(item.essay_content, undefined);
     assert.equal(item.metadata_keywords, undefined);
+
+    const detail = essayModel.getDetailBySlug("normalized-essay");
+    assert.equal(detail.body, "The Body");
+    assert.deepEqual(detail.keywords, ["one", "two", "three"]);
   });
 
   test("getDetailBySlug normalizes fields and exposes bibliography", () => {
@@ -629,14 +633,18 @@ describe("historiography: composite CRUD", () => {
 
     assert.equal(item.title, "The Title");
     assert.equal(item.author, "The Author");
-    assert.equal(item.body, "The Body");
-    assert.deepEqual(item.keywords, ["one", "two", "three"]);
     assert.equal(item.essay_title, undefined);
     assert.equal(item.essay_author, undefined);
+    // The list leaves out the body and keywords; the detail read has them.
+    assert.equal(item.body, undefined);
     assert.equal(item.essay_content, undefined);
     assert.equal(item.metadata_keywords, undefined);
     // Non-renamed fields pass through untouched.
     assert.equal(item.historiography_period, "third-quest");
+
+    const detail = historiographyModel.getDetailBySlug("normalized-hist");
+    assert.equal(detail.body, "The Body");
+    assert.deepEqual(detail.keywords, ["one", "two", "three"]);
   });
 
   test("getDetailBySlug normalizes fields and exposes bibliography", () => {

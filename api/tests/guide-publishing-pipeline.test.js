@@ -1,4 +1,4 @@
-// Guide test for setup/ARCHITECTURE/publishing-pipeline.md (the blog registration row).
+// Guide test for setup/ARCHITECTURE/publishing-pipeline.md (the blog registration row and the paged public lists row).
 //
 // This file does not test behaviour. It reads source files as text and fails
 // when a blog post is missing from one of the lists that the guide names.
@@ -32,6 +32,35 @@ describe(`${GUIDE}: a blog post is registered in every list`, () => {
       assert.ok(
         read(file).includes(needle),
         `CORE-3, TEST-10: blog registration row: ${file} no longer contains ${needle}. See ${GUIDE}.`,
+      );
+    });
+  }
+});
+
+// Each entry: the paged list page script, the api.js helper it calls, and the
+// model whose public list it reads.
+const PAGED_LISTS = [
+  { script: "frontend/assets/js/blog-list.js", helper: "getBlogPosts", model: "api/models/blog-post.model.js" },
+  { script: "frontend/assets/js/essays-list.js", helper: "getEssays", model: "api/models/essay.model.js" },
+  { script: "frontend/assets/js/historiography-list.js", helper: "getHistoriography", model: "api/models/historiography.model.js" },
+];
+
+describe(`${GUIDE}: public lists return list columns and are read page by page`, () => {
+  for (const { script, helper, model } of PAGED_LISTS) {
+    test(`${script} sends page and limit`, () => {
+      const call = new RegExp(`${helper}\\(\\{[^}]*\\bpage\\b[^}]*\\blimit\\b[^}]*\\}\\)`);
+      assert.match(
+        read(script),
+        call,
+        `CORE-3, TEST-10: paged lists row: ${script} no longer calls ${helper}({ page, limit }). See ${GUIDE}.`,
+      );
+    });
+
+    test(`${model} builds the public list from LIST_COLUMNS`, () => {
+      assert.match(
+        read(model),
+        /const itemsSql =[^;]*SELECT \$\{LIST_COLUMNS\} FROM/,
+        `CORE-3, TEST-10: paged lists row: the getAllPublished itemsSql in ${model} no longer selects LIST_COLUMNS. See ${GUIDE}.`,
       );
     });
   }

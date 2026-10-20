@@ -3,7 +3,7 @@
 // No HTTP concerns in this file: no req, no res, no status codes.
 
 const db = require('../config');
-const { pickWritable, runUpdate, paginate } = require('./model-helpers');
+const { pickWritable, runUpdate, paginate, cachedStatement } = require('./model-helpers');
 const ERRORS = require('../lib/error-codes');
 
 // Valid resource list keys as defined in schema.
@@ -103,7 +103,7 @@ function getAllPublishedByListKey() {
         GROUP BY list_key
         ORDER BY list_key
     `;
-    return db.prepare(sql).all();
+    return cachedStatement(db, sql).all();
 }
 
 /**

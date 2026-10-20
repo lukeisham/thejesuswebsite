@@ -3,7 +3,7 @@
 // No HTTP concerns in this file: no req, no res, no status codes.
 
 const db = require('../config');
-const { pickWritable, generateUniqueSlug, runUpdate, paginate } = require('./model-helpers');
+const { pickWritable, generateUniqueSlug, runUpdate, paginate, cachedStatement } = require('./model-helpers');
 
 // Columns the admin is allowed to write. Listed explicitly so a stray field in
 // the request body can never reach the database (JS-2: predictable, no surprises).
@@ -24,8 +24,7 @@ const WRITABLE_COLUMNS = [
  * Empty array if the article predates this feature or has no scored signals.
  */
 function getSignalsForArticle(articleId) {
-    return db
-        .prepare(
+    return cachedStatement(db, 
             'SELECT id, signal_key, contribution, cap FROM wikipedia_article_signals WHERE wikipedia_article_id = ?'
         )
         .all(articleId);
@@ -98,8 +97,7 @@ function getAllAdmin() {
  * Carries a `signals` array (see attachSignals).
  */
 function getBySlug(slug) {
-    const article = db
-        .prepare('SELECT * FROM wikipedia_articles WHERE slug = ? AND published_draft = 1')
+    const article = cachedStatement(db, 'SELECT * FROM wikipedia_articles WHERE slug = ? AND published_draft = 1')
         .get(slug);
     if (!article) return undefined;
     return attachSignals([article])[0];

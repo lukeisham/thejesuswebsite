@@ -21,6 +21,9 @@ const RETRY_ID = 'retry-load';
 const PAGE_SIZE = 20;
 const SCROLL_THRESHOLD = 300;
 
+// One entry holds the items with the paging state, so a restored list can keep
+// loading where it stopped. An entry that is a bare array is the older format
+// without paging state; restoreFromCache() discards it.
 const STORAGE_KEY_ITEMS = 'historiography_list_items';
 const STORAGE_KEY_SCROLL = 'historiography_list_scroll';
 
@@ -61,7 +64,11 @@ async function loadPage() {
   isLoading = true;
   showState('loading');
 
-  const { data, error } = await getHistoriography();
+  // The API answers { items, total, page, limit, totalPages } when page/limit are sent.
+  const { data, error } = await getHistoriography({
+    page: currentPage,
+    limit: PAGE_SIZE,
+  });
 
   isLoading = false;
 
@@ -71,47 +78,40 @@ async function loadPage() {
     return;
   }
 
-  if (!data || data.length === 0) {
+  const pageItems = data?.items ?? [];
+
+  if (pageItems.length === 0) {
     if (allItems.length === 0) {
       showState('empty');
     } else {
       hasMore = false;
       $sentinel && ($sentinel.hidden = true);
-      showState('end');
-      const total = allItems.length;
-      if ($end) $end.textContent = `All ${total} article${total !== 1 ? 's' : ''} loaded`;
+      showEndOfList();
     }
-    return;
-  }
-
-  const start = (currentPage - 1) * PAGE_SIZE;
-  const pageItems = data.slice(start, start + PAGE_SIZE);
-
-  if (pageItems.length === 0) {
-    hasMore = false;
-    $sentinel && ($sentinel.hidden = true);
-    showState('end');
-    const total = allItems.length;
-    if ($end) $end.textContent = `All ${total} article${total !== 1 ? 's' : ''} loaded`;
     return;
   }
 
   allItems = [...allItems, ...pageItems];
   renderCards(pageItems);
+
+  hasMore = currentPage < data.totalPages;
+  if (hasMore) currentPage++;
   cacheItems();
 
-  if (pageItems.length < PAGE_SIZE || start + pageItems.length >= data.length) {
-    hasMore = false;
+  if (!hasMore) {
     $sentinel && ($sentinel.hidden = true);
-    showState('end');
-    const total = allItems.length;
-    if ($end) $end.textContent = `All ${total} article${total !== 1 ? 's' : ''} loaded`;
+    showEndOfList();
   } else {
-    currentPage++;
     hideAllStates();
     $sentinel && ($sentinel.hidden = false);
     if (observer && $sentinel) observer.observe($sentinel);
   }
+}
+
+function showEndOfList() {
+  showState('end');
+  const total = allItems.length;
+  if ($end) $end.textContent = `All ${total} article${total !== 1 ? 's' : ''} loaded`;
 }
 
 // ─── Rendering ───────────────────────────────────────────────────────────────
@@ -174,7 +174,10 @@ function initInfiniteScroll() {
 
 function cacheItems() {
   try {
-    sessionStorage.setItem(STORAGE_KEY_ITEMS, JSON.stringify(allItems));
+    sessionStorage.setItem(
+      STORAGE_KEY_ITEMS,
+      JSON.stringify({ items: allItems, currentPage, hasMore }),
+    );
     sessionStorage.setItem(STORAGE_KEY_SCROLL, String(window.scrollY));
   } catch { /* quota exceeded */ }
 }
@@ -190,17 +193,33 @@ function restoreFromCache() {
   try {
     const cached = sessionStorage.getItem(STORAGE_KEY_ITEMS);
     if (cached) {
-      allItems = JSON.parse(cached);
-      hasMore = false;
-      $sentinel && ($sentinel.hidden = true);
+      const state = JSON.parse(cached);
+      if (!Array.isArray(state?.items) || !Number.isInteger(state.currentPage)) {
+        clearCachedItems();
+        return false;
+      }
+      allItems = state.items;
+      currentPage = state.currentPage;
+      hasMore = state.hasMore === true;
       if ($grid) $grid.innerHTML = '';
       renderCards(allItems);
-      showState('end');
-      const total = allItems.length;
-      if ($end) $end.textContent = `All ${total} article${total !== 1 ? 's' : ''} loaded`;
+      if (hasMore) {
+        hideAllStates();
+        $sentinel && ($sentinel.hidden = false);
+      } else {
+        $sentinel && ($sentinel.hidden = true);
+        showEndOfList();
+      }
       return true;
     }
-  } catch { /* ignore */ }
+  } catch (err) {
+    console.warn(
+      `historiography-list: cached list in sessionStorage "${STORAGE_KEY_ITEMS}" is unreadable; reloading from the API.`,
+      err,
+    );
+    clearCachedItems();
+    allItems = [];
+  }
   return false;
 }
 

@@ -149,9 +149,8 @@ describe("essay: CSV keyword normalization on normalizeForPublic()", () => {
       published_draft: 1,
     });
 
-    // Simulate retrieving published version with normalization
-    const published = essayModel.getAllPublished();
-    const found = published.find((e) => e.id === created.id);
+    // The list rows no longer carry metadata_keywords; the detail read does.
+    const found = essayModel.getDetailBySlug(created.slug);
 
     assert.ok(found);
     assert.ok(Array.isArray(found.keywords));
@@ -166,8 +165,7 @@ describe("essay: CSV keyword normalization on normalizeForPublic()", () => {
       published_draft: 1,
     });
 
-    const published = essayModel.getAllPublished();
-    const found = published.find((e) => e.id === created.id);
+    const found = essayModel.getDetailBySlug(created.slug);
 
     assert.ok(found);
     assert.deepStrictEqual(found.keywords, ["hello", "world"]);
@@ -181,8 +179,7 @@ describe("essay: CSV keyword normalization on normalizeForPublic()", () => {
       published_draft: 1,
     });
 
-    const published = essayModel.getAllPublished();
-    const found = published.find((e) => e.id === created.id);
+    const found = essayModel.getDetailBySlug(created.slug);
 
     assert.ok(found);
     assert.deepStrictEqual(found.keywords, []);
@@ -385,24 +382,16 @@ describe("essay: named-column reads return exactly the expected keys", () => {
     "updated_at",
   ].sort();
 
-  const NORMALIZED_COLUMNS = [
+  // The public list carries only what essays-list.js renders; the body and
+  // the other columns are on the detail read.
+  const LIST_COLUMNS = [
     "id",
     "slug",
-    "essay_date",
-    "essay_publisher",
-    "essay_headings",
-    "published_draft",
-    "two_column",
-    "doi",
-    "author_bio",
-    "abstract",
     "created_at",
     "updated_at",
     "title",
     "author",
-    "body",
     "keywords",
-    "mla_sources",
   ].sort();
 
   test("getAllAdmin() rows have exactly the raw column keys", () => {
@@ -423,16 +412,18 @@ describe("essay: named-column reads return exactly the expected keys", () => {
     assert.deepStrictEqual(Object.keys(row).sort(), RAW_COLUMNS);
   });
 
-  test("getAllPublished() rows have exactly the normalized public keys", () => {
+  test("getAllPublished() rows have exactly the list keys and no body", () => {
     essayModel.create({
       slug: "published-cols",
       essay_title: "Published Cols",
+      essay_content: "A long body that the list must not return.",
       published_draft: 1,
     });
 
-    const rows = essayModel.getAllPublished();
+    // Compared as sent over HTTP: undefined-valued keys are dropped.
+    const rows = JSON.parse(JSON.stringify(essayModel.getAllPublished()));
     assert.ok(rows.length > 0);
-    assert.deepStrictEqual(Object.keys(rows[0]).sort(), NORMALIZED_COLUMNS);
+    assert.deepStrictEqual(Object.keys(rows[0]).sort(), LIST_COLUMNS);
   });
 });
 

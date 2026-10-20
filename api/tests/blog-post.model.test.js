@@ -63,6 +63,34 @@ describe("blog-post model", () => {
     assert.equal(result.totalPages, 2);
   });
 
+  test("getAllPublished rows carry list columns and a body prefix, getAllAdmin the full body", () => {
+    const body = "x".repeat(3000);
+    model.create({
+      slug: "long-post",
+      blog_title: "Long",
+      blog_content: body,
+      metadata_keywords: "a, b",
+      published_draft: 1,
+    });
+
+    const [row] = model.getAllPublished();
+    assert.deepEqual(Object.keys(row).sort(), [
+      "blog_content",
+      "blog_date",
+      "blog_thumbnail",
+      "blog_title",
+      "created_at",
+      "hero_image",
+      "id",
+      "slug",
+      "updated_at",
+    ]);
+    assert.equal(row.blog_content.length, 1500);
+
+    const [adminRow] = model.getAllAdmin();
+    assert.equal(adminRow.blog_content.length, 3000);
+  });
+
   test("update changes only the given field and remove deletes the row", () => {
     const { id } = model.create({ slug: "edit-me", blog_title: "Before" });
     const updated = model.update(id, { blog_title: "After" });
