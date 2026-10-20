@@ -90,7 +90,7 @@ If you see `FAILED: cannot fast-forward main`, do not force anything. Go to the 
 ### Step 4. Make sure that it arrived
 
 ```bash
-git rev-parse --short HEAD origin/main && git status -sb
+git rev-parse --short HEAD && git rev-parse --short origin/main && git status -sb
 ```
 
 All three results must be true:
