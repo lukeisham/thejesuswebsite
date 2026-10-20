@@ -447,3 +447,26 @@ describe("resources routes: POST /resources/reorder", () => {
     assert.ok(res.body.error);
   });
 });
+
+describe("resources routes: PUT clears a field sent as null", () => {
+  let app;
+  beforeEach(() => {
+    clearResources();
+    app = express();
+    app.use(express.json());
+    app.use("/resources", require("../routes/resources"));
+  });
+
+  test("PUT with resource_url null clears the stored resource_url", async () => {
+    const item = seedResource({ resource_url: "https://example.com/a" });
+    assert.equal(item.resource_url, "https://example.com/a");
+
+    const res = await makeRequest(app, "PUT", `/resources/${item.id}`, {
+      cookie: authCookie(),
+      body: { resource_url: null, resource_description: null },
+    });
+    assert.equal(res.status, 200);
+    assert.equal(res.body.resource_url, null);
+    assert.equal(res.body.resource_description, null);
+  });
+});

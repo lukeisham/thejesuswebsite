@@ -5,21 +5,18 @@ const express = require("express");
 const challengeModel = require("../models/popular-challenges.model");
 const requireAuth = require("../middleware/auth");
 const ERRORS = require("../lib/error-codes");
-const { sendError, sendValidationError } = require("../lib/error-handler");
+const { sendError } = require("../lib/error-handler");
+const { parseIdParam, validatePageParams } = require("../lib/request-params");
 
 const router = express.Router();
 
 // GET /popular-challenges — public list of published popular challenges
 router.get("/", (req, res) => {
   try {
+    if (!validatePageParams(req, res)) return;
     const items = challengeModel.getAllPublished(req.query);
     res.json(items);
   } catch (error) {
-    if (error.code === ERRORS.INVALID_NUMERIC_PARAM.code) {
-      return sendValidationError(res, error.field, ERRORS.INVALID_NUMERIC_PARAM, {
-        received: req.query.page,
-      });
-    }
     console.error("GET /popular-challenges failed:", error);
     sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
@@ -40,7 +37,9 @@ router.get("/admin", requireAuth, (req, res) => {
 // GET /popular-challenges/admin/:id — admin detail with citations (admin only)
 router.get("/admin/:id", requireAuth, (req, res) => {
   try {
-    const item = challengeModel.getAdminById(Number(req.params.id));
+    const id = parseIdParam(req, res);
+    if (id === null) return;
+    const item = challengeModel.getAdminById(id);
     if (!item)
       return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: "popular challenge", id: req.params.id });
     res.json(item);
@@ -80,7 +79,9 @@ router.post("/", requireAuth, (req, res) => {
 // PUT /popular-challenges/:id — update popular challenge with MLA links (admin only)
 router.put("/:id", requireAuth, (req, res) => {
   try {
-    const updated = challengeModel.updateComposite(Number(req.params.id), req.body);
+    const id = parseIdParam(req, res);
+    if (id === null) return;
+    const updated = challengeModel.updateComposite(id, req.body);
     if (!updated)
       return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: "popular challenge", id: req.params.id });
     res.json(updated);
@@ -93,7 +94,9 @@ router.put("/:id", requireAuth, (req, res) => {
 // DELETE /popular-challenges/:id — remove popular challenge (admin only)
 router.delete("/:id", requireAuth, (req, res) => {
   try {
-    const removed = challengeModel.remove(Number(req.params.id));
+    const id = parseIdParam(req, res);
+    if (id === null) return;
+    const removed = challengeModel.remove(id);
     if (!removed)
       return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: "popular challenge", id: req.params.id });
     res.status(204).end();

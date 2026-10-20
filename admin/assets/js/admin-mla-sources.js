@@ -366,8 +366,12 @@ AdminMlaSources.mount = function (container, opts) {
 
     saveBtn.addEventListener("click", async function () {
       var payload = {};
+      // An emptied field on edit must be null so the column clears. On create,
+      // undefined keeps an all-empty form out of the POST body, which the
+      // /sources route rejects; null would insert a blank source.
+      var emptyValue = existingSource ? null : undefined;
       Object.keys(inputs).forEach(function (key) {
-        payload[key] = inputs[key].value.trim() || undefined;
+        payload[key] = inputs[key].value.trim() || emptyValue;
       });
 
       saveBtn.disabled = true;

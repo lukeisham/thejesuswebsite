@@ -6,6 +6,7 @@ const arborModel = require("../models/arbor.model");
 const requireAuth = require("../middleware/auth");
 const ERRORS = require("../lib/error-codes");
 const { sendError, sendValidationError } = require("../lib/error-handler");
+const { parseIdParam } = require("../lib/request-params");
 
 const router = express.Router();
 
@@ -46,13 +47,8 @@ router.get("/admin/unplaced", requireAuth, (req, res) => {
 // PUT /arbor/nodes/:evidenceId — save node position (admin only)
 router.put("/nodes/:evidenceId", requireAuth, (req, res) => {
   try {
-    const evidenceId = Number(req.params.evidenceId);
-    if (!Number.isFinite(evidenceId) || evidenceId < 1) {
-      return sendError(res, ERRORS.INVALID_NUMERIC_PARAM, {
-        field: "evidenceId",
-        received: req.params.evidenceId,
-      });
-    }
+    const evidenceId = parseIdParam(req, res, "evidenceId");
+    if (evidenceId === null) return;
 
     const x = Number(req.body.x);
     const y = Number(req.body.y);
@@ -82,13 +78,8 @@ router.put("/nodes/:evidenceId", requireAuth, (req, res) => {
 // DELETE /arbor/nodes/:evidenceId — remove node from canvas (admin only)
 router.delete("/nodes/:evidenceId", requireAuth, (req, res) => {
   try {
-    const evidenceId = Number(req.params.evidenceId);
-    if (!Number.isFinite(evidenceId) || evidenceId < 1) {
-      return sendError(res, ERRORS.INVALID_NUMERIC_PARAM, {
-        field: "evidenceId",
-        received: req.params.evidenceId,
-      });
-    }
+    const evidenceId = parseIdParam(req, res, "evidenceId");
+    if (evidenceId === null) return;
 
     const removed = arborModel.removeNode(evidenceId);
     if (!removed) {
@@ -107,7 +98,9 @@ router.delete("/nodes/:evidenceId", requireAuth, (req, res) => {
 // GET /arbor/:id — single edge by id
 router.get("/:id", (req, res) => {
   try {
-    const item = arborModel.getById(Number(req.params.id));
+    const id = parseIdParam(req, res);
+    if (id === null) return;
+    const item = arborModel.getById(id);
     if (!item)
       return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, {
         entity: "arbor_edge",
@@ -148,7 +141,9 @@ router.post("/", requireAuth, (req, res) => {
 // PUT /arbor/:id — update edge (admin only)
 router.put("/:id", requireAuth, (req, res) => {
   try {
-    const updated = arborModel.update(Number(req.params.id), req.body);
+    const id = parseIdParam(req, res);
+    if (id === null) return;
+    const updated = arborModel.update(id, req.body);
     if (!updated)
       return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, {
         entity: "arbor_edge",
@@ -167,7 +162,9 @@ router.put("/:id", requireAuth, (req, res) => {
 // DELETE /arbor/:id — remove edge (admin only)
 router.delete("/:id", requireAuth, (req, res) => {
   try {
-    const removed = arborModel.remove(Number(req.params.id));
+    const id = parseIdParam(req, res);
+    if (id === null) return;
+    const removed = arborModel.remove(id);
     if (!removed)
       return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, {
         entity: "arbor_edge",

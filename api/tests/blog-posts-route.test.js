@@ -129,6 +129,39 @@ describe("POST and PUT validation", () => {
     });
   }
 
+  for (const field of ["link_evidence_ids", "mla_source_ids"]) {
+    for (const [label, value] of [
+      ["a string", "1,2"],
+      ["an array holding a string", [1, "2"]],
+      ["an array holding zero", [0]],
+      ["an array holding a fraction", [1.5]],
+    ]) {
+      test(`POST with ${field} as ${label} returns 400 E-INPUT-038 naming ${field}`, async () => {
+        const result = await request(createApp(), {
+          method: "POST",
+          path: "/blog-posts",
+          body: { slug: "v-ids", [field]: value },
+          headers: { cookie: authCookie() },
+        });
+        assert.equal(result.status, 400);
+        assert.equal(result.body.error.code, "E-INPUT-038");
+        assert.equal(result.body.error.context.field, field);
+      });
+    }
+
+    test(`PUT accepts ${field} as null or an empty array past validation`, async () => {
+      for (const value of [null, []]) {
+        const result = await request(createApp(), {
+          method: "PUT",
+          path: "/blog-posts/99999",
+          body: { [field]: value },
+          headers: { cookie: authCookie() },
+        });
+        assert.equal(result.status, 404);
+      }
+    });
+  }
+
   test("PUT with a published_draft outside 0 and 1 returns 400 E-INPUT-038", async () => {
     const result = await request(createApp(), {
       method: "PUT",
@@ -156,6 +189,17 @@ describe("POST and PUT validation", () => {
       assert.equal(result.status, 400);
       assert.equal(result.body.error.code, "E-INPUT-005");
       assert.equal(result.body.error.context.field, "id");
+    });
+  }
+});
+
+describe("GET /blog-posts page and limit validation", () => {
+  for (const [query, field] of [["page=abc", "page"], ["page=0", "page"], ["limit=-1", "limit"]]) {
+    test(`?${query} returns 400 E-INPUT-005 naming ${field}`, async () => {
+      const result = await request(createApp(), { method: "GET", path: `/blog-posts?${query}` });
+      assert.equal(result.status, 400);
+      assert.equal(result.body.error.code, "E-INPUT-005");
+      assert.equal(result.body.error.context.field, field);
     });
   }
 });
@@ -204,5 +248,27 @@ describe("public routes return published posts only", () => {
     const slugs = list.body.map((post) => post.slug);
     assert.ok(slugs.includes("open-post"));
     assert.ok(!slugs.includes("secret-draft"));
+  });
+});
+
+describe("PUT /blog-posts/:id clears a field sent as null", () => {
+  test("PUT with blog_content null clears the stored content", async () => {
+    const created = await request(createApp(), {
+      method: "POST",
+      path: "/blog-posts",
+      body: { slug: "null-clear", blog_content: "Body text", metadata_keywords: "a, b" },
+      headers: { cookie: authCookie() },
+    });
+    assert.equal(created.status, 201);
+    assert.equal(created.body.blog_content, "Body text");
+
+    const cleared = await request(createApp(), {
+      method: "PUT",
+      path: `/blog-posts/${created.body.id}`,
+      body: { blog_content: null },
+      headers: { cookie: authCookie() },
+    });
+    assert.equal(cleared.status, 200);
+    assert.equal(cleared.body.blog_content, null);
   });
 });

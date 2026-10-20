@@ -9,6 +9,7 @@ const blogPostModel = require("../models/blog-post.model");
 const requireAuth = require("../middleware/auth");
 const ERRORS = require("../lib/error-codes");
 const { sendError, sendValidationError } = require("../lib/error-handler");
+const { parseIdParam, validatePageParams, isIdArray } = require("../lib/request-params");
 
 const router = express.Router();
 
@@ -21,6 +22,10 @@ const TEXT_FIELDS = [
   "blog_thumbnail",
   "metadata_keywords",
 ];
+
+// Body fields that hold a list of row ids for the relation tables written by
+// blogPostModel.createComposite/updateComposite. null is allowed: it clears the list.
+const ID_ARRAY_FIELDS = ["link_evidence_ids", "mla_source_ids"];
 
 // Returns { field, errorDef } for the first invalid body field, or null.
 // published_draft mirrors the CHECK (published_draft IN (0, 1)) in schema.sql;
@@ -35,36 +40,25 @@ function findBodyProblem(body) {
       return { field, errorDef: ERRORS.INVALID_BODY_FIELD };
     }
   }
+  for (const field of ID_ARRAY_FIELDS) {
+    const value = body[field];
+    if (value !== undefined && value !== null && !isIdArray(value)) {
+      return { field, errorDef: ERRORS.INVALID_BODY_FIELD };
+    }
+  }
   if (body.published_draft !== undefined && body.published_draft !== 0 && body.published_draft !== 1) {
     return { field: "published_draft", errorDef: ERRORS.INVALID_BODY_FIELD };
   }
   return null;
 }
 
-// Parses the :id path parameter. Sends a 400 naming "id" and returns null when
-// it is not a positive integer, so a handler can `if (id === null) return`.
-function parseIdParam(req, res) {
-  const id = Number(req.params.id);
-  if (!Number.isInteger(id) || id < 1) {
-    sendValidationError(res, "id", ERRORS.INVALID_NUMERIC_PARAM, {
-      received: req.params.id,
-    });
-    return null;
-  }
-  return id;
-}
-
 // GET /blog-posts — public list of published blog posts
 router.get("/", (req, res) => {
   try {
+    if (!validatePageParams(req, res)) return;
     const items = blogPostModel.getAllPublished(req.query);
     res.json(items);
   } catch (error) {
-    if (error.code === ERRORS.INVALID_NUMERIC_PARAM.code) {
-      return sendValidationError(res, error.field, ERRORS.INVALID_NUMERIC_PARAM, {
-        received: req.query.page,
-      });
-    }
     console.error("GET /blog-posts failed:", error);
     sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }

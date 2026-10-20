@@ -6,6 +6,7 @@ const evidenceModel = require("../models/evidence.model");
 const requireAuth = require("../middleware/auth");
 const ERRORS = require("../lib/error-codes");
 const { sendError, sendValidationError } = require("../lib/error-handler");
+const { parseIdParam, validatePageParams } = require("../lib/request-params");
 
 const router = express.Router();
 
@@ -15,14 +16,10 @@ const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 // e.g. /evidence?timeline_era=beginning&map_location=Galilee&page=1&limit=20
 router.get("/", (req, res) => {
   try {
+    if (!validatePageParams(req, res)) return;
     const result = evidenceModel.getAllPublished(req.query);
     res.json(result);
   } catch (error) {
-    if (error.code === ERRORS.INVALID_NUMERIC_PARAM.code) {
-      return sendValidationError(res, error.field, ERRORS.INVALID_NUMERIC_PARAM, {
-        received: req.query.page,
-      });
-    }
     console.error("GET /evidence failed:", error);
     sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
@@ -44,13 +41,8 @@ router.get("/admin", requireAuth, (req, res) => {
 // GET /evidence/admin/:id — full detail including relations, any publish state
 router.get("/admin/:id", requireAuth, (req, res) => {
   try {
-    const id = Number(req.params.id);
-    if (!Number.isInteger(id) || id < 1) {
-      return sendError(res, ERRORS.INVALID_NUMERIC_PARAM, {
-        field: "id",
-        received: req.params.id,
-      });
-    }
+    const id = parseIdParam(req, res);
+    if (id === null) return;
     const item = evidenceModel.getAdminById(id);
     if (!item) return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: "evidence", id });
     res.json(item);
@@ -96,13 +88,8 @@ router.post("/", requireAuth, (req, res) => {
 // PUT /evidence/:id — update (admin only), accepts related arrays
 router.put("/:id", requireAuth, (req, res) => {
   try {
-    const id = Number(req.params.id);
-    if (!Number.isInteger(id) || id < 1) {
-      return sendError(res, ERRORS.INVALID_NUMERIC_PARAM, {
-        field: "id",
-        received: req.params.id,
-      });
-    }
+    const id = parseIdParam(req, res);
+    if (id === null) return;
     if (req.body.slug !== undefined && !SLUG_PATTERN.test(req.body.slug)) {
       return sendValidationError(res, "slug", ERRORS.INVALID_SLUG, {
         received: req.body.slug,
@@ -120,13 +107,8 @@ router.put("/:id", requireAuth, (req, res) => {
 // DELETE /evidence/:id — remove (admin only)
 router.delete("/:id", requireAuth, (req, res) => {
   try {
-    const id = Number(req.params.id);
-    if (!Number.isInteger(id) || id < 1) {
-      return sendError(res, ERRORS.INVALID_NUMERIC_PARAM, {
-        field: "id",
-        received: req.params.id,
-      });
-    }
+    const id = parseIdParam(req, res);
+    if (id === null) return;
     const removed = evidenceModel.remove(id);
     if (!removed) return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: "evidence", id });
     res.status(204).end();

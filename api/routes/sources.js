@@ -7,6 +7,7 @@ const mlaSourceModel = require('../models/mla-source.model');
 const requireAuth = require('../middleware/auth');
 const ERRORS = require('../lib/error-codes');
 const { sendError } = require('../lib/error-handler');
+const { parseIdParam } = require('../lib/request-params');
 
 const router = express.Router();
 
@@ -24,7 +25,9 @@ router.get('/', requireAuth, (req, res) => {
 // GET /sources/:id — single source by id (admin only)
 router.get('/:id', requireAuth, (req, res) => {
   try {
-    const item = mlaSourceModel.getById(Number(req.params.id));
+    const id = parseIdParam(req, res);
+    if (id === null) return;
+    const item = mlaSourceModel.getById(id);
     if (!item) return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: 'source', id: req.params.id });
     res.json(item);
   } catch (error) {
@@ -48,7 +51,9 @@ router.post('/', requireAuth, (req, res) => {
 // PUT /sources/:id — update MLA source (admin only)
 router.put('/:id', requireAuth, (req, res) => {
   try {
-    const updated = mlaSourceModel.update(Number(req.params.id), req.body);
+    const id = parseIdParam(req, res);
+    if (id === null) return;
+    const updated = mlaSourceModel.update(id, req.body);
     if (!updated) return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: 'source', id: req.params.id });
     res.json(updated);
   } catch (error) {
@@ -60,7 +65,9 @@ router.put('/:id', requireAuth, (req, res) => {
 // DELETE /sources/:id — remove MLA source (admin only)
 router.delete('/:id', requireAuth, (req, res) => {
   try {
-    const removed = mlaSourceModel.remove(Number(req.params.id));
+    const id = parseIdParam(req, res);
+    if (id === null) return;
+    const removed = mlaSourceModel.remove(id);
     if (!removed) return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: 'source', id: req.params.id });
     res.status(204).end();
   } catch (error) {

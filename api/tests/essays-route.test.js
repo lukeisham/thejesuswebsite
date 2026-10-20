@@ -189,6 +189,26 @@ describe("/essays journal article fields validation", () => {
   });
 });
 
+describe("/essays id and page validation", () => {
+  test("GET /essays/admin/abc returns 400 E-INPUT-005 naming id", async () => {
+    const result = await request(createApp(), {
+      method: "GET",
+      path: "/essays/admin/abc",
+      headers: { cookie: authCookie() },
+    });
+    assert.equal(result.status, 400);
+    assert.equal(result.body.error.code, "E-INPUT-005");
+    assert.equal(result.body.error.context.field, "id");
+  });
+
+  test("GET /essays?page=abc returns 400 E-INPUT-005 naming page", async () => {
+    const result = await request(createApp(), { method: "GET", path: "/essays?page=abc" });
+    assert.equal(result.status, 400);
+    assert.equal(result.body.error.code, "E-INPUT-005");
+    assert.equal(result.body.error.context.field, "page");
+  });
+});
+
 describe("/essays admin gates", () => {
   const gated = [
     { method: "PUT", path: "/essays/99999", body: { slug: "x" }, passStatus: 404 },

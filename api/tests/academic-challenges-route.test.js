@@ -106,3 +106,25 @@ describe("POST /academic-challenges", () => {
     assert.equal(result.body.error.code, "E-INPUT-001");
   });
 });
+
+describe("PUT /academic-challenges/:id clears a field sent as null", () => {
+  test("PUT with challenge_summary null clears the stored summary", async () => {
+    const created = await request(createApp(), {
+      method: "POST",
+      path: "/academic-challenges",
+      body: { slug: "null-clear", challenge_summary: "Summary" },
+      headers: { cookie: authCookie() },
+    });
+    assert.equal(created.status, 201);
+    assert.equal(created.body.challenge_summary, "Summary");
+
+    const cleared = await request(createApp(), {
+      method: "PUT",
+      path: `/academic-challenges/${created.body.id}`,
+      body: { challenge_summary: null },
+      headers: { cookie: authCookie() },
+    });
+    assert.equal(cleared.status, 200);
+    assert.equal(cleared.body.challenge_summary, null);
+  });
+});

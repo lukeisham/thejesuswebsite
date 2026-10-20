@@ -419,6 +419,8 @@
                             return valid;
                         }
 
+                        // Emptied optional fields send null: pickWritable skips undefined,
+                        // so undefined would keep the old stored value.
                         function buildPayload() {
                             return {
                                 title: titleInput.value.trim(),
@@ -426,58 +428,58 @@
                                 description:
                                     document
                                         .getElementById("ev-desc")
-                                        .value.trim() || undefined,
+                                        .value.trim() || null,
                                 primary_verse:
                                     document
                                         .getElementById("ev-primary-verse")
-                                        .value.trim() || undefined,
+                                        .value.trim() || null,
                                 secondary_verse:
                                     document
                                         .getElementById("ev-secondary-verse")
-                                        .value.trim() || undefined,
+                                        .value.trim() || null,
                                 image:
                                     imagePicker.getValue().image_path ||
-                                    undefined,
+                                    null,
                                 image_alt:
-                                    imagePicker.getValue().alt || undefined,
+                                    imagePicker.getValue().alt || null,
                                 image_caption:
                                     imagePicker.getValue().caption ||
-                                    undefined,
+                                    null,
                                 thumbnail_path:
                                     imagePicker.getValue().thumb_path ||
-                                    undefined,
+                                    null,
                                 gospel_category:
                                     document.getElementById("ev-gospel-cat")
-                                        .value || undefined,
+                                        .value || null,
                                 timeline_era:
                                     document.getElementById("ev-era").value ||
-                                    undefined,
+                                    null,
                                 timeline_period:
                                     document
                                         .getElementById("ev-period")
-                                        .value.trim() || undefined,
+                                        .value.trim() || null,
                                 map_location:
                                     document
                                         .getElementById("ev-map-loc")
-                                        .value.trim() || undefined,
+                                        .value.trim() || null,
                                 map_x: document.getElementById("ev-map-x")
                                     .value
                                     ? parseFloat(
                                           document.getElementById("ev-map-x")
                                               .value,
                                       )
-                                    : undefined,
+                                    : null,
                                 map_y: document.getElementById("ev-map-y")
                                     .value
                                     ? parseFloat(
                                           document.getElementById("ev-map-y")
                                               .value,
                                       )
-                                    : undefined,
+                                    : null,
                                 metadata_keywords:
                                     document
                                         .getElementById("ev-keywords")
-                                        .value.trim() || undefined,
+                                        .value.trim() || null,
                                 published_draft: data.published_draft ? 1 : 0,
                                 link_evidence_ids:
                                     AdminEditorUtils.parseIdList(

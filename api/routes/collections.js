@@ -5,21 +5,18 @@ const express = require('express');
 const collectionModel = require('../models/collection.model');
 const requireAuth = require('../middleware/auth');
 const ERRORS = require('../lib/error-codes');
-const { sendError, sendValidationError } = require('../lib/error-handler');
+const { sendError } = require('../lib/error-handler');
+const { parseIdParam, validatePageParams } = require('../lib/request-params');
 
 const router = express.Router();
 
 // GET /collections — public list of published collections
 router.get('/', (req, res) => {
     try {
+        if (!validatePageParams(req, res)) return;
         const items = collectionModel.getAllPublished(req.query);
         res.json(items);
     } catch (error) {
-        if (error.code === ERRORS.INVALID_NUMERIC_PARAM.code) {
-            return sendValidationError(res, error.field, ERRORS.INVALID_NUMERIC_PARAM, {
-                received: req.query.page,
-            });
-        }
         console.error('GET /collections failed:', error);
         sendError(res, ERRORS.SQL_QUERY_FAILURE);
     }
@@ -54,7 +51,9 @@ router.post('/', requireAuth, (req, res) => {
 // PUT /collections/:id — update collection (admin only)
 router.put('/:id', requireAuth, (req, res) => {
     try {
-        const updated = collectionModel.update(Number(req.params.id), req.body);
+        const id = parseIdParam(req, res);
+        if (id === null) return;
+        const updated = collectionModel.update(id, req.body);
         if (!updated) return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: 'collection', id: req.params.id });
         res.json(updated);
     } catch (error) {
@@ -66,7 +65,9 @@ router.put('/:id', requireAuth, (req, res) => {
 // DELETE /collections/:id — remove collection (admin only)
 router.delete('/:id', requireAuth, (req, res) => {
     try {
-        const removed = collectionModel.remove(Number(req.params.id));
+        const id = parseIdParam(req, res);
+        if (id === null) return;
+        const removed = collectionModel.remove(id);
         if (!removed) return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: 'collection', id: req.params.id });
         res.status(204).end();
     } catch (error) {

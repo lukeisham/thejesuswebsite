@@ -5,21 +5,18 @@ const express = require("express");
 const identifiersModel = require("../models/identifiers.model");
 const requireAuth = require("../middleware/auth");
 const ERRORS = require("../lib/error-codes");
-const { sendError, sendValidationError } = require("../lib/error-handler");
+const { sendError } = require("../lib/error-handler");
+const { parseIdParam, validatePageParams } = require("../lib/request-params");
 
 const router = express.Router();
 
 // GET /identifiers — list all identifiers
 router.get("/", (req, res) => {
   try {
+    if (!validatePageParams(req, res)) return;
     const items = identifiersModel.getAllPublished(req.query);
     res.json(items);
   } catch (error) {
-    if (error.code === ERRORS.INVALID_NUMERIC_PARAM.code) {
-      return sendValidationError(res, error.field, ERRORS.INVALID_NUMERIC_PARAM, {
-        received: req.query.page,
-      });
-    }
     console.error("GET /identifiers failed:", error);
     sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
@@ -39,7 +36,9 @@ router.get("/admin", requireAuth, (req, res) => {
 // GET /identifiers/:id — single identifier by id
 router.get("/:id", (req, res) => {
   try {
-    const item = identifiersModel.getById(Number(req.params.id));
+    const id = parseIdParam(req, res);
+    if (id === null) return;
+    const item = identifiersModel.getById(id);
     if (!item) return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: "identifier", id: req.params.id });
     res.json(item);
   } catch (error) {
@@ -62,7 +61,9 @@ router.post("/", requireAuth, (req, res) => {
 // PUT /identifiers/:id — update identifier (admin only)
 router.put("/:id", requireAuth, (req, res) => {
   try {
-    const updated = identifiersModel.update(Number(req.params.id), req.body);
+    const id = parseIdParam(req, res);
+    if (id === null) return;
+    const updated = identifiersModel.update(id, req.body);
     if (!updated)
       return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: "identifier", id: req.params.id });
     res.json(updated);
@@ -75,7 +76,9 @@ router.put("/:id", requireAuth, (req, res) => {
 // DELETE /identifiers/:id — remove identifier (admin only)
 router.delete("/:id", requireAuth, (req, res) => {
   try {
-    const removed = identifiersModel.remove(Number(req.params.id));
+    const id = parseIdParam(req, res);
+    if (id === null) return;
+    const removed = identifiersModel.remove(id);
     if (!removed)
       return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: "identifier", id: req.params.id });
     res.status(204).end();

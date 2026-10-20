@@ -8,20 +8,17 @@ const essayModel = require("../models/essay.model");
 const requireAuth = require("../middleware/auth");
 const ERRORS = require("../lib/error-codes");
 const { sendError, sendValidationError } = require("../lib/error-handler");
+const { parseIdParam, validatePageParams } = require("../lib/request-params");
 const { validateJournalFields, ESSAY_COLUMNS } = require("../lib/journal-field-validation");
 
 const router = express.Router();
 
 router.get("/", (req, res) => {
   try {
+    if (!validatePageParams(req, res)) return;
     const items = essayModel.getAllPublished(req.query);
     res.json(items);
   } catch (error) {
-    if (error.code === ERRORS.INVALID_NUMERIC_PARAM.code) {
-      return sendValidationError(res, error.field, ERRORS.INVALID_NUMERIC_PARAM, {
-        received: req.query.page,
-      });
-    }
     console.error("GET /essays failed:", error);
     sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
@@ -43,7 +40,9 @@ router.get("/admin", requireAuth, (req, res) => {
 // GET /essays/admin/:id — admin detail by id (must come before /:slug)
 router.get("/admin/:id", requireAuth, (req, res) => {
   try {
-    const item = essayModel.getAdminById(Number(req.params.id));
+    const id = parseIdParam(req, res);
+    if (id === null) return;
+    const item = essayModel.getAdminById(id);
     if (!item)
       return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: "essay", id: req.params.id });
     res.json(item);
@@ -84,12 +83,14 @@ router.post("/", requireAuth, (req, res) => {
 
 router.put("/:id", requireAuth, (req, res) => {
   try {
-    const stored = essayModel.getById(Number(req.params.id));
+    const id = parseIdParam(req, res);
+    if (id === null) return;
+    const stored = essayModel.getById(id);
     const problem = validateJournalFields(req.body, { allowStrength: false, columns: ESSAY_COLUMNS, storedSlug: stored?.slug });
     if (problem) {
       return sendValidationError(res, problem.field, problem.errorDef, problem.extra);
     }
-    const updated = essayModel.updateComposite(Number(req.params.id), req.body);
+    const updated = essayModel.updateComposite(id, req.body);
     if (!updated)
       return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: "essay", id: req.params.id });
     res.json(updated);
@@ -101,7 +102,9 @@ router.put("/:id", requireAuth, (req, res) => {
 
 router.delete("/:id", requireAuth, (req, res) => {
   try {
-    const removed = essayModel.remove(Number(req.params.id));
+    const id = parseIdParam(req, res);
+    if (id === null) return;
+    const removed = essayModel.remove(id);
     if (!removed)
       return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: "essay", id: req.params.id });
     res.status(204).end();

@@ -20,6 +20,7 @@ const auth = require("../middleware/auth");
 const rateLimit = require("../middleware/rate-limit");
 const ERRORS = require("../lib/error-codes");
 const { sendError } = require("../lib/error-handler");
+const { parseIdParam } = require("../lib/request-params");
 
 const router = express.Router();
 
@@ -432,13 +433,8 @@ router.get("/credentials", auth, (req, res) => {
 // Guards against removing the last credential (user would be locked out).
 router.delete("/credentials/:id", auth, (req, res) => {
   try {
-    const id = Number(req.params.id);
-    if (!Number.isFinite(id) || id < 1) {
-      return sendError(res, ERRORS.INVALID_NUMERIC_PARAM, {
-        field: "id",
-        received: req.params.id,
-      });
-    }
+    const id = parseIdParam(req, res);
+    if (id === null) return;
 
     const credential = credentialModel.getById(id);
     if (!credential) {

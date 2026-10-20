@@ -106,3 +106,25 @@ describe("POST /collections", () => {
     assert.equal(result.body.error.code, "E-INPUT-001");
   });
 });
+
+describe("PUT /collections/:id clears a field sent as null", () => {
+  test("PUT with description null clears the stored description", async () => {
+    const created = await request(createApp(), {
+      method: "POST",
+      path: "/collections",
+      body: { slug: "null-clear", title: "Coll", description: "Words" },
+      headers: { cookie: authCookie() },
+    });
+    assert.equal(created.status, 201);
+    assert.equal(created.body.description, "Words");
+
+    const cleared = await request(createApp(), {
+      method: "PUT",
+      path: `/collections/${created.body.id}`,
+      body: { description: null },
+      headers: { cookie: authCookie() },
+    });
+    assert.equal(cleared.status, 200);
+    assert.equal(cleared.body.description, null);
+  });
+});

@@ -338,12 +338,14 @@
       const tempIdMap = {};
       for (let i = 0; i < resources.length; i++) {
         const r = resources[i];
+        // Emptied fields send null so the column clears (pickWritable skips undefined).
+        // A subheading keeps undefined: it has no url or description to clear.
         const payload = {
           list_key: r.list_key,
           item_type: r.item_type || "item",
           resource_title: r.resource_title || "Untitled",
-          resource_url: r.item_type === "subheading" ? undefined : r.resource_url || undefined,
-          resource_description: r.item_type === "subheading" ? undefined : r.resource_description || undefined,
+          resource_url: r.item_type === "subheading" ? undefined : r.resource_url || null,
+          resource_description: r.item_type === "subheading" ? undefined : r.resource_description || null,
           sort_order: r.sort_order,
           published_draft: r.published_draft,
         };

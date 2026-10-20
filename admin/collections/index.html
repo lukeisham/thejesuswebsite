@@ -424,7 +424,8 @@
           await Admin.api.put('/collections/' + c.id, {
             title: document.getElementById('edit-col-title').value.trim(),
             slug: document.getElementById('edit-col-slug').value.trim(),
-            description: document.getElementById('edit-col-desc').value.trim() || undefined,
+            // null clears the description; pickWritable skips undefined.
+            description: document.getElementById('edit-col-desc').value.trim() || null,
             published_draft: document.getElementById('edit-col-publish').checked ? 1 : 0
           });
           await loadCollections();

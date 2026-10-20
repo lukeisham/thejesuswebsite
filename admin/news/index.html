@@ -382,15 +382,17 @@
         if (!titleVal) { errorEl.textContent = 'Title is required.'; errorEl.style.display = 'block'; return; }
         if (!slugVal) { errorEl.textContent = 'Slug is required.'; errorEl.style.display = 'block'; return; }
 
+        // Emptied fields send null: pickWritable skips undefined. An absent
+        // thumbnail picker stays undefined so it never wipes the stored image.
         var payload = {
           slug: slugVal,
           news_article_title: titleVal,
-          news_article_url: document.getElementById('modal-url').value.trim() || undefined,
-          news_article_publisher: document.getElementById('modal-publisher').value.trim() || undefined,
-          news_article_author: document.getElementById('modal-author').value.trim() || undefined,
-          news_article_thumbnail: thumbnailPicker ? (thumbnailPicker.getValue().image_path || undefined) : undefined,
-          news_article_date: document.getElementById('modal-date').value || undefined,
-          metadata_keywords: document.getElementById('modal-keywords').value.trim() || undefined,
+          news_article_url: document.getElementById('modal-url').value.trim() || null,
+          news_article_publisher: document.getElementById('modal-publisher').value.trim() || null,
+          news_article_author: document.getElementById('modal-author').value.trim() || null,
+          news_article_thumbnail: thumbnailPicker ? (thumbnailPicker.getValue().image_path || null) : undefined,
+          news_article_date: document.getElementById('modal-date').value || null,
+          metadata_keywords: document.getElementById('modal-keywords').value.trim() || null,
           landing_page_display: document.getElementById('modal-landing').checked ? 1 : 0,
           published_draft: document.getElementById('modal-publish').checked ? 1 : 0
         };

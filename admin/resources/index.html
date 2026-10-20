@@ -401,12 +401,13 @@
                         var tempIdMap = {};
                         for (var i = 0; i < resources.length; i++) {
                             var r = resources[i];
+                            // Emptied fields send null: pickWritable skips undefined.
                             var payload = {
                                 list_key: r.list_key,
                                 resource_title: r.resource_title || "Untitled",
-                                resource_url: r.resource_url || undefined,
+                                resource_url: r.resource_url || null,
                                 resource_description:
-                                    r.resource_description || undefined,
+                                    r.resource_description || null,
                                 sort_order: r.sort_order,
                                 published_draft: r.published_draft,
                             };

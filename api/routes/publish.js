@@ -17,6 +17,7 @@ const requireAuth = require("../middleware/auth");
 const { generatePage, removePage } = require("../services/page-generator");
 const ERRORS = require("../lib/error-codes");
 const { sendError } = require("../lib/error-handler");
+const { parseIdParam } = require("../lib/request-params");
 
 const router = express.Router();
 
@@ -47,13 +48,8 @@ function setPublished(req, res, publishedDraft) {
 
   const model = MODELS[req.params.type];
 
-  const id = Number(req.params.id);
-  if (!Number.isInteger(id) || id < 1) {
-    return sendError(res, ERRORS.INVALID_NUMERIC_PARAM, {
-      field: "id",
-      received: req.params.id,
-    });
-  }
+  const id = parseIdParam(req, res);
+  if (id === null) return;
 
   const updated = model.update(id, { published_draft: publishedDraft });
   if (!updated)

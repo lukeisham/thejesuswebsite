@@ -6,6 +6,7 @@ const mapModel = require("../models/map.model");
 const requireAuth = require("../middleware/auth");
 const ERRORS = require("../lib/error-codes");
 const { sendError } = require("../lib/error-handler");
+const { parseIdParam } = require("../lib/request-params");
 
 const router = express.Router();
 
@@ -67,7 +68,9 @@ router.post("/pins", requireAuth, (req, res) => {
 // PUT /maps/pins/:id — update a pin (admin only)
 router.put("/pins/:id", requireAuth, (req, res) => {
   try {
-    const updated = mapModel.updatePin(Number(req.params.id), req.body);
+    const id = parseIdParam(req, res);
+    if (id === null) return;
+    const updated = mapModel.updatePin(id, req.body);
     if (!updated)
       return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, {
         entity: "pin",
@@ -93,7 +96,9 @@ router.put("/pins/:id", requireAuth, (req, res) => {
 // DELETE /maps/pins/:id — remove a pin (admin only)
 router.delete("/pins/:id", requireAuth, (req, res) => {
   try {
-    const removed = mapModel.removePin(Number(req.params.id));
+    const id = parseIdParam(req, res);
+    if (id === null) return;
+    const removed = mapModel.removePin(id);
     if (!removed)
       return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, {
         entity: "pin",
@@ -109,7 +114,9 @@ router.delete("/pins/:id", requireAuth, (req, res) => {
 // GET /maps/pins/by-map/:mapId — list all pins for a given map (published evidence only)
 router.get("/pins/by-map/:mapId", (req, res) => {
   try {
-    const pins = mapModel.getPinsByMap(Number(req.params.mapId));
+    const mapId = parseIdParam(req, res, "mapId");
+    if (mapId === null) return;
+    const pins = mapModel.getPinsByMap(mapId);
     res.json(pins);
   } catch (error) {
     console.error("GET /maps/pins/by-map/:mapId failed:", error);
@@ -120,7 +127,9 @@ router.get("/pins/by-map/:mapId", (req, res) => {
 // GET /maps/admin/pins/by-map/:mapId — list all pins for a given map including drafts (admin only)
 router.get("/admin/pins/by-map/:mapId", requireAuth, (req, res) => {
   try {
-    const pins = mapModel.getPinsByMap(Number(req.params.mapId), {
+    const mapId = parseIdParam(req, res, "mapId");
+    if (mapId === null) return;
+    const pins = mapModel.getPinsByMap(mapId, {
       includeDrafts: true,
     });
     res.json(pins);
@@ -199,6 +208,8 @@ router.post("/", requireAuth, (req, res) => {
 // PUT /maps/:id — update map (admin only)
 router.put("/:id", requireAuth, (req, res) => {
   try {
+    const id = parseIdParam(req, res);
+    if (id === null) return;
     // Reject empty map_name (JS-2: validate inputs)
     if (
       req.body.map_name !== undefined &&
@@ -208,7 +219,7 @@ router.put("/:id", requireAuth, (req, res) => {
         field: "map_name",
       });
     }
-    const updated = mapModel.updateMap(Number(req.params.id), req.body);
+    const updated = mapModel.updateMap(id, req.body);
     if (!updated)
       return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, {
         entity: "map",
@@ -224,7 +235,9 @@ router.put("/:id", requireAuth, (req, res) => {
 // DELETE /maps/:id — remove map (admin only)
 router.delete("/:id", requireAuth, (req, res) => {
   try {
-    const removed = mapModel.removeMap(Number(req.params.id));
+    const id = parseIdParam(req, res);
+    if (id === null) return;
+    const removed = mapModel.removeMap(id);
     if (!removed)
       return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, {
         entity: "map",

@@ -8,6 +8,7 @@ const historiographyModel = require("../models/historiography.model");
 const requireAuth = require("../middleware/auth");
 const ERRORS = require("../lib/error-codes");
 const { sendError, sendValidationError } = require("../lib/error-handler");
+const { parseIdParam, validatePageParams } = require("../lib/request-params");
 const { validateJournalFields, HISTORIOGRAPHY_COLUMNS } = require("../lib/journal-field-validation");
 
 const router = express.Router();
@@ -15,14 +16,10 @@ const router = express.Router();
 // GET /historiography — public list of published historiography items
 router.get("/", (req, res) => {
   try {
+    if (!validatePageParams(req, res)) return;
     const items = historiographyModel.getAllPublished(req.query);
     res.json(items);
   } catch (error) {
-    if (error.code === ERRORS.INVALID_NUMERIC_PARAM.code) {
-      return sendValidationError(res, error.field, ERRORS.INVALID_NUMERIC_PARAM, {
-        received: req.query.page,
-      });
-    }
     console.error("GET /historiography failed:", error);
     sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
@@ -43,7 +40,9 @@ router.get("/admin", requireAuth, (req, res) => {
 // GET /historiography/admin/:id — admin detail by id (must come before /:slug)
 router.get("/admin/:id", requireAuth, (req, res) => {
   try {
-    const item = historiographyModel.getAdminById(Number(req.params.id));
+    const id = parseIdParam(req, res);
+    if (id === null) return;
+    const item = historiographyModel.getAdminById(id);
     if (!item)
       return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: "historiography", id: req.params.id });
     res.json(item);
@@ -87,13 +86,15 @@ router.post("/", requireAuth, (req, res) => {
 // PUT /historiography/:id — update historiography item (admin only)
 router.put("/:id", requireAuth, (req, res) => {
   try {
-    const stored = historiographyModel.getById(Number(req.params.id));
+    const id = parseIdParam(req, res);
+    if (id === null) return;
+    const stored = historiographyModel.getById(id);
     const problem = validateJournalFields(req.body, { allowStrength: false, columns: HISTORIOGRAPHY_COLUMNS, storedSlug: stored?.slug });
     if (problem) {
       return sendValidationError(res, problem.field, problem.errorDef, problem.extra);
     }
     const updated = historiographyModel.updateComposite(
-      Number(req.params.id),
+      id,
       req.body,
     );
     if (!updated)
@@ -108,7 +109,9 @@ router.put("/:id", requireAuth, (req, res) => {
 // DELETE /historiography/:id — remove historiography item (admin only)
 router.delete("/:id", requireAuth, (req, res) => {
   try {
-    const removed = historiographyModel.remove(Number(req.params.id));
+    const id = parseIdParam(req, res);
+    if (id === null) return;
+    const removed = historiographyModel.remove(id);
     if (!removed)
       return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: "historiography", id: req.params.id });
     res.status(204).end();

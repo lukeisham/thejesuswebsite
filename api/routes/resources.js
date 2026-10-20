@@ -6,6 +6,7 @@ const resourceModel = require("../models/resource.model");
 const requireAuth = require("../middleware/auth");
 const ERRORS = require("../lib/error-codes");
 const { sendError, sendValidationError } = require("../lib/error-handler");
+const { parseIdParam, validatePageParams } = require("../lib/request-params");
 
 const router = express.Router();
 
@@ -24,16 +25,12 @@ function isInvalidItemTypeError(error) {
 // e.g. /resources?list_key=sermons-and-sayings
 router.get("/", (req, res) => {
   try {
+    if (!validatePageParams(req, res)) return;
     const items = req.query.list_key
       ? resourceModel.getByListKey(req.query.list_key, req.query)
       : resourceModel.getAllPublishedByListKey();
     res.json(items);
   } catch (error) {
-    if (error.code === ERRORS.INVALID_NUMERIC_PARAM.code) {
-      return sendValidationError(res, error.field, ERRORS.INVALID_NUMERIC_PARAM, {
-        received: req.query.page,
-      });
-    }
     console.error("GET /resources failed:", error);
     sendError(res, ERRORS.SQL_QUERY_FAILURE);
   }
@@ -120,7 +117,9 @@ router.post("/reorder", requireAuth, (req, res) => {
 // PUT /resources/:id — update resource (admin only)
 router.put("/:id", requireAuth, (req, res) => {
   try {
-    const updated = resourceModel.update(Number(req.params.id), req.body);
+    const id = parseIdParam(req, res);
+    if (id === null) return;
+    const updated = resourceModel.update(id, req.body);
     if (!updated)
       return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, {
         entity: "resource",
@@ -142,7 +141,9 @@ router.put("/:id", requireAuth, (req, res) => {
 // DELETE /resources/:id — remove resource (admin only)
 router.delete("/:id", requireAuth, (req, res) => {
   try {
-    const removed = resourceModel.remove(Number(req.params.id));
+    const id = parseIdParam(req, res);
+    if (id === null) return;
+    const removed = resourceModel.remove(id);
     if (!removed)
       return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, {
         entity: "resource",

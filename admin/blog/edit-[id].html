@@ -262,6 +262,8 @@
                             return valid;
                         }
 
+                        // Emptied optional fields send null: pickWritable skips undefined,
+                        // so undefined would keep the old stored value.
                         function buildPayload() {
                             return {
                                 blog_title: titleInput.value.trim(),
@@ -269,14 +271,14 @@
                                 blog_content:
                                     document
                                         .getElementById("blog-content")
-                                        .value.trim() || undefined,
+                                        .value.trim() || null,
                                 blog_thumbnail:
                                     thumbnailPicker.getValue().image_path ||
-                                    undefined,
+                                    null,
                                 metadata_keywords:
                                     document
                                         .getElementById("blog-keywords")
-                                        .value.trim() || undefined,
+                                        .value.trim() || null,
                                 published_draft: data.published_draft
                                     ? 1
                                     : 0,

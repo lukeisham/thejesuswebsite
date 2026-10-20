@@ -464,16 +464,18 @@
 
     function buildPayload() {
       var rankVal = document.getElementById('challenge-rank').value.trim();
+      // Emptied fields send null: pickWritable skips undefined. An absent
+      // picker stays undefined so it never wipes the stored image.
       return {
         challenge_title: titleInput.value.trim(),
         slug: slugInput.value.trim(),
-        challenge_summary: document.getElementById('challenge-summary').value.trim() || undefined,
-        challenge_body: document.getElementById('challenge-body').value.trim() || undefined,
-        challenge_picture: challengePicker ? challengePicker.getValue().image_path || undefined : undefined,
-        challenge_picture_alt: challengePicker ? challengePicker.getValue().alt || undefined : undefined,
-        challenge_picture_caption: challengePicker ? challengePicker.getValue().caption || undefined : undefined,
-        challenge_rank_number: rankVal ? parseInt(rankVal, 10) : undefined,
-        metadata_keywords: document.getElementById('challenge-keywords').value.trim() || undefined,
+        challenge_summary: document.getElementById('challenge-summary').value.trim() || null,
+        challenge_body: document.getElementById('challenge-body').value.trim() || null,
+        challenge_picture: challengePicker ? challengePicker.getValue().image_path || null : undefined,
+        challenge_picture_alt: challengePicker ? challengePicker.getValue().alt || null : undefined,
+        challenge_picture_caption: challengePicker ? challengePicker.getValue().caption || null : undefined,
+        challenge_rank_number: rankVal ? parseInt(rankVal, 10) : null,
+        metadata_keywords: document.getElementById('challenge-keywords').value.trim() || null,
         published_draft: data.published_draft ? 1 : 0,
         mla_source_ids: mlaSourcesPanel.getSelectedIds()
       };

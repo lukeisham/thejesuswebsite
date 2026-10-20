@@ -80,3 +80,16 @@ describe("GET /identifiers/:id", () => {
     assert.equal(result.body.error.code, "E-PERSIST-004");
   });
 });
+
+describe("GET /identifiers page validation", () => {
+  test("?page=abc returns 400 E-INPUT-005 naming page", async () => {
+    const result = await request(createApp(), {
+      method: "GET",
+      path: "/identifiers?page=abc",
+    });
+
+    assert.equal(result.status, 400);
+    assert.equal(result.body.error.code, "E-INPUT-005");
+    assert.equal(result.body.error.context.field, "page");
+  });
+});

@@ -6,7 +6,8 @@ const wikipediaModel = require('../models/wikipedia.model');
 const requireAuth = require('../middleware/auth');
 const rateLimit = require('../middleware/rate-limit');
 const ERRORS = require('../lib/error-codes');
-const { sendError, sendValidationError } = require('../lib/error-handler');
+const { sendError } = require('../lib/error-handler');
+const { parseIdParam, validatePageParams } = require('../lib/request-params');
 const vectorSidecarClient = require('../lib/vector-sidecar-client');
 
 const router = express.Router();
@@ -38,14 +39,10 @@ const signalCheckLimit = rateLimit({ maxAttempts: 20, windowMs: 60_000 });
 // GET /wikipedia — public list of published Wikipedia articles
 router.get('/', (req, res) => {
     try {
+        if (!validatePageParams(req, res)) return;
         const items = wikipediaModel.getAllPublished(req.query);
         res.json(items);
     } catch (error) {
-        if (error.code === ERRORS.INVALID_NUMERIC_PARAM.code) {
-            return sendValidationError(res, error.field, ERRORS.INVALID_NUMERIC_PARAM, {
-                received: req.query.page,
-            });
-        }
         console.error('GET /wikipedia failed:', error);
         sendError(res, ERRORS.OBJECT_MAPPING_FAILURE);
     }
@@ -133,7 +130,9 @@ router.post('/', requireAuth, (req, res) => {
 // PUT /wikipedia/:id — update Wikipedia article (admin only)
 router.put('/:id', requireAuth, (req, res) => {
     try {
-        const updated = wikipediaModel.update(Number(req.params.id), req.body);
+        const id = parseIdParam(req, res);
+        if (id === null) return;
+        const updated = wikipediaModel.update(id, req.body);
         if (!updated) return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND);
         res.json(updated);
     } catch (error) {
@@ -156,7 +155,9 @@ router.delete('/', requireAuth, (req, res) => {
 // DELETE /wikipedia/:id — remove Wikipedia article (admin only)
 router.delete('/:id', requireAuth, (req, res) => {
     try {
-        const removed = wikipediaModel.remove(Number(req.params.id));
+        const id = parseIdParam(req, res);
+        if (id === null) return;
+        const removed = wikipediaModel.remove(id);
         if (!removed) return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND);
         res.status(204).end();
     } catch (error) {

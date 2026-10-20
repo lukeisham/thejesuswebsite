@@ -106,3 +106,25 @@ describe("POST /news-articles", () => {
     assert.equal(result.body.error.code, "E-INPUT-001");
   });
 });
+
+describe("PUT /news-articles/:id clears a field sent as null", () => {
+  test("PUT with news_article_author null clears the stored author", async () => {
+    const created = await request(createApp(), {
+      method: "POST",
+      path: "/news-articles",
+      body: { slug: "null-clear", news_article_author: "Jane Doe" },
+      headers: { cookie: authCookie() },
+    });
+    assert.equal(created.status, 201);
+    assert.equal(created.body.news_article_author, "Jane Doe");
+
+    const cleared = await request(createApp(), {
+      method: "PUT",
+      path: `/news-articles/${created.body.id}`,
+      body: { news_article_author: null },
+      headers: { cookie: authCookie() },
+    });
+    assert.equal(cleared.status, 200);
+    assert.equal(cleared.body.news_article_author, null);
+  });
+});

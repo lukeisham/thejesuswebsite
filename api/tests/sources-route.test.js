@@ -107,3 +107,25 @@ describe("POST /sources", () => {
     assert.equal(result.body.error.code, "E-INPUT-001");
   });
 });
+
+describe("PUT /sources/:id clears a field sent as null", () => {
+  test("PUT with mla_website_author null clears the stored author", async () => {
+    const created = await request(createApp(), {
+      method: "POST",
+      path: "/sources",
+      body: { mla_website_title: "Site", mla_website_author: "Smith" },
+      headers: { cookie: authCookie() },
+    });
+    assert.equal(created.status, 201);
+    assert.equal(created.body.mla_website_author, "Smith");
+
+    const cleared = await request(createApp(), {
+      method: "PUT",
+      path: `/sources/${created.body.id}`,
+      body: { mla_website_author: null },
+      headers: { cookie: authCookie() },
+    });
+    assert.equal(cleared.status, 200);
+    assert.equal(cleared.body.mla_website_author, null);
+  });
+});
