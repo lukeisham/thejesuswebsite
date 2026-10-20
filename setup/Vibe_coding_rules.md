@@ -414,7 +414,7 @@ place to look (CSS-2), so do not split it.
 **CSS-2** — Custom Properties Only
 Every colour, space, size, font and duration is a custom property from the area's one
 `variables.css` (`frontend/assets/css/base/variables.css`, `admin/assets/css/admin-base/variables.css`),
-including its dark-mode and print blocks. Component files reference `var(--…)` only.
+including any print block. Component files reference `var(--…)` only.
 
 Exception: `admin/assets/css/admin-diagrams/timeline-tokens.css` and `maps-tokens.css` keep the
 literal values of the frontend-named tokens that only the timeline and maps editors use. The admin
@@ -464,7 +464,7 @@ Exception: `admin/assets/js/admin-arbor/arbor-canvas.js`'s `<svg>` is exempt. Ar
 
 **SVG-6** — Icons Take the Text Colour
 An interface icon uses `fill="currentColor"` or `stroke="currentColor"`, so that it follows
-dark mode. Any other colour comes from a token by class, never inline. A decorative icon carries
+the text colour around it. Any other colour comes from a token by class, never inline. A decorative icon carries
 `aria-hidden="true"`. An icon that is the only label of a control carries a `<title>`, or the
 control carries `aria-label`.
 
