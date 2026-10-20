@@ -35,6 +35,8 @@ const WRITABLE_COLUMNS = [
  * public list endpoint.
  *
  * Mirrors historiography.model.js:getAllAdmin().
+ *
+ * @returns {object[]}
  */
 function getAllAdmin() {
   return db.prepare("SELECT * FROM blog_posts ORDER BY created_at DESC").all();
@@ -46,6 +48,9 @@ function getAllAdmin() {
  * When `page` and `limit` are provided, returns a paginated response:
  *   { items: [...], total: N, page: N, limit: N, totalPages: N }
  * When they are absent, returns a flat array (backward compatible).
+ *
+ * @param {{page?: number, limit?: number}} [filters] Optional page and limit.
+ * @returns {object[]|{items: object[], total: number, page: number, limit: number, totalPages: number}}
  */
 function getAllPublished(filters = {}) {
   const { page, limit } = filters;
@@ -58,6 +63,9 @@ function getAllPublished(filters = {}) {
 
 /**
  * Single published blog post by slug, or undefined if not found.
+ *
+ * @param {string} slug
+ * @returns {object|undefined}
  */
 function getBySlug(slug) {
   return db
@@ -67,6 +75,9 @@ function getBySlug(slug) {
 
 /**
  * Single blog post by id regardless of publish state — for admin.
+ *
+ * @param {number} id
+ * @returns {object|undefined}
  */
 function getById(id) {
   return db.prepare("SELECT * FROM blog_posts WHERE id = ?").get(id);
@@ -75,6 +86,9 @@ function getById(id) {
 /**
  * Insert a new blog post. `data.slug` is treated as a desired base slug and
  * de-duplicated automatically. Returns the created row.
+ *
+ * @param {object} data
+ * @returns {object|undefined}
  */
 function create(data) {
   const row = pickWritable(data, WRITABLE_COLUMNS);
@@ -96,6 +110,10 @@ function create(data) {
  * Update an existing blog post. Only writable fields present in `data` are changed.
  * If the slug changes it is re-de-duplicated. Returns the updated row,
  * or undefined if no row has that id.
+ *
+ * @param {number} id
+ * @param {object} data
+ * @returns {object|undefined}
  */
 function update(id, data) {
   if (!getById(id)) return undefined;
@@ -111,6 +129,9 @@ function update(id, data) {
 
 /**
  * Delete a blog post by id. Returns true if a row was removed.
+ *
+ * @param {number} id
+ * @returns {boolean}
  */
 function remove(id) {
   const result = db.prepare("DELETE FROM blog_posts WHERE id = ?").run(id);
@@ -121,6 +142,9 @@ function remove(id) {
  * Full detail for public consumption — the base blog post row plus all related
  * breakouts, pictures, sources, identifiers, and internal links.
  * Filters to published_draft = 1 at the base level.
+ *
+ * @param {string} slug
+ * @returns {object|undefined}
  */
 function getDetailBySlug(slug) {
   const post = getBySlug(slug);
@@ -132,6 +156,9 @@ function getDetailBySlug(slug) {
  * Full admin detail — the base row regardless of publish state plus all relations.
  * This lets the admin edit form load drafts with their existing breakouts,
  * pictures, sources, identifiers, and links exactly as they were last saved.
+ *
+ * @param {number} id
+ * @returns {object|undefined}
  */
 function getAdminById(id) {
   const post = getById(id);
@@ -186,6 +213,9 @@ function assembleDetail(post) {
  *   identifier_ids: [id, ...]
  *   link_evidence_ids: [id, ...]
  *   link_context_ids: [id, ...]
+ *
+ * @param {object} data
+ * @returns {object|undefined}
  */
 function createComposite(data) {
   const writeRelated = db.transaction((data) => {
@@ -246,6 +276,10 @@ function createComposite(data) {
  * Composite update — updates the base row and atomically replaces all related
  * child/junction sets inside a single transaction. Accepts the same optional
  * arrays as createComposite.
+ *
+ * @param {number} id
+ * @param {object} data
+ * @returns {object|undefined}
  */
 function updateComposite(id, data) {
   const existing = getById(id);

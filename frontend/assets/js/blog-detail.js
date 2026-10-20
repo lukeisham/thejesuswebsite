@@ -164,6 +164,8 @@ function renderBibliography(post) {
       .map(function (source) {
         const citation = formatMlaCitation(source);
         if (!citation) return "";
+        // formatMlaCitation already escapes each field and returns trusted markup,
+        // so it is inserted with raw(); wrapping it in html`` would escape it twice.
         return html`<li id="mla-${source.id}">${raw(citation)}</li>`;
       })
       .filter(Boolean)
@@ -214,9 +216,7 @@ async function init() {
   const { data, error } = await getBlogPostBySlug(slug);
 
   if (error) {
-    const is404 =
-      error === "Slug is required" ||
-      (typeof error === "object" && error.code === "E-PERSIST-004");
+    const is404 = typeof error === "object" && error.code === "E-PERSIST-004";
     if (is404) {
       showEmpty();
     } else {
@@ -238,7 +238,7 @@ async function init() {
   renderBibliography(data);
   renderCreatedEditedLine(data.created_at, data.updated_at);
 
-    // Apply SEO metadata
+  // Apply SEO metadata
   applySEO(data);
 
   // Show content

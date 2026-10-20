@@ -30,7 +30,10 @@
     margin-bottom: var(--space-md);
 }
 
-/* Byline Row */
+/* -------------------------------------------------------------------------
+   Byline Row
+   ------------------------------------------------------------------------- */
+
 .blog-byline {
     display: flex;
     align-items: center;
@@ -90,26 +93,6 @@
     margin: var(--space-xl) var(--space-md);
     border: none;
     background: transparent;
-}
-
-/* -------------------------------------------------------------------------
-   Tags Row
-   ------------------------------------------------------------------------- */
-
-.blog-tags {
-    display: flex;
-    align-items: baseline;
-    gap: var(--space-xs);
-    flex-wrap: wrap;
-    margin-top: var(--space-xl);
-    padding-top: var(--space-lg);
-    border-top: 1px solid var(--border);
-}
-
-.blog-tags-label {
-    font-size: var(--text-xs);
-    font-weight: 600;
-    color: var(--text-muted);
 }
 
 /* -------------------------------------------------------------------------

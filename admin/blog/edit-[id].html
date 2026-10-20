@@ -44,6 +44,7 @@
                 document.getElementById("static-title").remove();
 
                 var main = document.getElementById("edit-content");
+                // Moved last so the sidebar and topbar injected above precede it in DOM order.
                 shell.appendChild(main);
 
                 await AdminEditorScaffold.initializeEditor({

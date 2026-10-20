@@ -21,9 +21,8 @@ const RETRY_ID = 'retry-load';
 const PAGE_SIZE = 20;
 const SCROLL_THRESHOLD = 300;
 
-// v2: excerpt is now formatted HTML (renderExcerpt) rather than plain text —
-// bump the key so a v1 cache written before this change is never rendered
-// via innerHTML.
+// Versioned key: excerpts are rendered via innerHTML, so a cache written in an
+// older plain-text format must never be read under this key.
 const STORAGE_KEY_ITEMS = 'blog_list_items_v2';
 const STORAGE_KEY_SCROLL = 'blog_list_scroll';
 

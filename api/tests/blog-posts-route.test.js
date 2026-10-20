@@ -1,6 +1,5 @@
 // Blog Posts route tests — uses node:test + node:assert.
-// Minimum coverage proving the API-3 registry conversion: a 404 case and the
-// create-validation 400 case both return { error: { code, message } }.
+// Pins the error-registry shape (API-3) for the 404 and 400 paths.
 
 const { test, describe, beforeEach } = require("node:test");
 const assert = require("node:assert/strict");
