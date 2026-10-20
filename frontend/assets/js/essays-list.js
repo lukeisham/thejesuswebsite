@@ -84,7 +84,6 @@ async function loadPage() {
     return;
   }
 
-  // Paginate manually from the full result set
   const start = (currentPage - 1) * PAGE_SIZE;
   const pageItems = data.slice(start, start + PAGE_SIZE);
 

@@ -2,8 +2,6 @@
  * MCP tool: getEssayBySlug
  *
  * Retrieves a single published contextual essay by its URL slug.
- *
- * @param {string} slug - The URL slug of the essay (required, non-empty).
  */
 export const name = 'getEssayBySlug';
 
@@ -30,7 +28,7 @@ export const inputSchema = {
  * @returns {Promise<object>} MCP tool result.
  */
 export async function handler(args, apiRequest) {
-  const slug = (args.slug || '').trim();
+  const slug = typeof args.slug === 'string' ? args.slug.trim() : '';
   if (!slug) {
     return {
       content: [{ type: 'text', text: 'Error: slug must be a non-empty string.' }],

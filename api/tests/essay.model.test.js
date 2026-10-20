@@ -204,7 +204,7 @@ describe("essay: createComposite() writes child/junction rows", () => {
     assert.equal(created.breakouts.length, 2);
     assert.equal(created.breakouts[0].title, "Section 1");
     assert.equal(created.breakouts[1].title, "Section 2");
-    assert.ok(created.mla_sources.length > 0);
+    assert.equal(created.mla_sources.length, 1);
   });
 
   test("createComposite() rolls back the essay row when a child insert fails", () => {
@@ -215,14 +215,17 @@ describe("essay: createComposite() writes child/junction rows", () => {
     // mla_source_ids references a non-existent mla_sources row, which should
     // fail on the FK-constrained junction insert and roll back the whole
     // transaction, including the already-inserted essay row.
-    assert.throws(() => {
-      essayModel.createComposite({
-        slug: "rollback-test",
-        essay_title: "Rollback Test",
-        breakouts: [{ title: "Valid", content: "Content" }],
-        mla_source_ids: [999999],
-      });
-    });
+    assert.throws(
+      () => {
+        essayModel.createComposite({
+          slug: "rollback-test",
+          essay_title: "Rollback Test",
+          breakouts: [{ title: "Valid", content: "Content" }],
+          mla_source_ids: [999999],
+        });
+      },
+      { code: "SQLITE_CONSTRAINT_FOREIGNKEY", message: "FOREIGN KEY constraint failed" },
+    );
 
     const after = testDb
       .prepare("SELECT COUNT(*) as count FROM context_essays")

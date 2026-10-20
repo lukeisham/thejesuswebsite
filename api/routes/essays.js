@@ -11,7 +11,6 @@ const { validateJournalFields } = require("../lib/journal-field-validation");
 
 const router = express.Router();
 
-// GET /essays — public list of published essays
 router.get("/", (req, res) => {
   try {
     const items = essayModel.getAllPublished(req.query);
@@ -53,7 +52,6 @@ router.get("/admin/:id", requireAuth, (req, res) => {
   }
 });
 
-// GET /essays/:slug — public single essay by slug
 router.get("/:slug", (req, res) => {
   try {
     const item = essayModel.getDetailBySlug(req.params.slug);
@@ -66,7 +64,6 @@ router.get("/:slug", (req, res) => {
   }
 });
 
-// POST /essays — create new essay (admin only)
 router.post("/", requireAuth, (req, res) => {
   try {
     if (!req.body.slug) {
@@ -84,7 +81,6 @@ router.post("/", requireAuth, (req, res) => {
   }
 });
 
-// PUT /essays/:id — update essay (admin only)
 router.put("/:id", requireAuth, (req, res) => {
   try {
     const problem = validateJournalFields(req.body, { allowStrength: false });
@@ -101,7 +97,6 @@ router.put("/:id", requireAuth, (req, res) => {
   }
 });
 
-// DELETE /essays/:id — remove essay (admin only)
 router.delete("/:id", requireAuth, (req, res) => {
   try {
     const removed = essayModel.remove(Number(req.params.id));

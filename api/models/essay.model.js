@@ -36,7 +36,7 @@ const WRITABLE_COLUMNS = [
 ];
 
 // SQL-9: named columns instead of SELECT * — the full WRITABLE_COLUMNS set
-// plus id/created_at/updated_at, matching what every SELECT * caller reads today.
+// plus id and the timestamps.
 const ALL_COLUMNS = ["id", ...WRITABLE_COLUMNS, "created_at", "updated_at"].join(
   ", ",
 );
@@ -71,7 +71,9 @@ function normalizeForPublic(item) {
 }
 
 /**
- * Published essays for the public site, newest first.
+ * All essays, drafts and published, newest first, for the admin list.
+ *
+ * @returns {object[]}
  */
 function getAllAdmin() {
   return db
@@ -85,6 +87,9 @@ function getAllAdmin() {
  * When `page` and `limit` are provided, returns a paginated response:
  *   { items: [...], total: N, page: N, limit: N, totalPages: N }
  * When they are absent, returns a flat array (backward compatible).
+ *
+ * @param {{page?: number, limit?: number}} [filters] Optional page and limit.
+ * @returns {object[]|{items: object[], total: number, page: number, limit: number, totalPages: number}}
  */
 function getAllPublished(filters = {}) {
   const { page, limit } = filters;
@@ -98,6 +103,9 @@ function getAllPublished(filters = {}) {
 
 /**
  * Single published essay by its public slug, or undefined if not found.
+ *
+ * @param {string} slug
+ * @returns {object|undefined}
  */
 function getBySlug(slug) {
   return db
@@ -109,6 +117,9 @@ function getBySlug(slug) {
 
 /**
  * Single essay by id regardless of publish state — for the admin panel.
+ *
+ * @param {number} id
+ * @returns {object|undefined}
  */
 function getById(id) {
   return db.prepare(`SELECT ${ALL_COLUMNS} FROM context_essays WHERE id = ?`).get(id);
@@ -116,12 +127,15 @@ function getById(id) {
 
 /**
  * Full detail for public consumption — the base essay row plus all related
- * breakouts, pictures, sources, identifiers, and internal links (evidence + context).
+ * breakouts, footnotes, sources, identifiers, and internal links (evidence + context).
  * Filters to published_draft = 1 at the base level.
  *
  * Why composite: the public essay detail page needs to display breakouts,
- * pictures, bibliography citations, identifiers, and internal links. Assembling
+ * footnotes, bibliography citations, identifiers, and internal links. Assembling
  * this in one function avoids N+1 query storms on the frontend.
+ *
+ * @param {string} slug
+ * @returns {object|undefined}
  */
 function getDetailBySlug(slug) {
   const essay = getBySlug(slug);
@@ -136,6 +150,9 @@ function getDetailBySlug(slug) {
  *
  * Why separate: the public slug-based read must never leak drafts. The admin
  * id-based read intentionally skips the publish filter so drafts are editable.
+ *
+ * @param {number} id
+ * @returns {object|undefined}
  */
 function getAdminById(id) {
   const essay = getById(id);
@@ -186,6 +203,9 @@ function assembleDetail(essay) {
 /**
  * Insert a new essay row. `data.slug` is treated as a desired base slug and
  * de-duplicated automatically. Returns the created row.
+ *
+ * @param {object} data
+ * @returns {object|undefined}
  */
 function create(data) {
   const row = pickWritable(data, WRITABLE_COLUMNS);
@@ -207,6 +227,10 @@ function create(data) {
  * Update an existing essay row. Only writable fields present in `data` are
  * changed. If the slug changes it is re-de-duplicated. Returns the updated row,
  * or undefined if no row has that id.
+ *
+ * @param {number} id
+ * @param {object} data
+ * @returns {object|undefined}
  */
 function update(id, data) {
   if (!getById(id)) return undefined;
@@ -232,6 +256,9 @@ function update(id, data) {
  *   identifier_ids: [id, ...]
  *   link_evidence_ids: [id, ...]
  *   link_context_ids: [id, ...]
+ *
+ * @param {object} data
+ * @returns {object|undefined}
  */
 function createComposite(data) {
   const writeRelated = db.transaction((data) => {
@@ -304,6 +331,10 @@ function createComposite(data) {
  *
  * Why transaction: ensures we never end up with half-updated relations if
  * one of the replacements fails.
+ *
+ * @param {number} id
+ * @param {object} data
+ * @returns {object|undefined}
  */
 function updateComposite(id, data) {
   const existing = getById(id);
@@ -374,6 +405,9 @@ function updateComposite(id, data) {
 
 /**
  * Delete by id. Returns true if a row was removed.
+ *
+ * @param {number} id
+ * @returns {boolean}
  */
 function remove(id) {
   const result = db.prepare("DELETE FROM context_essays WHERE id = ?").run(id);

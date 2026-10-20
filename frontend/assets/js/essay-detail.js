@@ -119,7 +119,6 @@ function renderBreadcrumbs(essay) {
 function renderTitleBlock(essay) {
   if ($title) $title.textContent = essay.title || "Untitled Essay";
 
-  // Author
   if ($author) {
     if (essay.author) {
       $author.textContent = essay.author;
@@ -128,7 +127,7 @@ function renderTitleBlock(essay) {
     }
   }
 
-  // Author bio (optional — Issue #2)
+  // Author bio (optional)
   if ($authorBio) {
     if (essay.author_bio) {
       $authorBio.textContent = essay.author_bio;
@@ -138,7 +137,6 @@ function renderTitleBlock(essay) {
     }
   }
 
-  // Publication date
   if ($date) {
     const dateStr = essay.published_at || essay.created_at;
     if (dateStr) {
@@ -154,7 +152,7 @@ function renderTitleBlock(essay) {
     }
   }
 
-  // DOI (optional — Issue #2)
+  // DOI (optional)
   if ($doi) {
     if (essay.doi) {
       $doi.textContent = `DOI: ${essay.doi}`;
@@ -324,10 +322,8 @@ async function init() {
     return;
   }
 
-  // Update hidden h1
   if ($h1) $h1.textContent = data.title || "Essay";
 
-  // Render all sections
   renderBreadcrumbs(data);
   renderTitleBlock(data);
   renderAbstract(data);
@@ -337,10 +333,9 @@ async function init() {
   renderBibliography(data);
   renderCreatedEditedLine(data.created_at, data.updated_at);
 
-  // Apply SEO metadata
   applySEO(data);
 
-  // Two-column layout flag (optional — Issue #2)
+  // Two-column layout flag (optional)
   if (data.two_column && $body) {
     $body.classList.add("journal-body--two-column");
   }

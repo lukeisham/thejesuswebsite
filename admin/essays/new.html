@@ -489,7 +489,7 @@ const titleInput = document.getElementById("essay-title");
                     try {
                         var result = await Admin.api.post("/essays", payload);
                         submitStatus.innerHTML =
-                            '<span style="color:var(--admin-success)">Essay created successfully!</span>';;
+                            '<span style="color:var(--admin-success)">Essay created successfully!</span>';
                         setTimeout(function () {
                             window.location.href =
                                 "edit-[id].html?id=" + result.id;

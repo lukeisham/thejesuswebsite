@@ -1,8 +1,8 @@
-// Essays route tests — uses node:test + node:assert.
-// Minimum coverage proving the API-3 registry conversion: a 404 case and the
-// create-validation 400 case both return { error: { code, message } }.
+// Essays route tests (node:test + node:assert). Asserts the status and registry
+// error code for an unknown slug, missing or invalid create/update fields, and an
+// unauthenticated write, plus a successful create that saves footnotes.
 
-const { test, describe, beforeEach } = require("node:test");
+const { test, describe, afterEach } = require("node:test");
 const assert = require("node:assert/strict");
 const express = require("express");
 const http = require("http");
@@ -77,7 +77,7 @@ function authCookie() {
   return `sid=${encodeURIComponent(requireAuth.createSession("test"))}`;
 }
 
-beforeEach(() => {
+afterEach(() => {
   clearAuthSessions();
 });
 

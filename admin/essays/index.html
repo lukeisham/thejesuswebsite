@@ -144,7 +144,6 @@
                 }
 
                 try {
-                    // Fetch all essays (drafts + published) via the admin endpoint
                     var allEssays = await Admin.api.get("/essays/admin");
 
                     main.removeChild(loadingEl);
@@ -158,7 +157,6 @@
                         return;
                     }
 
-                    // Sort by date descending
                     allEssays.sort(function (a, b) {
                         return (b.created_at || "").localeCompare(
                             a.created_at || "",

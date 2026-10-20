@@ -110,7 +110,7 @@
             aria-expanded="false"
             aria-label="Toggle navigation"
         >
-            <svg width="20" height="20" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
                 <use href="/assets/images/feather-sprite.svg#icon-menu" />
             </svg>
         </button>
@@ -150,28 +150,24 @@
                     the historical evidence for Jesus of Nazareth.
                 </header>
 
-                <!-- Card grid for essay list -->
-                <div class="card-grid essays-card-grid" id="card-grid" role="list">
+                <div class="card-grid essays-card-grid" id="card-grid">
                     <!-- Populated by essays-list.js -->
                 </div>
 
-                <!-- Infinite scroll sentinel -->
                 <div id="scroll-sentinel" hidden></div>
 
-                <!-- Loading state -->
                 <div class="loading-state" id="loading-state" hidden>
                     <div
                         class="loading-state__spinner"
+                        role="status"
                         aria-label="Loading essays"
                     ></div>
                 </div>
 
-                <!-- Empty state -->
                 <div class="empty-state" id="empty-state" hidden>
                     <p class="empty-state__message">No essays published yet.</p>
                 </div>
 
-                <!-- Error state -->
                 <div class="error-state" id="error-state" hidden>
                     <p class="error-state__message">Failed to load essays.</p>
                     <button id="retry-load" class="btn btn--secondary">
@@ -179,7 +175,6 @@
                     </button>
                 </div>
 
-                <!-- End of list -->
                 <div class="end-of-list" id="end-of-list" hidden></div>
             </div>
         </main>

@@ -81,7 +81,7 @@
             aria-expanded="false"
             aria-label="Toggle navigation"
         >
-            <svg width="20" height="20" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
                 <use href="/assets/images/feather-sprite.svg#icon-menu" />
             </svg>
         </button>
@@ -130,19 +130,16 @@
             </div>
         </section>
 
-        <!-- Error state -->
         <section id="error-state" class="error-state" hidden>
             <p class="error-state__message"></p>
         </section>
 
-        <!-- Empty / forthcoming state -->
         <section id="empty-state" class="empty-state" hidden>
             <p class="empty-state__message">This essay is forthcoming.</p>
         </section>
 
         <!-- Essay content (hidden until loaded) -->
         <article id="essay-content" class="journal-article" hidden>
-            <!-- Title block -->
             <header class="journal-title-block" id="essay-title-block">
                 <h2 class="journal-title" id="essay-title"></h2>
                 <div class="journal-byline">
@@ -157,24 +154,20 @@
                 <div class="journal-doi" id="essay-doi" hidden></div>
             </header>
 
-            <!-- Abstract -->
             <section class="journal-abstract" id="essay-abstract" hidden>
                 <h3 class="journal-abstract-label">Abstract</h3>
                 <p class="journal-abstract-body" id="essay-abstract-body"></p>
             </section>
 
-            <!-- Keywords -->
             <div class="journal-keywords" id="essay-keywords" hidden>
                 <span class="journal-keywords-label">Keywords:</span>
                 <div id="essay-keywords-list"></div>
             </div>
 
-            <!-- Reading column body -->
             <div class="journal-body" id="essay-body">
                 <!-- Populated by essay-detail.js -->
             </div>
 
-            <!-- Footnotes -->
             <footer class="journal-body" id="essay-footnotes" hidden>
                 <hr class="journal-footnote-divider" />
                 <ol class="journal-footnotes" id="essay-footnotes-list">
@@ -182,7 +175,6 @@
                 </ol>
             </footer>
 
-            <!-- Bibliography -->
             <section class="journal-body" id="essay-references" hidden>
                 <h2 class="unnumbered">References</h2>
                 <ul class="journal-references" id="essay-references-list">
@@ -202,19 +194,19 @@
             </div>
             <div class="footer__right">
                 <button class="btn btn--ghost btn--ghost--footer" data-action="print" aria-label="Print page">
-                    <svg width="16" height="16" aria-hidden="true">
+                    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
                         <use href="/assets/images/feather-sprite.svg#icon-printer"></use>
                     </svg>
                     Print
                 </button>
-                <button class="btn btn--ghost btn--ghost--footer" data-action="copy-contents" aria-label="Copy page contents">
-                    <svg width="16" height="16" aria-hidden="true">
+                <button class="btn btn--ghost btn--ghost--footer" data-action="copy-contents">
+                    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
                         <use href="/assets/images/feather-sprite.svg#icon-copy"></use>
                     </svg>
                     Copy Contents
                 </button>
-                <button class="btn btn--ghost btn--ghost--footer" data-action="copy-url" aria-label="Copy page URL">
-                    <svg width="16" height="16" aria-hidden="true">
+                <button class="btn btn--ghost btn--ghost--footer" data-action="copy-url">
+                    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
                         <use href="/assets/images/feather-sprite.svg#icon-link"></use>
                     </svg>
                     Copy URL
