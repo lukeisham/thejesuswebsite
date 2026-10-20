@@ -150,7 +150,7 @@ Every plan must end with a `## Completion Protocol` section, addressed to *any* 
 
 - **Markdown edits happen via a Python script, never manual find/replace.** State plainly that hand-edited markdown/HTML is a known source of corruption in this codebase (cite `setup/ISSUES/issues.md` if it has relevant rows) and that whoever implements this plan should write a small script to parse-and-rewrite rather than hand-edit checkboxes, status fields, or issue-log rows.
 - **Tick checkboxes as tasks complete** (`- [ ]` → `- [x]`).
-- **Mark related issue-log rows resolved, if applicable** — only if this plan's Goal is to fix issue(s) already logged by an earlier plan. The active log is `setup/ISSUES/issues.md`; if a cited row number isn't there, it's been archived to `setup/ISSUES/Issues_111_to_200.md` (rows 111–200) or `setup/ISSUES/Issues_30_to_110.md` (rows 30–110) — check the row's number to know which file, and don't assume an archived row is already resolved, since archival doesn't imply that. Add a corresponding task earlier in the Tasks list (a "Close out" group just before "Deploy & verify" is the natural home) that updates only the `Status` cell for those specific row(s) from `open` to `resolved`, once the fix is verified. Do not add this if the plan doesn't resolve any existing rows.
+- **Mark related issue-log rows resolved, if applicable** — only if this plan's Goal is to fix issue(s) already logged by an earlier plan. The active log is `setup/ISSUES/issues.md`; if a cited row number isn't there, it's been moved to one of the archive files named `setup/ISSUES/Issues_<first>_to_<last>.md` (now `Issues_30_to_110.md`, `Issues_111_to_200.md`, `Issues_201_to_250.md` and `Issues_251_to_299.md`) — the row's number tells you which file, and don't assume an archived row is already resolved, since archival doesn't imply that. Add a corresponding task earlier in the Tasks list (a "Close out" group just before "Deploy & verify" is the natural home) that updates only the `Status` cell for those specific row(s) from `open` to `resolved`, once the fix is verified. Do not add this if the plan doesn't resolve any existing rows.
 - **Shipped-artifact audit before completion** — before flipping Status to Completed, verify every file listed in **Files touched** actually exists with the *planned content*, not a stub or placeholder (e.g. `ls` created directories and open key files; a vendored library directory containing only a README is a failed audit). If any planned artifact is missing or smaller than specced, the plan stays in `PLANS/New/` with a note describing the gap. (History: a dictionary upgrade was once marked done with only a README shipped.)
 - **Plan lifecycle**: once every task is checked *and the shipped-artifact audit passes*, flip the header's **Status** to `✅ Completed` and move the file from `PLANS/New/` to `PLANS/Completed/`.
 - **Push everything to GitHub as the final step** — code changes, any `setup/ISSUES/issues.md` update, and the plan file's own edits/move, all in the same push described in "Deploy & verify".
@@ -308,10 +308,11 @@ log — lowercase filename; not `Issues.md`, which no longer exists) and append 
 in Step 5 that were **not fixed** — pre-existing problems, ambiguities you cannot resolve in
 this session, or anything that needs a separate decision.
 
-**Note on the archive split:** `setup/ISSUES/` holds three files. `issues.md` is the active log
-— always append new rows here. `Issues_30_to_110.md` (rows 30–110) and `Issues_111_to_200.md`
-(rows 111–200) are periodic archives of older row ranges — read-only for new appends, but you
-may still need to open them to check or resolve an old row number. Archival is periodic
+**Note on the archive split:** `setup/ISSUES/` holds the active log and its archives.
+`issues.md` is the active log — always append new rows here. Each archive is named
+`Issues_<first>_to_<last>.md` for the row range it holds (now 30–110, 111–200, 201–250 and
+251–299) — read-only for new appends, but you may still need to open one to check or resolve
+an old row number. Archival is periodic
 by row range, not a guarantee that every archived row is resolved — some archived rows are
 still `open`, so don't assume otherwise.
 
@@ -332,7 +333,7 @@ Append one row per issue. Do not remove or edit existing rows — only add new o
 
 | Column | What to put there |
 |---|---|
-| `#` | Auto-increment from the last row across all three `setup/ISSUES/` files (check the highest `#` in `issues.md`, which holds the current tail) |
+| `#` | One past the highest `#` in `issues.md`, which holds the current tail (the archives only hold older rows) |
 | `File` | Path relative to the project root (e.g. `frontend/evidence/index.html`) |
 | `Issue` | One-sentence description of the problem |
 | `Rule` | The Vibe Coding Rule ID if applicable (e.g. `JS-6`, `CSS-2`, `HTML-1`), or `bug` / `warning` |
@@ -340,7 +341,7 @@ Append one row per issue. Do not remove or edit existing rows — only add new o
 | `Date` | Today's date |
 | `Status` | Always `open` when first added |
 
-**If this plan instead *fixes* row(s) already logged by an earlier plan**, don't add new rows for them — first check `issues.md` for the row number; if it's not there, it's archived (rows 30–110 → `Issues_30_to_110.md`, rows 111–200 → `Issues_111_to_200.md`). Add a task to this plan's Tasks list (and its Completion Protocol section, see Step 7) that marks those specific rows' `Status` as `resolved`, in whichever file currently holds them, once the fix is verified. Never edit a row's `Issue`/`File`/`Rule` text, only its `Status`.
+**If this plan instead *fixes* row(s) already logged by an earlier plan**, don't add new rows for them — first check `issues.md` for the row number; if it's not there, it's in the archive whose name covers that number (`Issues_<first>_to_<last>.md`, e.g. row 230 → `Issues_201_to_250.md`). Add a task to this plan's Tasks list (and its Completion Protocol section, see Step 7) that marks those specific rows' `Status` as `resolved`, in whichever file currently holds them, once the fix is verified. Never edit a row's `Issue`/`File`/`Rule` text, only its `Status`.
 
 ---
 
@@ -371,7 +372,7 @@ reference:
    its markup in the first place.
 2. Tick all remaining checkboxes (`- [ ]` → `- [x]`).
 3. If the plan fixes row(s) already logged (check `issues.md` first, then the
-   `Issues_30_to_110.md`/`Issues_111_to_200.md` archives if the row number isn't in the active
+   `Issues_<first>_to_<last>.md` archive that covers the row number if it isn't in the active
    log), mark only those rows' `Status` as `resolved`, in whichever file currently holds them.
 4. Change the **Status** field in the header to `✅ Completed`.
 5. Move the plan file from `PLANS/New/` to `PLANS/Completed/`.
