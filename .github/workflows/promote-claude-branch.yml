@@ -57,16 +57,10 @@ jobs:
           cache: npm
           cache-dependency-path: api/package-lock.json
 
-      # Some tests (sql-identifier-whitelisting, blog-post.model) open the real
-      # database through api/config.js. The dev database is gitignored, so the
-      # runner builds an empty one from database/schema.sql.
       - name: Run api tests
         if: steps.merge.outputs.changed == 'true'
         working-directory: api
-        env:
-          DB_PATH: ${{ runner.temp }}/test.db
         run: |
-          sqlite3 "$DB_PATH" < ../database/schema.sql
           npm ci
           npm test
 

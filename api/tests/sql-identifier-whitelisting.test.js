@@ -4,9 +4,19 @@
 // (getDraftsFor/getDraftCounts) accept known table/column names and throw a
 // clear error for anything else. Structural SQL-injection hardening (SQL-4).
 
+process.env.DB_PATH = ":memory:";
+
 const { test, describe, beforeEach } = require("node:test");
 const assert = require("node:assert/strict");
+const fs = require("fs");
+const path = require("path");
 const { createTestDb } = require("./helpers/db");
+
+// The models below use the shared connection from ../config, so it needs the
+// schema too. createTestDb() builds a separate database for generateUniqueSlug.
+require("../config").exec(
+  fs.readFileSync(path.resolve(__dirname, "..", "..", "database", "schema.sql"), "utf8"),
+);
 
 const {
   getLinked,
@@ -19,9 +29,8 @@ const { generateUniqueSlug } = require("../models/model-helpers");
 const { getDraftCounts } = require("../models/drafts.model");
 
 // junctions.js and child-rows.js close over a module-scoped `db` from
-// ../../config rather than accepting it as a parameter, so these tests set
-// DB_PATH before requiring them (mirrors the pattern used by other model
-// tests in this suite) and rely on the shared in-memory test schema.
+// ../../config rather than accepting it as a parameter, so DB_PATH is set to
+// :memory: at the top of this file, before they are required.
 describe("junctions.js identifier whitelisting", () => {
   test("getLinked accepts a whitelisted table/columns", () => {
     assert.doesNotThrow(() =>

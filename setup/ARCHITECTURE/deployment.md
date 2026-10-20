@@ -4,7 +4,7 @@ Work that reaches the shared repository becomes the live site, and every working
 deploy turns committed code into a running, current site and never serves stale content.
 
 **Source of truth:** `.github/workflows/deploy.yml` and `deploy.sh` — win any disagreement with this doc.
-**Spans:** `.github/workflows/deploy.yml`, `.github/workflows/promote-claude-branch.yml`, `scripts/pull-from-github.sh`, `api/routes/deploy-webhook.js`, `api/routes/deploy-status.js`, `deploy.sh`, `scripts/pm2-apply.js`, `ecosystem.config.js`, `deploy/nginx.conf`, `api/scripts/version-assets.js`, `api/scripts/deploy-step-cache.js`.
+**Spans:** `.github/workflows/deploy.yml`, `.github/workflows/promote-claude-branch.yml`, `scripts/send-to-main.sh`, `scripts/pull-from-github.sh`, `api/routes/deploy-webhook.js`, `api/routes/deploy-status.js`, `deploy.sh`, `scripts/pm2-apply.js`, `ecosystem.config.js`, `deploy/nginx.conf`, `api/scripts/version-assets.js`, `api/scripts/deploy-step-cache.js`.
 
 ## Invariants
 
@@ -26,7 +26,7 @@ Rows 3, 4 (order inside `deploy.sh` and the step order in the workflow), 5 and 8
 
 ## Shape
 
-0. A cloud session pushes a `claude/**` branch. `.github/workflows/promote-claude-branch.yml` merges it into `main`, runs the `api/` tests on the merged result, pushes `main`, and starts `deploy.yml`. A merge conflict or a failed test fails the job and leaves `main` unchanged.
+0. A cloud session runs `scripts/send-to-main.sh`. It pushes the committed work to a `claude/**` branch, then waits until `origin/main` contains the commit. The cloud cannot reach the dev machine, so it ends by printing the pull command. `.github/workflows/promote-claude-branch.yml` merges the branch into `main`, runs the `api/` tests on the merged result, pushes `main`, and starts `deploy.yml`. A merge conflict or a failed test fails the job and leaves `main` unchanged.
 1. A push to `main` triggers `.github/workflows/deploy.yml`.
 2. The workflow calls the HTTPS deploy webhook in `api/routes/deploy-webhook.js`. The webhook runs the reset, then `deploy.sh`.
 3. `deploy.sh` runs migrations, `npm run pages`, `npm run sitemap`, the about-page date stamps, data embedding, the asset stamp and the nginx reload.

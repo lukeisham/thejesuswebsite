@@ -158,6 +158,15 @@ describe(`${GUIDE} row 10: claude branch promotion`, () => {
     );
   });
 
+  test(`scripts/send-to-main.sh pushes to a claude/ branch that the promote workflow listens to`, () => {
+    const text = withoutHashComments(read("scripts/send-to-main.sh"));
+    assert.match(
+      text,
+      /claude\/send-/,
+      `scripts/send-to-main.sh must push to a claude/ branch. ${PROMOTE_WORKFLOW} only runs for claude/**. Rule: ${GUIDE}, Invariants row 10.`
+    );
+  });
+
   test(`${WORKFLOW} keeps its workflow_dispatch trigger`, () => {
     const text = withoutHashComments(read(WORKFLOW));
     assert.match(

@@ -2,7 +2,16 @@
 // and confirms mla_sources are attached in getDetailBySlug.
 //
 // Run:  node api/tests/blog-post.model.test.js
-// Requires the dev database to be accessible via api/config.js.
+// Runs against an in-memory database built from schema.sql (TEST-4). Failed
+// checks set a non-zero exit code, which is what `node --test` reads.
+
+process.env.DB_PATH = ":memory:";
+
+const fs = require("fs");
+const path = require("path");
+
+const db = require("../config");
+db.exec(fs.readFileSync(path.resolve(__dirname, "..", "..", "database", "schema.sql"), "utf8"));
 
 const model = require("../models/blog-post.model");
 
