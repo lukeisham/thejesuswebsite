@@ -30,6 +30,7 @@ Here* at the end.
 | 14 | A guide row you edit that a text search can check has a guide test. | TEST-10 |
 | 15 | Each file you edit: comments give the *why* and the links to other files. Its cross-app behaviour is in a guide or README, and the file matches it. | CORE-5 |
 | 16 | A purpose statement states the *why*: input, output, and the essential functions between them. App purpose 60 words or fewer, guide purpose 40 or fewer. | CORE-6 |
+| 17 | Do not read completed or abandoned plans to write code. Read archived material only while you develop a feature. | AG-6 |
 
 ---
 
@@ -190,6 +191,12 @@ Never edit a test to match broken output, loosen an assertion, skip a test, or w
 If you are not sure that a function, method, flag, route or file exists, look: `grep` the repo,
 read the module, or run `node -e` / `python3 -c "help(module.name)"`. Never guess the name or
 the signature of an API.
+
+**AG-6 — Old plans are not a source for code.**
+When you write or change code, do not read a plan in `setup/PLANS/Completed/` or a plan that was
+abandoned. The code, the guides and `setup/Decisions_log.md` say how the system works now, and
+a finished plan goes out of date. Read `setup/ARCHIVES/` only while you develop a feature, and
+only for the background of that feature.
 
 ---
 
