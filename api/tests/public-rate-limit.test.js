@@ -7,7 +7,6 @@ const { test, describe, beforeEach, afterEach } = require("node:test");
 const assert = require("node:assert/strict");
 const express = require("express");
 const rateLimit = require("../middleware/rate-limit");
-const esvRouter = require("../routes/esv");
 const http = require("http");
 const { createTestServer, closeTestServer } = require("./helpers/test-server");
 
@@ -18,6 +17,11 @@ const { createTestServer, closeTestServer } = require("./helpers/test-server");
  * Uses small thresholds so tests run fast without firing hundreds of requests.
  */
 function createApp({ readMax = 5, searchMax = 3 } = {}) {
+  // The router keeps a passage cache at module scope; a fresh require per app
+  // stops one test's cached "Luke 1:1" from answering another test's request.
+  delete require.cache[require.resolve("../routes/esv")];
+  const esvRouter = require("../routes/esv");
+
   const app = express();
 
   const publicReadLimit = rateLimit({

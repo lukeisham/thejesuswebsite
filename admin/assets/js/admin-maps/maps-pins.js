@@ -124,11 +124,22 @@ Pins.renderPins = function () {
  * @returns {Array<{xOffset: number, yOffset: number}|undefined>}
  */
 Pins._computeOffsets = function (points) {
-  if (!window.AdminMapsClusterPins) return [];
+  if (!window.AdminMapsClusterPins) {
+    console.warn(
+      "Pins._computeOffsets: AdminMapsClusterPins bridge not loaded; pins render without fan-out (" +
+        points.length + " points)",
+    );
+    return [];
+  }
 
   try {
     return window.AdminMapsClusterPins.computePinOffsets(points);
   } catch (e) {
+    console.warn(
+      "Pins._computeOffsets: computePinOffsets threw; pins render without fan-out (" +
+        points.length + " points)",
+      e,
+    );
     return [];
   }
 };

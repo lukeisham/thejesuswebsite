@@ -415,7 +415,7 @@ export function renderArbor(nodes, edges) {
             : `left:${pos.x}px;top:${pos.y}px;width:${NODE_WIDTH}px`,
           tabIndex: "0",
           role: "link",
-          ariaLabel: node.title
+          "aria-label": node.title
             ? node.primary_verse
               ? `${node.title}, ${node.primary_verse}`
               : node.title

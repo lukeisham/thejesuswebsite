@@ -33,7 +33,7 @@ belong here, ever:
 | Code snippets over ~3 lines | Becomes a second copy that silently diverges | The source file |
 | Byte sizes, disk footprints, memory budgets | Change with every dependency bump | Measure it |
 | Version numbers, dependency lists | `package.json` is the truth | `package.json` |
-| Dated narratives, changelogs, "we used to X, now Y" | This is an audit log, not architecture | Git history, `setup/ISSUES/`, `setup/PLANS/Completed/` |
+| Dated narratives, changelogs, "we used to X, now Y" | This is an audit log, not architecture | Git history |
 | Migration history between internal versions | Same — the current shape is all that matters | Git history |
 | Status reports ("Plan 9 approved", "57 tests passing") | True for a week | The plan, the test run |
 | Full file listings / directory dumps | `ls` is faster and never lies | The filesystem |
