@@ -128,3 +128,22 @@ describe("parseContentBody: [pullquote] escaping", () => {
     assert.equal(out, '<aside class="pull-quote">&lt;img src=x onerror=1&gt;</aside>');
   });
 });
+
+describe("parseContentBody: identifier link URL", () => {
+  test("an https external_url becomes a link", async () => {
+    const { parseContentBody } = await import(MODULE);
+    const out = parseContentBody("Badge[id:12].", {
+      identifiers: [{ id: 12, title: "Codex", external_url: "https://example.org/codex" }],
+    });
+    assert.ok(out.includes('href="https://example.org/codex"'), out);
+  });
+
+  test("a javascript: external_url leaves the badge without a link", async () => {
+    const { parseContentBody } = await import(MODULE);
+    const out = parseContentBody("Badge[id:12].", {
+      identifiers: [{ id: 12, title: "Codex", external_url: "javascript:alert(1)" }],
+    });
+    assert.ok(out.includes("Codex"), out);
+    assert.ok(!out.includes("href="), out);
+  });
+});

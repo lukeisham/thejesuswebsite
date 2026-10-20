@@ -5,6 +5,7 @@
  */
 
 import { escapeHTML } from "./escape-html.js";
+import { safeHref } from "./safe-url.js";
 
 /**
  * Marker class for strings that are already safe HTML.
@@ -107,8 +108,9 @@ export function renderCard(data) {
     <div class="card-badges">${badges}</div>
   `;
 
-  if (data.url) {
-    return html`<a href="${data.url}" class="card">${inner}</a>`;
+  const href = safeHref(data.url);
+  if (href) {
+    return html`<a href="${href}" class="card">${inner}</a>`;
   }
   return html`<div class="card">${inner}</div>`;
 }

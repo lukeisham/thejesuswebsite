@@ -9,6 +9,7 @@ import { enhanceEsvVerses } from "./esv_verse.js";
 import { getSegment } from "./utils/router.js";
 import { setSEO } from "./seo.js";
 import { html, raw } from "./utils/templates.js";
+import { safeHref } from "./utils/safe-url.js";
 import { formatDate, formatVerse } from "./utils/format.js";
 import { numberFigures } from "./utils/figures.js";
 import { applyFigureOrientation } from "./utils/figure-orientation.js";
@@ -257,9 +258,10 @@ function buildIdentifierItem(identifier) {
 
   const badge = html`<span class="inline-identifier">${label}</span>`;
 
-  const content = identifier.external_url
+  const href = safeHref(identifier.external_url);
+  const content = href
     ? html`<a
-        href="${identifier.external_url}"
+        href="${href}"
         target="_blank"
         rel="noopener noreferrer"
         class="identifier-link"

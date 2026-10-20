@@ -1,6 +1,7 @@
 import { FIGURE_SHORTCODE_PATTERN } from "./figure-shortcodes.js";
 import { renderMarkdown } from "./markdown.js";
 import { escapeHTML } from "./escape-html.js";
+import { safeHref } from "./safe-url.js";
 
 /**
  * Shared content-marker parser for body text across all five content types
@@ -365,8 +366,9 @@ function resolveIdMarker(n, idMap) {
   if (!label) return "";
 
   const badge = `<span class="inline-identifier">${escapeHTML(label)}</span>`;
-  const content = identifier.external_url
-    ? `<a href="${escapeHTML(identifier.external_url)}" target="_blank" rel="noopener noreferrer" class="identifier-link">${badge}${EXTERNAL_LINK_ICON}</a>`
+  const href = safeHref(identifier.external_url);
+  const content = href
+    ? `<a href="${escapeHTML(href)}" target="_blank" rel="noopener noreferrer" class="identifier-link">${badge}${EXTERNAL_LINK_ICON}</a>`
     : badge;
 
   return (
