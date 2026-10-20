@@ -165,6 +165,10 @@ describe(`${GUIDE} row 3: scripts that build data-esv-ref markup call enhanceEsv
 
 const SCRIPT_SRC = /<script\b[^>]*\bsrc\s*=\s*["']([^"']+)["']/gi;
 
+// A dynamic import() is not followed.
+// Static `import ... from "x"`, `export ... from "x"` and `import "x"` specifiers.
+const IMPORT_SPEC = /(?:\bimport|\bexport)\s*(?:[^"';]*?\bfrom\s*)?["']([^"']+)["']/g;
+
 // The frontend .js files that a page loads through <script src>.
 function loadedScripts(html) {
   const scripts = [];
@@ -175,10 +179,36 @@ function loadedScripts(html) {
   return scripts;
 }
 
+// loadedScripts() plus every module they reach through relative ES imports,
+// each visited once. Only used to find pages that need esv_verse.js: the page
+// itself must still load it with <script>, because the builders import it too
+// and following imports would make that check pass for every page.
+function reachableScripts(html) {
+  const seen = new Set();
+  const visit = (rel) => {
+    if (seen.has(rel)) return;
+    seen.add(rel);
+    for (const m of read(rel).matchAll(IMPORT_SPEC)) {
+      if (!m[1].startsWith(".")) continue;
+      const target = path.posix.join(path.posix.dirname(rel), m[1].split("?")[0]);
+      if (fs.existsSync(path.join(REPO, target))) visit(target);
+    }
+  };
+  for (const rel of loadedScripts(html)) visit(rel);
+  return [...seen];
+}
+
+describe(`${GUIDE} row 6: the import scan`, () => {
+  test("IMPORT_SPEC finds import, export-from and bare import specifiers", () => {
+    const sample = `import { a } from "./x.js";\nexport * from './y.js';\nimport "./z.js";`;
+    assert.deepEqual([...sample.matchAll(IMPORT_SPEC)].map((m) => m[1]), ["./x.js", "./y.js", "./z.js"]);
+  });
+});
+
 describe(`${GUIDE} row 6: pages with data-esv-ref load esv_verse.js`, () => {
   const needsScript = FRONTEND_HTML.filter((file) => {
     const html = read(file);
-    return html.includes("data-esv-ref") || loadedScripts(html).some((js) => read(js).includes("data-esv-ref"));
+    return html.includes("data-esv-ref") || reachableScripts(html).some((js) => read(js).includes("data-esv-ref"));
   });
 
   test("finds pages to scan", () => {
