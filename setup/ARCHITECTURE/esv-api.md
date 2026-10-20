@@ -1,8 +1,6 @@
 # ESV API (Bible verse integration)
 
-Scripture text comes from the Crossway ESV API through a server-side proxy, so
-`ESV_API_KEY` never reaches the browser. Every verse element ships with
-readable fallback text. The API only improves it.
+Pages that cite Bible references show readers the authoritative ESV text without exposing the publisher credential. Every verse keeps readable fallback text, so an outage never leaves a gap.
 
 **Source of truth:** `api/routes/esv.js` and `frontend/assets/js/esv_verse.js` — win any disagreement with this doc.
 **Spans:** `api/routes/esv.js`, `api/server.js`, `frontend/assets/js/api.js`, `frontend/assets/js/esv_verse.js`, `frontend/assets/js/evidence-detail.js`, `frontend/about.html`, `frontend/assets/js/utils/content-markers.js`, `frontend/assets/js/utils/markdown.js`.
@@ -18,11 +16,13 @@ readable fallback text. The API only improves it.
 | ESV citations come from static HTML or script-built markup, not from body fields | The body renderers escape raw HTML, so an `<a data-esv-ref>` typed into a body field shows as literal text | Authors see the markup as text. Nothing is enhanced |
 | Each page that carries a `data-esv-ref` element loads `esv_verse.js` | The script is the only code that reads the attribute | The fallback text stays on the page forever |
 
+Guide test: `api/tests/guide-esv-api.test.js` checks every row above except the body-field row, which is behaviour.
+
 ## Shape
 
 - `api/routes/esv.js` fetches the passage from upstream with the key. `api/server.js` mounts it under `publicReadLimit`.
 - `frontend/assets/js/esv_verse.js` finds `[data-esv-ref]` elements and swaps in the returned text.
-- Two sources produce `data-esv-ref` elements today: the static anchor in `frontend/about.html`, and the `<p>` elements that `evidence-detail.js` builds from `primary_verse` and `secondary_verse`.
+- Two sources produce `data-esv-ref` elements: the static anchor in `frontend/about.html`, and the `<p>` elements that `evidence-detail.js` builds from `primary_verse` and `secondary_verse`.
 - The body renderers are `content-markers.js` and `markdown.js`. Both escape raw HTML.
 
 ## Extending it

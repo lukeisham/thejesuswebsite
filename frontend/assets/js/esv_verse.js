@@ -3,6 +3,10 @@
  * a `data-esv-ref` attribute with the ESV rendering fetched via the API
  * proxy. Progressive enhancement: on any failure the hardcoded text stays.
  *
+ * Imports getEsvPassage from api.js. Scans the document once, on load;
+ * evidence-detail.js imports enhanceEsvVerses for verse markup it inserts later.
+ * Guide: setup/ARCHITECTURE/esv-api.md.
+ *
  * @module esv_verse
  */
 
@@ -10,12 +14,15 @@ import { getEsvPassage } from './api.js';
 
 async function enhanceVerse(el) {
   const { data, error } = await getEsvPassage(el.dataset.esvRef);
-  if (error || !data || !data.text) return;
+  // An outage is the designed fallback: the authored text stays.
+  if (error) return;
+  if (!data?.text) {
+    console.warn('esv_verse: response had no text for', el.dataset.esvRef);
+    return;
+  }
 
-  // Only a successful fetch reaches this swap, and only textContent is
-  // replaced — never cleared. On any failure the authored fallback text stays
-  // untouched, so an API outage degrades to the fallback, never a blank
-  // element. Collapse the API's line breaks — the verse sits in flowing prose.
+  // The fallback is never cleared, so a failure cannot leave a blank element.
+  // Line breaks collapse because the verse sits in flowing prose.
   el.textContent = data.text.replace(/\s+/g, ' ').trim();
 }
 
@@ -24,6 +31,9 @@ async function enhanceVerse(el) {
  * whole document). Exported so pages that render verse markup dynamically
  * (after `DOMContentLoaded` has already fired) can re-trigger enhancement
  * for the elements they just inserted.
+ *
+ * @param {ParentNode} [root=document]
+ * @returns {void}
  */
 export function enhanceEsvVerses(root = document) {
   root.querySelectorAll('[data-esv-ref]').forEach(enhanceVerse);

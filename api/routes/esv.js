@@ -2,6 +2,11 @@
 // (https://api.esv.org) server-side so the ESV_API_KEY never reaches the
 // browser. The in-memory cache has no expiry or invalidation, because passage
 // text never changes.
+//
+// Mounted at /esv by api/server.js behind publicReadLimit, because each uncached
+// request costs an upstream ESV call. The only browser caller is getEsvPassage()
+// in frontend/assets/js/api.js; renaming the path or the { reference, text }
+// response breaks it. Guide: setup/ARCHITECTURE/esv-api.md.
 
 const express = require("express");
 const ERRORS = require("../lib/error-codes");
@@ -11,10 +16,8 @@ const router = express.Router();
 
 const ESV_ENDPOINT = "https://api.esv.org/v3/passage/text/";
 
-// reference -> { reference, text }
 const cache = new Map();
 
-// GET /esv/passage?q=Luke 1:1-3 — plain passage text for a single reference
 router.get("/passage", async (req, res) => {
   const reference = String(req.query.q || "").trim();
 
@@ -51,7 +54,7 @@ router.get("/passage", async (req, res) => {
     });
 
     if (!upstream.ok) {
-      console.error(`ESV API responded ${upstream.status} for "${reference}"`);
+      console.error(`GET /esv/passage: ESV API responded ${upstream.status} for "${reference}"`);
       return sendError(res, ERRORS.EXTERNAL_API_UPSTREAM_ERROR);
     }
 
@@ -70,12 +73,10 @@ router.get("/passage", async (req, res) => {
   } catch (error) {
     console.error("GET /esv/passage failed:", error);
 
-    // Network-level failures: DNS, TCP, TLS, timeout
     if (error instanceof TypeError) {
       return sendError(res, ERRORS.EXTERNAL_API_NETWORK_ERROR);
     }
 
-    // JSON parse failure on response body
     if (error instanceof SyntaxError) {
       return sendError(res, ERRORS.JSON_PARSE_FAILURE);
     }

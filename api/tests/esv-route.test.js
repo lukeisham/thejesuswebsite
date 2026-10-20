@@ -60,22 +60,20 @@ describe('GET /esv/passage', () => {
   let app;
 
   beforeEach(() => {
-    // Clear the router's cache (which is created on require). We do this by
-    // deleting the require cache so a fresh require gets a fresh cache.
+    // The route's cache Map lives at module scope; a fresh require resets it.
     delete require.cache[require.resolve('../routes/esv')];
 
     app = express();
     app.use(express.json());
     app.use('/esv', require('../routes/esv'));
 
-    // Set a valid ESV_API_KEY for tests (override if needed in specific tests)
     process.env.ESV_API_KEY = 'test-api-key-12345';
   });
 
   afterEach(() => {
-    // Restore globalThis.fetch and ESV_API_KEY
     globalThis.fetch = originalFetch;
-    process.env.ESV_API_KEY = originalEnv;
+    if (originalEnv === undefined) delete process.env.ESV_API_KEY;
+    else process.env.ESV_API_KEY = originalEnv;
   });
 
   // ── Happy path ────────────────────────────────────────────────────────────
@@ -150,10 +148,8 @@ describe('GET /esv/passage', () => {
     globalThis.fetch = async () => mockResponse;
 
     const res = await makeRequest(app, 'GET', '/esv/passage?q=Luke+1:1');
-    // The route calls sendError(res, ERRORS.EXTERNAL_API_UPSTREAM_ERROR) on non-ok.
-    // That should be a 5xx or specific upstream error.
-    assert.ok([400, 500, 502, 503, 504].includes(res.status));
-    assert.ok(res.body.error);
+    assert.equal(res.status, 502);
+    assert.equal(res.body.error.code, 'E-PERSIST-014');
   });
 
   test('GET /passage with network error (fetch throws TypeError) returns error', async () => {
@@ -162,9 +158,8 @@ describe('GET /esv/passage', () => {
     };
 
     const res = await makeRequest(app, 'GET', '/esv/passage?q=Luke+1:1');
-    // The route catches TypeError and calls sendError with EXTERNAL_API_NETWORK_ERROR.
-    assert.ok([400, 500, 502, 503, 504].includes(res.status));
-    assert.ok(res.body.error);
+    assert.equal(res.status, 502);
+    assert.equal(res.body.error.code, 'E-PERSIST-013');
   });
 
   test('GET /passage with JSON parse error returns error', async () => {
@@ -177,12 +172,11 @@ describe('GET /esv/passage', () => {
     globalThis.fetch = async () => mockResponse;
 
     const res = await makeRequest(app, 'GET', '/esv/passage?q=Luke+1:1');
-    // The route catches SyntaxError and calls sendError with JSON_PARSE_FAILURE.
-    assert.ok([400, 500, 502, 503, 504].includes(res.status));
-    assert.ok(res.body.error);
+    assert.equal(res.status, 500);
+    assert.equal(res.body.error.code, 'E-TRANSFORM-007');
   });
 
-  test('GET /passage with empty passages array returns 404 or appropriate error', async () => {
+  test('GET /passage with empty passages array returns 404', async () => {
     const mockResponse = {
       ok: true,
       json: async () => ({
@@ -193,10 +187,8 @@ describe('GET /esv/passage', () => {
     globalThis.fetch = async () => mockResponse;
 
     const res = await makeRequest(app, 'GET', '/esv/passage?q=Luke+1:1');
-    // The route checks if text is empty after joining passages and calls
-    // sendError with ERRORS.SQL_RECORD_NOT_FOUND (confusingly named, but that's what it does).
-    assert.ok([400, 404, 500].includes(res.status));
-    assert.ok(res.body.error);
+    assert.equal(res.status, 404);
+    assert.equal(res.body.error.code, 'E-PERSIST-004');
   });
 
   // ── Caching ───────────────────────────────────────────────────────────────
@@ -215,14 +207,10 @@ describe('GET /esv/passage', () => {
       return mockResponse;
     };
 
-    // First request populates the cache.
     const res1 = await makeRequest(app, 'GET', '/esv/passage?q=Luke+1:1-3');
     assert.equal(res1.status, 200);
     assert.equal(fetchCallCount, 1);
 
-    // Second request for the same reference, against the same app/router
-    // instance (and therefore the same in-memory cache Map), must be served
-    // from cache — fetch must NOT be called again.
     const res2 = await makeRequest(app, 'GET', '/esv/passage?q=Luke+1:1-3');
     assert.equal(res2.status, 200);
     assert.equal(fetchCallCount, 1, 'fetch should not be called again on cache hit');
@@ -246,7 +234,6 @@ describe('GET /esv/passage', () => {
     assert.equal(res1.status, 200);
     assert.equal(fetchCallCount, 1);
 
-    // Different reference — must be a cache miss, so fetch is called again.
     const res2 = await makeRequest(app, 'GET', '/esv/passage?q=John+3:17');
     assert.equal(res2.status, 200);
     assert.equal(fetchCallCount, 2, 'fetch should be called again for a different reference');
