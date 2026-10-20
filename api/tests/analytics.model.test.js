@@ -115,6 +115,14 @@ describe("model: getTopPagesWithTrend()", () => {
     assert.equal(trend[trend.length - 1], 1);
   });
 
+  test("reports 0, not 1, for days with no views", () => {
+    seedPageView({ page: "/test", session_id: "s1" });
+
+    const result = analyticsModel.getTopPagesWithTrend(7, 1);
+    // The window runs from `days` days ago through today inclusive.
+    assert.deepStrictEqual(result[0].trend, [0, 0, 0, 0, 0, 0, 0, 1]);
+  });
+
   test("respects the limit parameter", () => {
     for (let i = 0; i < 10; i++) {
       seedPageView({ page: "/page-" + i, session_id: "sess-" + i });

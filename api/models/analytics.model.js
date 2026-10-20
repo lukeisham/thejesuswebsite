@@ -117,7 +117,7 @@ function getTopPagesWithTrend(days, limit = 5) {
             UNION ALL
             SELECT date(d, '+1 day') FROM dates WHERE d < date('now')
         )
-        SELECT COALESCE(COUNT(*), 0) AS cnt
+        SELECT COUNT(analytics.id) AS cnt
         FROM dates
         LEFT JOIN analytics ON date(analytics.visited_at) = dates.d AND analytics.page = ?
           AND ${HUMAN}
