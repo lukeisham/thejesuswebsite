@@ -1,61 +1,44 @@
 /* ==========================================================================
-   Timeline Controls (Admin) — WYSIWYG restyle
-   Zoom controls, backdrop, and utility helpers.
-   Uses public tokens where applicable.
+   Timeline Controls (Admin)
+   The zoom-in and zoom-out bar at the bottom of the timeline canvas. Markup:
+   #admin-timeline-controls in admin/diagrams/timeline.html; the buttons are
+   wired by admin-timeline/timeline-zoom.js.
    ========================================================================== */
 
-/* -------------------------------------------------------------------------
-   Zoom Controls
-   ------------------------------------------------------------------------- */
+/* ── Zoom Bar ──────────────────────────────────────────────────────────── */
 
-.admin-timeline-zoom-bar {
+/* z-index 10 keeps the bar above the era heading band (z-index 4 in
+   timeline-era-headings.css). admin-canvas-zoom.js ignores a pointerdown that
+   starts inside .admin-timeline-controls, so renaming this class makes a button
+   click start a pan. */
+.admin-timeline-controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 10;
     display: flex;
     justify-content: center;
-    align-items: center;
     gap: var(--space-sm);
-    padding: var(--space-sm) var(--space-xl);
     background: var(--bg-surface);
     border-top: 1px solid var(--border);
+    padding: var(--space-sm) var(--space-md);
 }
-.admin-timeline-zoom-btn {
-    padding: var(--space-xs) var(--space-sm);
-    font-size: 0.875rem;
+
+.admin-timeline-controls__btn {
+    padding: var(--space-xs) var(--space-md);
+    font-size: 1rem;
+    font-weight: 600;
     border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    background: var(--bg-surface);
-    color: var(--text-primary);
+    border-radius: var(--admin-radius);
     cursor: pointer;
     min-height: 36px;
-    min-width: 36px;
-    transition: background-color var(--duration-fast) var(--ease-out);
-}
-.admin-timeline-zoom-btn:hover {
-    background: var(--bg-surface-alt);
-}
-
-/* -------------------------------------------------------------------------
-   Backdrop
-   ------------------------------------------------------------------------- */
-
-.admin-timeline-panel-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.3);
-    z-index: 99;
+    min-width: 44px;
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    transition: background var(--duration-fast);
 }
 
-/* -------------------------------------------------------------------------
-   Utility
-   ------------------------------------------------------------------------- */
-
-.admin-timeline-visually-hidden {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
+.admin-timeline-controls__btn:hover {
+    background: var(--border);
 }

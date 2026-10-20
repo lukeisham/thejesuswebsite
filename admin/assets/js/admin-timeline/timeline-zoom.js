@@ -4,23 +4,26 @@
  * Delegates zoom and pan to the shared AdminCanvasZoom module (admin-canvas-zoom.js):
  * `translate(panX, panY) scale(scale)` with `transform-origin: 0 0` on the
  * `.admin-timeline-world` wrapper, drag-to-pan on the canvas, and two zoom
- * buttons with no reset. The frontend timeline works the same way
+ * buttons with no reset. The public timeline works the same way
  * (frontend/assets/js/timeline/timeline-zoom.js). Positions are fixed world
  * coordinates (`AdminTimelineGeometry.BASE_PX_PER_PERIOD` per period); zoom is
  * only the transform.
  *
  * Two things follow the transform:
  * - Line thickness. The spine and the era dividers sit inside the world, so
- *   `scale()` would thicken them. The `onChange` callback below publishes the
- *   live scale as `--timeline-zoom-scale` on the world element, and
- *   timeline-canvas.css divides the declared width by it.
+ *   `scale()` would thicken them. The `onChange` callback publishes the live
+ *   scale as `--timeline-zoom-scale` on the world element, and
+ *   admin/assets/css/admin-diagrams/timeline-canvas.css divides the spine's
+ *   declared height and the era dividers' declared width by it. Renaming the property in one file breaks the other.
  * - The era heading band. It sits in the canvas, outside the world.
  *   `Zoom.onTransformChange` lets timeline-events.js keep it in step with the
  *   zoom and pan (`Events.syncEraBand`).
  *
  * Read by timeline-events.js, timeline-nav.js, timeline-node-drag.js and
- * timeline-era-filter.js. Set up by the inline script in
- * admin/diagrams/timeline.html.
+ * timeline-era-filter.js. `Zoom.init` is called by the inline script in
+ * admin/diagrams/timeline.html, after timeline-axis.js has built the world.
+ * Needs `AdminCanvasZoom`, `AdminTimelineGeometry` and, in `setTransform`,
+ * `AdminTimelineTransform`.
  *
  * @module admin-timeline/timeline-zoom
  */
@@ -47,11 +50,11 @@ window.AdminTimelineZoom = {};
   };
 
   /**
-   * Initialise zoom/pan controls for the admin timeline editor.
-   * Creates an AdminCanvasZoom instance bound to the `.admin-timeline-world`
-   * element and wires the zoom-in / zoom-out toolbar buttons.
+   * Create the AdminCanvasZoom instance bound to the `.admin-timeline-world`
+   * element inside the viewport and wire the zoom-in / zoom-out toolbar buttons.
    *
-   * @param {HTMLElement} viewportEl  - the canvas viewport container
+   * @param {HTMLElement} viewportEl - the canvas viewport container
+   * @returns {void}
    */
   Zoom.init = function (viewportEl) {
     if (!viewportEl) {
@@ -73,11 +76,6 @@ window.AdminTimelineZoom = {};
       step: 1.25,
       panningClass: "admin-timeline-world--panning",
       onChange: function () {
-        // Live-bind the scale for the CSS counter-scaling of era-divider lines.
-        if (!worldEl) {
-          console.warn("AdminTimelineZoom: worldEl missing, cannot set --timeline-zoom-scale");
-          return;
-        }
         var scale = canvasZoom.getScale();
         worldEl.style.setProperty("--timeline-zoom-scale", String(scale));
 
@@ -88,7 +86,6 @@ window.AdminTimelineZoom = {};
       },
     });
 
-    // Wire toolbar zoom buttons
     var zoomInBtn = document.getElementById("timeline-zoom-in");
     if (zoomInBtn) {
       zoomInBtn.addEventListener("click", function () {
@@ -102,12 +99,11 @@ window.AdminTimelineZoom = {};
         if (canvasZoom) canvasZoom.zoomOut();
       });
     }
-
   };
 
   /**
    * Return the current zoom scale (delegates to canvasZoom).
-   * Returns 1 if zoom has not been initialised.
+   * Returns 1 before `init`, so a caller that runs earlier lays out at scale 1.
    *
    * @returns {number}
    */
@@ -117,7 +113,7 @@ window.AdminTimelineZoom = {};
 
   /**
    * Return the current pan offset (delegates to canvasZoom).
-   * Returns {x:0, y:0} if zoom has not been initialised.
+   * Returns {x:0, y:0} before `init`.
    *
    * @returns {{ x: number, y: number }}
    */
@@ -127,7 +123,8 @@ window.AdminTimelineZoom = {};
 
   /**
    * Return the effective px-per-period at the current zoom scale:
-   * `BASE_PX_PER_PERIOD` times the scale. Density tiers compare against it.
+   * `BASE_PX_PER_PERIOD` times the scale. The density tiers in
+   * cluster-logic/cluster-density.js compare against it.
    *
    * @returns {number}
    */
@@ -136,25 +133,24 @@ window.AdminTimelineZoom = {};
   };
 
   /**
-   * Programmatic transform setter — used by chip-jump navigation
-   * (timeline-nav.js) to centre an era at normal zoom.
+   * Programmatic transform setter, used by chip-jump navigation
+   * (timeline-nav.js) to centre an era.
    *
-   * Clamps pan via AdminTimelineTransform.clampPan() so the world stays
-   * at least partially visible, delegates to canvasZoom.setScale() /
-   * setPan(), and fires `timeline:transformed` on .admin-timeline-world.
+   * Clamps pan with `AdminTimelineTransform.clampPan` so part of the world
+   * stays visible, then sets scale and pan on the AdminCanvasZoom instance,
+   * which runs `onChange` and so the transform listeners.
    *
    * @param {number} newPanX
    * @param {number} newPanY
    * @param {number} newScale
-   * @param {string} [eraKey] — era key for the custom event detail
+   * @returns {void}
    */
-  Zoom.setTransform = function (newPanX, newPanY, newScale, eraKey) {
+  Zoom.setTransform = function (newPanX, newPanY, newScale) {
     if (!canvasZoom) {
       console.warn("AdminTimelineZoom.setTransform: zoom not initialised");
       return;
     }
 
-    // Guard: ensure all inputs are finite numbers
     if (
       !Number.isFinite(newPanX) ||
       !Number.isFinite(newPanY) ||
@@ -168,35 +164,16 @@ window.AdminTimelineZoom = {};
       return;
     }
 
-    var worldWidth = 3800; // 38 periods * 100px
-    if (
-      window.AdminTimelineTransform &&
-      typeof window.AdminTimelineTransform.clampPan === "function"
-    ) {
-      var clamped = window.AdminTimelineTransform.clampPan(
-        newPanX,
-        newPanY,
-        newScale,
-        worldWidth,
-      );
-      newPanX = clamped.panX;
-      newPanY = clamped.panY;
-    }
+    var geometry = window.AdminTimelineGeometry;
+    var worldWidth = geometry.TIMELINE_PERIODS.length * geometry.BASE_PX_PER_PERIOD;
+    var clamped = window.AdminTimelineTransform.clampPan(
+      newPanX,
+      newPanY,
+      newScale,
+      worldWidth,
+    );
 
     canvasZoom.setScale(newScale);
-    canvasZoom.setPan(newPanX, newPanY);
-
-    // Fire custom event
-    var worldEl = document.querySelector(".admin-timeline-world");
-    if (worldEl) {
-      var detail = { panX: newPanX, panY: newPanY, scale: newScale };
-      if (eraKey) detail.era = eraKey;
-      worldEl.dispatchEvent(
-        new CustomEvent("timeline:transformed", {
-          bubbles: false,
-          detail: detail,
-        }),
-      );
-    }
+    canvasZoom.setPan(clamped.panX, clamped.panY);
   };
 })();

@@ -1,17 +1,21 @@
 /**
- * Timeline interactions module.
+ * Timeline interactions module: the entry script of every page under
+ * /evidence/timeline/. It loads the events, calls `renderTimeline`, then wires
+ * dot hover (tooltip, cluster glow), dot click (detail panel), stack click,
+ * era chips and panel dismiss. Dot, stack and era-chip handlers are delegated
+ * (JS-6); the panel close button, document click and Escape key use direct
+ * listeners.
  *
- * Handles dot hover → tooltip, dot click → detail panel, stack click → zoom to
- * the stack, era filter chips, cluster hover highlight, zoom/pan (delegated to
- * timeline-zoom), and panel dismiss. Uses event delegation (JS-6).
- *
- * The old drag/momentum horizontal scroll is removed — zoom and pan are now
- * handled by the Arbor-style transform model in timeline-zoom.js.
+ * Zoom and pan live in timeline-zoom.js, which `renderTimeline` mounts.
+ * The element ids read in `init` (`timeline-container`, `timeline-tooltip`,
+ * `detail-panel`, `detail-*`, `era-filters`) are in the markup of every
+ * timeline page; renaming one there silences the matching feature.
  *
  * @module timeline/timeline-interactions
  */
 
 import { delegate, batchWrite } from "../utils/dom.js";
+import { escapeHTML } from "../utils/escape-html.js";
 import { formatVerse } from "../utils/format.js";
 import { renderBadge } from "../utils/templates.js";
 import {
@@ -22,7 +26,6 @@ import {
   clearFilteredOut,
   applyEraFilter,
   initialEra,
-  isVerticalMode,
 } from "./timeline-render.js";
 import { fetchTimelineEvents, groupEventsByPeriod } from "./timeline-data.js";
 import { showToast } from "../utils/toasts.js";
@@ -30,7 +33,9 @@ import { readEmbeddedData } from "../api.js";
 import { announce } from "../utils/announce.js";
 import { revalidateInBackground } from "../utils/data-revalidation.js";
 import { jumpToEra } from "./timeline-nav.js";
-import { getPan, setTransform, SCALE_MIN, SCALE_MAX } from "./timeline-zoom.js";
+// Zoom limits and `setTransform` are the zoom module's contract: a stack click
+// asks `fitStackView` for a scale inside SCALE_MIN..SCALE_MAX and applies it.
+import { setTransform, SCALE_MIN, SCALE_MAX } from "./timeline-zoom.js";
 import { fitStackView } from "../cluster-logic/timeline-zoom-stacks.js";
 import { TIMELINE_CANVAS_HEIGHT_PX } from "./timeline-geometry.js";
 
@@ -63,12 +68,28 @@ let focusReturnTarget = null;
 
 // ─── Tooltip ───────────────────────────────────────────────────────────────────
 
+/** Delay before the tooltip appears, so a pointer crossing the field does not flash it. */
+const TOOLTIP_DELAY_MS = 200;
+
 let tooltipTimer = null;
 
 /**
- * Show the tooltip near a dot.
+ * True when the pointer moved into or out of `dot` itself, not between two
+ * of its children. `mouseenter`/`mouseleave` do not bubble, so delegation
+ * listens for `mouseover`/`mouseout`, which fire again on every child.
  *
- * @param {MouseEvent} e
+ * @param {MouseEvent} e - a `mouseover` or `mouseout` event
+ * @param {Element} dot - the matched `.timeline-dot`
+ * @returns {boolean}
+ */
+function crossesDotBoundary(e, dot) {
+  return !dot.contains(e.relatedTarget);
+}
+
+/**
+ * Fill the tooltip for a dot, show it and place it at the pointer.
+ *
+ * @param {MouseEvent|TouchEvent} e
  * @param {HTMLElement} dot
  */
 function showTooltip(e, dot) {
@@ -80,51 +101,39 @@ function showTooltip(e, dot) {
   const verse = dot.dataset.verse ? formatVerse(dot.dataset.verse) : "";
 
   const parts = [];
-  if (title) parts.push(`<strong>${title}</strong>`);
-  if (location) parts.push(location);
+  if (title) parts.push(`<strong>${escapeHTML(title)}</strong>`);
+  if (location) parts.push(escapeHTML(location));
   if (category) parts.push(renderBadge(category));
-  if (verse) parts.push(`<em>${verse}</em>`);
+  if (verse) parts.push(`<em>${escapeHTML(verse)}</em>`);
 
   tooltipEl.innerHTML = parts.join("<br>");
   tooltipEl.hidden = false;
+  positionTooltip(e);
+}
 
-  // Position near cursor, clamped within viewport
+/**
+ * Place the shown tooltip beside the pointer, flipped to stay inside the
+ * viewport. Called on every mouse move, so it only writes `left` and `top`.
+ * A `TouchEvent` has no `clientX`/`clientY`; its first touch point carries them.
+ *
+ * @param {MouseEvent|TouchEvent} e
+ */
+function positionTooltip(e) {
   const padding = 12;
-  let left = e.clientX + padding;
-  let top = e.clientY + padding;
+  const point = e.touches?.[0] ?? e;
+  let left = point.clientX + padding;
+  let top = point.clientY + padding;
 
-  // Prevent overflow off right/bottom edges
   const rect = tooltipEl.getBoundingClientRect();
   if (left + rect.width > window.innerWidth) {
-    left = e.clientX - rect.width - padding;
+    left = point.clientX - rect.width - padding;
   }
   if (top + rect.height > window.innerHeight) {
-    top = e.clientY - rect.height - padding;
+    top = point.clientY - rect.height - padding;
   }
 
   tooltipEl.style.left = `${left}px`;
   tooltipEl.style.top = `${top}px`;
-}
-
-/**
- * Initialise tooltip inline styles using design tokens.
- */
-function initTooltipStyles() {
-  if (!tooltipEl) return;
-  Object.assign(tooltipEl.style, {
-    position: "fixed",
-    zIndex: "60",
-    maxWidth: "240px",
-    padding: "var(--space-sm) var(--space-md)",
-    background: "var(--bg-surface)",
-    color: "var(--text-primary)",
-    border: "1px solid var(--border)",
-    borderRadius: "var(--radius-sm)",
-    boxShadow: "var(--shadow-card)",
-    fontSize: "var(--text-2xs)",
-    lineHeight: "var(--leading-small)",
-    pointerEvents: "none",
-  });
 }
 
 /**
@@ -150,7 +159,6 @@ function hideTooltip() {
 function showDetailPanel(dot) {
   if (!panelEl) return;
 
-  // Record the triggering dot for focus return on dismiss
   focusReturnTarget = dot;
 
   const title = dot.dataset.title || "";
@@ -169,7 +177,7 @@ function showDetailPanel(dot) {
   }
 
   if (panelLink) {
-    panelLink.href = `/evidence/${slug}`;
+    panelLink.href = `/evidence/${encodeURIComponent(slug)}`;
   }
 
   panelEl.hidden = false;
@@ -201,7 +209,10 @@ const STACK_ZOOM_MAX = 2;
  * @param {HTMLElement} stack - the stack button; its `data-min-x` and `data-max-x` hold the events' range
  */
 function zoomToStack(stack) {
-  if (!container) return;
+  if (!container) {
+    console.warn("timeline-interactions: zoomToStack called before init found the container");
+    return;
+  }
   const minX = Number(stack.dataset.minX);
   const maxX = Number(stack.dataset.maxX);
   if (!Number.isFinite(minX) || !Number.isFinite(maxX)) {
@@ -255,42 +266,32 @@ function setEraFilter(era) {
   hideDetailPanel();
 }
 
-
 // ─── Initialisation ────────────────────────────────────────────────────────────
 
+const LOAD_ERROR_MESSAGE = "Failed to load timeline events. Please try again.";
+
 /**
- * Bootstrap the timeline page: fetch data, render, and wire interactions.
+ * Fetch the events and draw the timeline. The era pages embed a snapshot
+ * (`api/scripts/embed-initial-data.js`) that paints first (SR-3); a page
+ * without one fetches live.
+ *
+ * @returns {Promise<boolean>} true when the timeline was drawn; false when the
+ *   empty state is showing instead.
  */
-async function init() {
-  // Cache DOM references
-  renderInit();
-  container = document.getElementById("timeline-container");
-  tooltipEl = document.getElementById("timeline-tooltip");
-  panelEl = document.getElementById("detail-panel");
-  panelTitle = document.getElementById("detail-title");
-  panelMeta = document.getElementById("detail-meta");
-  panelVerse = document.getElementById("detail-verse");
-  panelLink = document.getElementById("detail-link");
-  panelClose = document.getElementById("detail-panel-close");
-  filtersEl = document.getElementById("era-filters");
-
-  // ── Fetch events ────────────────────────────────────────────────────────
-
-  // Try embedded data first (deploy-time snapshot for first-paint content — SR-3)
+async function loadAndRender() {
   const embedded = readEmbeddedData("timeline-data");
   let events;
   if (embedded && Array.isArray(embedded) && embedded.length > 0) {
     events = embedded;
   } else {
-    // Fall back to live API fetch
     showLoading();
 
     const { data, error } = await fetchTimelineEvents();
 
     if (error) {
-      showToast("Failed to load timeline events. Please try again.", "error");
+      showToast(LOAD_ERROR_MESSAGE, "error");
       showEmpty();
-      return;
+      return false;
     }
 
     events = Array.isArray(data)
@@ -304,138 +305,166 @@ async function init() {
 
   if (grouped.size === 0) {
     showEmpty();
-    return;
+    return false;
   }
 
   renderTimeline(grouped, activeEra);
 
-  // Revalidate against live data in the background (Issues.md #64): an
-  // embedded snapshot is only as fresh as the last deploy, so always
-  // check for changes after first paint and re-render if events actually
-  // changed. Not awaited — must not delay interaction wiring below.
+  // An embedded snapshot is only as fresh as the last deploy, so check live
+  // data after first paint and re-render if it differs. Not awaited: it must
+  // not delay the interaction wiring in `init`.
   revalidateInBackground({
     embeddedData: events,
     fetchLive: fetchTimelineEvents,
     onFresh: (fresh) => {
-      events = Array.isArray(fresh) ? fresh : fresh.events || [];
-      const freshGrouped = groupEventsByPeriod(events);
+      const freshEvents = Array.isArray(fresh) ? fresh : fresh.events || [];
+      const freshGrouped = groupEventsByPeriod(freshEvents);
       if (freshGrouped.size === 0) return;
       renderTimeline(freshGrouped, activeEra);
     },
   });
 
-  // ── Update chip active state for initial era ────────────────────────────
+  return true;
+}
+
+/**
+ * Wire hover, click and keyboard handling for the dots and stacks. Delegated
+ * from the container, so the dots that `renderTimeline` redraws keep working.
+ */
+function wireDotInteractions() {
+  // Tooltip: `mouseover`/`mouseout` because `mouseenter`/`mouseleave` do not
+  // bubble to a delegating root.
+  delegate(container, ".timeline-dot", "mouseover", (e, dot) => {
+    if (!crossesDotBoundary(e, dot)) return;
+    tooltipTimer = setTimeout(() => showTooltip(e, dot), TOOLTIP_DELAY_MS);
+  });
+
+  delegate(container, ".timeline-dot", "mouseout", (e, dot) => {
+    if (!crossesDotBoundary(e, dot)) return;
+    hideTooltip();
+  });
+
+  delegate(container, ".timeline-dot", "mousemove", (e) => {
+    if (tooltipEl && !tooltipEl.hidden) {
+      positionTooltip(e);
+    }
+  });
+
+  delegate(container, ".timeline-dot", "touchstart", (e, dot) => {
+    tooltipTimer = setTimeout(() => showTooltip(e, dot), TOOLTIP_DELAY_MS);
+  });
+
+  delegate(container, ".timeline-dot", "touchend", hideTooltip);
+
+  // A scroll gesture is not a long press.
+  delegate(container, ".timeline-dot", "touchmove", hideTooltip);
+
+  delegate(container, ".timeline-dot", "click", (_e, dot) => {
+    showDetailPanel(dot);
+    announce(`${dot.dataset.title || "Event"}, details shown`);
+  });
+
+  delegate(container, ".timeline-dot", "keydown", (e, dot) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault(); // Space scrolls the page by default
+      showDetailPanel(dot);
+      announce(`${dot.dataset.title || "Event"}, details shown`);
+    }
+  });
+
+  // A stack is a real button, so Enter and Space fire this click too.
+  delegate(container, ".timeline-stack", "click", (_e, stack) => {
+    zoomToStack(stack);
+  });
+
+  // Hovering one dot lights every dot of its period.
+  delegate(container, ".timeline-dot", "mouseover", (e, dot) => {
+    if (!crossesDotBoundary(e, dot)) return;
+    setClusterGlow(dot, true);
+  });
+
+  delegate(container, ".timeline-dot", "mouseout", (e, dot) => {
+    if (!crossesDotBoundary(e, dot)) return;
+    setClusterGlow(dot, false);
+  });
+}
+
+/**
+ * Add or remove the glow class on every dot that shares `dot`'s period.
+ *
+ * @param {HTMLElement} dot
+ * @param {boolean} on
+ */
+function setClusterGlow(dot, on) {
+  const period = dot.dataset.period;
+  if (!period) return;
+
+  batchWrite(() => {
+    const siblings = container.querySelectorAll(
+      `.timeline-dot[data-period="${CSS.escape(period)}"]`,
+    );
+    siblings.forEach((s) => {
+      s.classList.toggle("timeline-dot--cluster-glow", on);
+    });
+  });
+}
+
+/**
+ * Bootstrap the timeline page: cache the markup, draw the timeline, wire
+ * interactions. A failed load leaves the empty state showing and wires nothing.
+ */
+async function init() {
+  renderInit();
+  container = document.getElementById("timeline-container");
+  tooltipEl = document.getElementById("timeline-tooltip");
+  panelEl = document.getElementById("detail-panel");
+  panelTitle = document.getElementById("detail-title");
+  panelMeta = document.getElementById("detail-meta");
+  panelVerse = document.getElementById("detail-verse");
+  panelLink = document.getElementById("detail-link");
+  panelClose = document.getElementById("detail-panel-close");
+  filtersEl = document.getElementById("era-filters");
+
+  if (!container || !tooltipEl || !panelEl) {
+    console.warn("timeline-interactions: timeline markup is missing an element", {
+      container: !!container,
+      tooltip: !!tooltipEl,
+      detailPanel: !!panelEl,
+    });
+  }
+
+  try {
+    if (!(await loadAndRender())) return;
+  } catch (error) {
+    console.error("timeline-interactions: loading the timeline failed:", error);
+    showToast(LOAD_ERROR_MESSAGE, "error");
+    showEmpty();
+    return;
+  }
+
   if (activeEra !== "all" && filtersEl) {
     filtersEl.querySelectorAll(".filter-chip").forEach((chip) => {
       chip.classList.toggle("active", chip.dataset.era === activeEra);
     });
   }
 
-  // ── Wire tooltip on dots (JS-6: event delegation) ──────────────────────
   if (container) {
-    delegate(container, ".timeline-dot", "mouseenter", (e, dot) => {
-      tooltipTimer = setTimeout(() => showTooltip(e, dot), 200);
-    });
-
-    delegate(container, ".timeline-dot", "mouseleave", () => {
-      hideTooltip();
-    });
-
-    delegate(container, ".timeline-dot", "mousemove", (e, dot) => {
-      // Update tooltip position on move even while shown
-      if (tooltipEl && !tooltipEl.hidden) {
-        showTooltip(e, dot);
-      }
-    });
-
-    // Touch tooltip for mobile (long-press shows tooltip before navigation)
-    delegate(container, ".timeline-dot", "touchstart", (e, dot) => {
-      tooltipTimer = setTimeout(() => showTooltip(e, dot), 200);
-    });
-
-    delegate(container, ".timeline-dot", "touchend", () => {
-      hideTooltip();
-    });
-
-    // Cancel tooltip timer on scroll
-    delegate(container, ".timeline-dot", "touchmove", () => {
-      hideTooltip();
-    });
-
-    // ── Wire click → detail panel ────────────────────────────────────────
-    delegate(container, ".timeline-dot", "click", (_e, dot) => {
-      showDetailPanel(dot);
-      announce(`${dot.dataset.title || "Event"}, details shown`);
-    });
-
-    // ── Wire keyboard activation (Enter/Space) → detail panel ────────────
-    delegate(container, ".timeline-dot", "keydown", (e, dot) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault(); // Space scrolls the page by default
-        showDetailPanel(dot);
-        announce(`${dot.dataset.title || "Event"}, details shown`);
-      }
-    });
-
-    // ── Wire stack button → zoom to its events ───────────────────────────
-    // A stack is a real button, so Enter and Space fire this click too.
-    delegate(container, ".timeline-stack", "click", (_e, stack) => {
-      zoomToStack(stack);
-    });
-
-    // ── Cluster hover highlight ─────────────────────────────────────────
-
-    delegate(container, ".timeline-dot", "mouseenter", (_e, dot) => {
-      const period = dot.dataset.period;
-      if (!period) return;
-
-      batchWrite(() => {
-        const siblings = container.querySelectorAll(
-          `.timeline-dot[data-period="${CSS.escape(period)}"]`,
-        );
-        siblings.forEach((s) => {
-          s.classList.add("timeline-dot--cluster-glow");
-        });
-      });
-    });
-
-    delegate(container, ".timeline-dot", "mouseleave", (_e, dot) => {
-      const period = dot.dataset.period;
-      if (!period) return;
-
-      batchWrite(() => {
-        const siblings = container.querySelectorAll(
-          `.timeline-dot[data-period="${CSS.escape(period)}"]`,
-        );
-        siblings.forEach((s) => {
-          s.classList.remove("timeline-dot--cluster-glow");
-        });
-      });
-    });
-
-    // Zoom and pan are handled by the timeline-zoom module (mounted during
-    // renderTimeline via mountZoomControls). No separate drag wiring needed.
+    wireDotInteractions();
   }
 
-  // ── Wire era filter chips (JS-6: event delegation) ────────────────────
   if (filtersEl) {
     delegate(filtersEl, ".filter-chip", "click", (_e, chip) => {
-      var era = chip.dataset.era;
+      const era = chip.dataset.era;
       setEraFilter(era);
       jumpToEra(era);
     });
   }
 
-  // ── Wire detail panel close ────────────────────────────────────────────
   if (panelClose) {
     panelClose.classList.add("btn", "btn--ghost");
     panelClose.addEventListener("click", hideDetailPanel);
   }
 
-  // ── Initialise tooltip styles ──────────────────────────────────────────
-  initTooltipStyles();
-
-  // ── Dismiss panel on outside click or ESC ──────────────────────────────
   document.addEventListener("click", (e) => {
     if (panelEl && !panelEl.hidden) {
       const clickedInside = panelEl.contains(e.target);
@@ -453,7 +482,6 @@ async function init() {
   });
 }
 
-// Run on DOM ready
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", init);
 } else {

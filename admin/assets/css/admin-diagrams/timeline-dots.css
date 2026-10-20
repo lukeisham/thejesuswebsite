@@ -1,8 +1,11 @@
 /* ==========================================================================
    Timeline Dots (Admin) — event markers and labels
-   Public-style dots with era/category classes and clustering label modes,
-   matching frontend timeline-dots.css / timeline-labels.css.
-   Admin-only affordances: hover scale, selection ring.
+   Dots and title labels that look like the public ones
+   (frontend/assets/css/pages/timeline/timeline-dots.css and timeline-labels.css),
+   plus the editor's own hover scale and selection ring. The dots, labels and
+   leader lines are created by admin-timeline/timeline-events.js, which sets the
+   era--, dot-cat--, --selected and label-mode classes used here;
+   timeline-node-drag.js adds --dragging (timeline-node-drag.css).
    ========================================================================== */
 
 /* ── Event Markers ─────────────────────────────────────────────────────── */
@@ -36,7 +39,8 @@
     z-index: 3;
 }
 
-/* Era dot colours (match frontend timeline.css exactly) */
+/* Era dot colours: the same --era-* tokens as the public dots in
+   frontend/assets/css/pages/timeline/timeline-dots.css. */
 .admin-timeline-event.era--pre-incarnation {
     background: var(--era-pre-incarnation);
 }
@@ -62,11 +66,9 @@
     background: var(--era-post-passion);
 }
 
-/* Category overrides (after era rules, CSS-5) */
-.admin-timeline-event.dot-cat--place {
-    background: var(--admin-white);
-    border-color: var(--admin-text-primary);
-}
+/* Category overrides. Same specificity as the era rules above, so they must
+   stay after them to win. */
+.admin-timeline-event.dot-cat--place,
 .admin-timeline-event.dot-cat--person {
     background: var(--admin-white);
     border-color: var(--admin-text-primary);
@@ -75,11 +77,13 @@
     background: var(--text-muted);
 }
 
-/* ── Event Labels (sibling-positioned, matching frontend .timeline-label) ─ */
+/* ── Event Labels ──────────────────────────────────────────────────────── */
 
-/* timeline-events.js (Events.relayoutLabels) sets `left` and `top` in px for the
-   label's top-left corner, so the label starts beside its dot like the public
-   one. Size and wrapping follow the public label: at most 100px wide, two lines. */
+/* Labels are siblings of the dots in #timeline-axis, like the public
+   .timeline-label. timeline-events.js (Events.relayoutLabels) sets `left` and
+   `top` in px for the label's top-left corner, so the label starts beside its
+   dot. Size and wrapping follow the public label: at most 100px wide, two
+   lines. */
 .admin-timeline-event-label {
     position: absolute;
     display: -webkit-box;
@@ -106,8 +110,10 @@
     text-align: right;
 }
 
-/* Leader lines: one line from the start of a moved title to its dot, drawn in
-   an SVG with the size of the dot field. */
+/* ── Leader Lines ──────────────────────────────────────────────────────── */
+
+/* One line from the start of a moved title to its dot, drawn by
+   Events.relayoutLabels in an SVG with the size of the dot field. */
 .admin-timeline-leaders {
     position: absolute;
     top: 0;
@@ -128,12 +134,12 @@
     }
 }
 
-/* Clustering label modes */
+/* ── Label Modes ───────────────────────────────────────────────────────── */
+
+/* Set by timeline-events.js when the density tier asks for a short title. A
+   tier that hides a title creates no label, so there is no hidden mode. */
 .admin-timeline-event-label.label--truncated {
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
-}
-.admin-timeline-event-label.label--hidden {
-    display: none;
 }

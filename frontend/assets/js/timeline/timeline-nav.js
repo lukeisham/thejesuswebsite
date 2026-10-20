@@ -1,24 +1,14 @@
 /**
  * Timeline navigation module.
  *
- * Exports `jumpToEra(eraKey)` — called when a user clicks an era filter
- * chip to both filter events AND jump the viewport to centre that era at
- * normal zoom (scale 1.0).
- *
- * Desktop behaviour (> 768px):
- *   1. Resolve the era's world-pixel bounds.
- *   2. Compute the pan offset to centre the era in the viewport.
- *   3. Call timeline-zoom.setTransform() with scale=1.0.
- *   4. Respects prefers-reduced-motion: if the user has requested reduced
- *      motion, the transform is applied instantly (no CSS transition).
- *
- * Mobile behaviour (< 768px):
- *   Zoom/pan is disabled on mobile (transform: none in responsive CSS).
- *   Instead, scroll the first dot of the target era horizontally into
- *   view via Element.scrollIntoView().
- *
- * "All" / "all" behaves as a reset: scale=1.0, pan=(0,0), full timeline
- * centred.
+ * `jumpToEra(eraKey)` is called by the era filter chips in
+ * timeline-interactions.js, after the chip has already filtered the dots, so a
+ * failed jump never undoes the filter. On desktop it moves the zoomed world
+ * through timeline-zoom.js `setTransform`, with the pan from
+ * timeline-transform.js. Below the mobile breakpoint the world has no
+ * transform (vertical layout), so it scrolls the first dot of the era into
+ * view instead. The breakpoint must equal `MOBILE_QUERY` in timeline-zoom.js
+ * and timeline-render.js, or a chip drives the wrong mode.
  *
  * @module timeline/timeline-nav
  */
@@ -26,7 +16,7 @@
 import { computePanForEra, getEraWorldBounds } from "./timeline-transform.js";
 import { setTransform } from "./timeline-zoom.js";
 
-/** Mobile breakpoint — matching timeline-zoom.js and timeline-responsive.css. */
+/** Same query as timeline-zoom.js, timeline-render.js and the 767px rules in timeline-responsive.css. */
 const MOBILE_QUERY = "(max-width: 767px)";
 
 /**
@@ -66,6 +56,7 @@ function prefersReducedMotion() {
  * independently, so a failed jump is a no-op from the user's perspective.
  *
  * @param {string} eraKey — canonical era key, "all", or "All"
+ * @returns {void}
  */
 export function jumpToEra(eraKey) {
   if (!eraKey) {
@@ -75,12 +66,11 @@ export function jumpToEra(eraKey) {
 
   // ── Mobile: scroll first dot into view ──────────────────────────────────
   if (isMobile()) {
-    // "All" — scroll to the first dot overall
-    var selector = eraKey === "all" || eraKey === "All"
+    const selector = eraKey === "all" || eraKey === "All"
       ? ".timeline-dot"
-      : '.timeline-dot[data-era="' + eraKey + '"]';
+      : `.timeline-dot[data-era="${CSS.escape(eraKey)}"]`;
 
-    var firstDot = document.querySelector(selector);
+    const firstDot = document.querySelector(selector);
     if (!firstDot) {
       console.warn(
         "timeline-nav: no dots found for era, cannot scroll into view",
@@ -97,13 +87,12 @@ export function jumpToEra(eraKey) {
 
   // "All" / "all" resets to default view
   if (eraKey === "all" || eraKey === "All") {
-    setTransform(0, 0, 1.0, eraKey);
+    setTransform(0, 0, 1.0);
     handleReducedMotion();
     return;
   }
 
-  // Validate era exists
-  var bounds = getEraWorldBounds(eraKey);
+  const bounds = getEraWorldBounds(eraKey);
   if (!bounds) {
     console.warn("timeline-nav: unrecognised or empty era, bailing", {
       eraKey,
@@ -111,44 +100,35 @@ export function jumpToEra(eraKey) {
     return;
   }
 
-  var viewportWidth = window.innerWidth;
-  var pan = computePanForEra(eraKey, viewportWidth, 1.0);
+  const viewportWidth = window.innerWidth;
+  const pan = computePanForEra(eraKey, viewportWidth, 1.0);
   if (!pan) {
     console.warn("timeline-nav: could not compute pan for era", { eraKey });
     return;
   }
 
-  setTransform(pan.panX, pan.panY, 1.0, eraKey);
+  setTransform(pan.panX, pan.panY, 1.0);
   handleReducedMotion();
 }
 
 /**
- * If the user prefers reduced motion, suppress the CSS transition on
- * .timeline-world so the transform takes effect instantly (the
- * setTransform call above will have applied a transform that the
- * browser would otherwise animate via the transition rule).
- *
- * We remove the transition class after a short rAF delay so future
- * button-zoom interactions still animate normally.
+ * Under reduced motion, make the transform that `setTransform` just applied
+ * take effect instantly, by overriding the CSS transition on .timeline-world
+ * for one frame. The override is cleared on the next frame so later zoom
+ * button presses still animate.
  */
 function handleReducedMotion() {
   if (!prefersReducedMotion()) return;
 
-  var worldEl = document.querySelector(".timeline-world");
+  const worldEl = document.querySelector(".timeline-world");
   if (!worldEl) return;
 
-  // Temporarily suppress the transition
   worldEl.style.transition = "none";
 
-  // Force a reflow so the suppressed transition takes effect immediately
-  // eslint-disable-next-line no-unused-expressions
-  worldEl.offsetHeight;
+  // Reading layout forces a reflow, so the "none" applies before it is cleared.
+  void worldEl.offsetHeight;
 
-  // Restore the transition after the next frame — by then the transform
-  // will have been painted, and future zoom operations will animate again.
-  requestAnimationFrame(function () {
-    if (worldEl) {
-      worldEl.style.transition = "";
-    }
+  requestAnimationFrame(() => {
+    worldEl.style.transition = "";
   });
 }

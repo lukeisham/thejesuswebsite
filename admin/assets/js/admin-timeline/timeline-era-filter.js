@@ -1,10 +1,20 @@
 /**
  * Admin timeline era filter module.
  *
- * Renders a horizontal row of era chip buttons ("All Eras" + the 8 canonical
- * eras from AdminTimelineGeometry).  Clicking a chip sets the active filter
- * era and applies a visual opacity fade (0.3) to dots/labels that belong to
- * other eras.  This is purely a visual aid — it does not restrict editing.
+ * Renders a horizontal row of era chip buttons ("All Eras" + the eras in
+ * AdminTimelineGeometry.ERA_ORDER). Clicking a chip sets the active filter era,
+ * fades the dots and labels of other eras to 0.3, and moves the view to that era
+ * with `AdminTimelineNav.jumpToEra`. This is purely a visual aid; it does not
+ * restrict editing.
+ *
+ * A dot belongs to an era by its `era--<kebab>` class, which
+ * timeline-events.js sets in `createEventElement`; the chips carry the same
+ * class. A label belongs to the dot with the same `data-event-id`. Labels are
+ * siblings of the dots in #timeline-axis, not children.
+ *
+ * Every `AdminTimelineEvents.renderEvents` makes new dots, so it calls
+ * `reapplyFilter` at its end. Without that call the fade is lost while the chip
+ * stays highlighted.
  *
  * @module admin-timeline/timeline-era-filter
  */
@@ -18,13 +28,20 @@ let activeEra = null;
 /**
  * Build the chip row from AdminTimelineGeometry.ERA_ORDER / ERA_LABELS
  * and wire click handlers.  "All Eras" is the default selection.
+ *
+ * @returns {void}
  */
 EraFilter.init = function () {
   var container = document.getElementById("timeline-era-filter");
   if (!container) return;
 
   var geom = window.AdminTimelineGeometry;
-  if (!geom || !geom.ERA_ORDER || !geom.ERA_LABELS) return;
+  if (!geom || !geom.ERA_ORDER || !geom.ERA_LABELS) {
+    console.warn(
+      "timeline-era-filter.js: AdminTimelineGeometry.ERA_ORDER or ERA_LABELS is missing. The era chips are not built.",
+    );
+    return;
+  }
 
   container.innerHTML = "";
 
@@ -63,16 +80,16 @@ EraFilter.init = function () {
     chip.textContent = label;
     chip.type = "button";
 
-    chip.addEventListener("click", (function (e) {
+    chip.addEventListener("click", (function (eraKey) {
       return function () {
-        activeEra = e;
-        EraFilter.applyFilter(e);
-        EraFilter._highlightChip(container, e);
+        activeEra = eraKey;
+        EraFilter.applyFilter(eraKey);
+        EraFilter._highlightChip(container, eraKey);
         if (
           window.AdminTimelineNav &&
           typeof window.AdminTimelineNav.jumpToEra === "function"
         ) {
-          window.AdminTimelineNav.jumpToEra(e);
+          window.AdminTimelineNav.jumpToEra(eraKey);
         }
       };
     })(era));
@@ -82,40 +99,42 @@ EraFilter.init = function () {
 };
 
 /**
- * Apply the era filter visually: matching dots/labels stay at full opacity;
- * non-matching ones fade to 0.3.  Pass `null` to show all dots at 1.0.
+ * Apply the era filter visually: matching dots and their labels stay at full
+ * opacity; non-matching ones fade to 0.3.  Pass `null` to show all at 1.0.
  *
  * @param {string|null} era
+ * @returns {void}
  */
 EraFilter.applyFilter = function (era) {
-  var dots = document.querySelectorAll(".admin-timeline-event");
-  for (var i = 0; i < dots.length; i++) {
-    var dot = dots[i];
-
-    if (!era) {
-      dot.style.opacity = "1";
-    } else {
-      var eraKebab = era
+  const eraClass = era
+    ? "era--" +
+      era
         .replace(/([a-z])([A-Z])/g, "$1-$2")
         .replace(/\s+/g, "-")
-        .toLowerCase();
-      dot.style.opacity = dot.classList.contains("era--" + eraKebab) ? "1" : "0.3";
-    }
+        .toLowerCase()
+    : null;
 
-    // Also fade child labels to match
-    var labels = dot.querySelectorAll(".admin-timeline-event-label");
-    for (var j = 0; j < labels.length; j++) {
-      if (!era) {
-        labels[j].style.opacity = "1";
-      } else {
-        var eraKebab2 = era
-          .replace(/([a-z])([A-Z])/g, "$1-$2")
-          .replace(/\s+/g, "-")
-          .toLowerCase();
-        labels[j].style.opacity = dot.classList.contains("era--" + eraKebab2) ? "1" : "0.3";
-      }
-    }
+  const labelByEventId = new Map();
+  for (const label of document.querySelectorAll(".admin-timeline-event-label")) {
+    labelByEventId.set(label.dataset.eventId, label);
   }
+
+  for (const dot of document.querySelectorAll(".admin-timeline-event")) {
+    const opacity = !eraClass || dot.classList.contains(eraClass) ? "1" : "0.3";
+    dot.style.opacity = opacity;
+    const label = labelByEventId.get(dot.dataset.eventId);
+    if (label) label.style.opacity = opacity;
+  }
+};
+
+/**
+ * Apply the era that the chips last selected to the dots and labels now on the
+ * page. Called by `AdminTimelineEvents.renderEvents` after it draws new dots.
+ *
+ * @returns {void}
+ */
+EraFilter.reapplyFilter = function () {
+  EraFilter.applyFilter(activeEra);
 };
 
 /**
@@ -123,6 +142,7 @@ EraFilter.applyFilter = function (era) {
  *
  * @param {HTMLElement} container
  * @param {string|null} era
+ * @returns {void}
  */
 EraFilter._highlightChip = function (container, era) {
   var chips = container.querySelectorAll(".admin-timeline-era-filter__chip");
@@ -130,7 +150,7 @@ EraFilter._highlightChip = function (container, era) {
     chips[i].classList.remove("admin-timeline-era-filter__chip--active");
   }
   if (!era) {
-    // First chip is "All Eras"
+    // The first chip is "All Eras" (built first in init).
     chips[0].classList.add("admin-timeline-era-filter__chip--active");
   } else {
     var eraKebab = era

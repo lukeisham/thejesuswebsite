@@ -65,10 +65,11 @@ describe(`${GUIDE} row 1: labels are placed by cluster-label-layout.js`, () => {
     test(`${rel} calls layoutLabelsBesideNodes and computeLeaderLine`, () => {
       const code = blankComments(read(rel));
       for (const name of ["layoutLabelsBesideNodes", "computeLeaderLine"]) {
+        // A call site, not a bare name: an import or a mention would pass a name search.
         assert.match(
           code,
-          new RegExp(`\\b${name}\\b`),
-          `${GUIDE} row 1: ${rel} does not use ${name} from ${LAYOUT}. Both timelines must place labels with it.`,
+          new RegExp(`\\b${name}\\s*\\(`),
+          `${GUIDE} row 1: ${rel} does not call ${name}() from ${LAYOUT}. Both timelines must place labels with it.`,
         );
       }
     });
@@ -103,6 +104,24 @@ describe(`${GUIDE} row 2: admin geometry equals frontend geometry`, () => {
       numberAfter(FRONTEND, /export const BASE_PX_PER_PERIOD\s*=\s*(\d+)/),
       `${GUIDE} row 2: ${ADMIN} BASE_PX_PER_PERIOD differs from ${FRONTEND}.`,
     );
+  });
+
+  test("no other timeline file declares its own BASE_PX_PER_PERIOD", () => {
+    const COPY = /\b(?:const|let|var)\s+\w*BASE_PX\w*\s*=\s*\d/;
+    const files = [
+      ...jsFilesUnder("frontend/assets/js/timeline"),
+      ...jsFilesUnder("frontend/assets/js/cluster-logic"),
+    ].filter((rel) => rel !== FRONTEND);
+    for (const rel of files) {
+      const code = blankComments(read(rel));
+      const m = COPY.exec(code);
+      assert.equal(
+        m,
+        null,
+        `${GUIDE} row 2: ${rel}:${m ? lineOf(code, m.index) : 0} declares its own pixel copy of BASE_PX_PER_PERIOD. ` +
+          `Import it from ${FRONTEND}.`,
+      );
+    }
   });
 
   test("the API clamps stored offsets to the canonical limits", () => {
@@ -170,6 +189,28 @@ describe(`${GUIDE} row 3: offset code uses the geometry constants`, () => {
         null,
         `${GUIDE} row 3: ${rel}:${m ? lineOf(code, m.index) : 0} repeats "50 + y / 2". ` +
           `Call crossAxisToTopPercent() from frontend/assets/js/cluster-logic/timeline-offsets.js.`,
+      );
+    });
+
+    test(`${rel} does not repeat the inverse top-percentage formula`, () => {
+      const code = blankComments(read(rel));
+      const m = /\(\s*[\w.]+\s*-\s*50\s*\)\s*\*\s*2\b/.exec(code);
+      assert.equal(
+        m,
+        null,
+        `${GUIDE} row 3: ${rel}:${m ? lineOf(code, m.index) : 0} repeats "(top - 50) * 2". ` +
+          `Call topPercentToCrossAxis() from frontend/assets/js/cluster-logic/timeline-offsets.js.`,
+      );
+    });
+
+    test(`${rel} does not repeat the vertical left formula`, () => {
+      const code = blankComments(read(rel));
+      const m = /calc\(\s*50%\s*\+\s*\$\{[^}]*\/\s*2\s*\}\s*px/.exec(code);
+      assert.equal(
+        m,
+        null,
+        `${GUIDE} row 3: ${rel}:${m ? lineOf(code, m.index) : 0} halves an offset inline inside calc(50% + ...px). ` +
+          `Call crossAxisToVerticalLeftPx() from frontend/assets/js/cluster-logic/timeline-offsets.js.`,
       );
     });
 
@@ -326,4 +367,117 @@ describe(`${GUIDE} row 7: era dividers and spine in the editor`, () => {
       `${GUIDE} row 7: ${CANVAS_CSS}:${m ? lineOf(css, m.index) : 0} draws a spine on the canvas. It does not move with the zoom. The axis line inside .admin-timeline-world is the only spine.`,
     );
   });
+});
+
+// ── Row 8: script and stylesheet agree on the mobile breakpoint ──────────────
+
+describe(`${GUIDE} row 8: the mobile breakpoint is one value`, () => {
+  const QUERY_FILES = [
+    "frontend/assets/js/timeline/timeline-render.js",
+    "frontend/assets/js/timeline/timeline-zoom.js",
+    "frontend/assets/js/timeline/timeline-nav.js",
+  ];
+  const CSS_FILES = [
+    "frontend/assets/css/pages/timeline/timeline-responsive.css",
+    "frontend/assets/css/pages/timeline/timeline-dots.css",
+  ];
+
+  function mobileQuery(rel) {
+    const m = /const MOBILE_QUERY\s*=\s*"([^"]+)"/.exec(blankComments(read(rel)));
+    assert.ok(m, `${GUIDE} row 8: ${rel} has no MOBILE_QUERY constant.`);
+    return m[1];
+  }
+
+  function mobileMaxWidth(rel) {
+    const m = /^\(max-width:\s*(\d+)px\)$/.exec(mobileQuery(rel));
+    assert.ok(m, `${GUIDE} row 8: MOBILE_QUERY in ${rel} is not a "(max-width: Npx)" query.`);
+    return Number(m[1]);
+  }
+
+  test("every MOBILE_QUERY is the same string", () => {
+    const first = mobileQuery(QUERY_FILES[0]);
+    for (const rel of QUERY_FILES.slice(1)) {
+      assert.equal(
+        mobileQuery(rel),
+        first,
+        `${GUIDE} row 8: MOBILE_QUERY in ${rel} differs from the one in ${QUERY_FILES[0]}. The page would build one layout in one module and another in the next.`,
+      );
+    }
+  });
+
+  for (const rel of CSS_FILES) {
+    test(`${rel} uses the breakpoint of MOBILE_QUERY`, () => {
+      const breakpoint = mobileMaxWidth(QUERY_FILES[0]);
+      const css = blankComments(read(rel));
+      const queries = [...css.matchAll(/@media\s*\(\s*(max|min)-width:\s*(\d+)px\s*\)/g)];
+      assert.ok(
+        queries.some((m) => m[1] === "max"),
+        `${GUIDE} row 8: ${rel} has no max-width media query, so it no longer styles the layout that MOBILE_QUERY selects.`,
+      );
+      for (const m of queries) {
+        const expected = m[1] === "max" ? breakpoint : breakpoint + 1;
+        assert.equal(
+          Number(m[2]),
+          expected,
+          `${GUIDE} row 8: ${rel}:${lineOf(css, m.index)} has a ${m[1]}-width media query of ${m[2]}px, but MOBILE_QUERY in ${QUERY_FILES[0]} needs ${expected}px.`,
+        );
+      }
+    });
+  }
+});
+
+// ── Row 9: every copy of the period list is the same list ────────────────────
+
+describe(`${GUIDE} row 9: the period list is identical everywhere`, () => {
+  const quoted = (text, pattern) => [...text.matchAll(pattern)].map((m) => m[1]);
+
+  /** The text from the first match of `start` up to the first `end` after it. */
+  function sliceBetween(rel, start, end) {
+    const text = blankComments(read(rel));
+    const m = start.exec(text);
+    assert.ok(m, `${GUIDE} row 9: ${rel} has no match for ${start}.`);
+    const stop = text.indexOf(end, m.index);
+    assert.ok(stop > m.index, `${GUIDE} row 9: ${rel} has no "${end}" after ${start}.`);
+    return text.slice(m.index, stop);
+  }
+
+  const SCHEMA = "database/schema.sql";
+  const LISTS = {
+    [SCHEMA]: () =>
+      quoted(sliceBetween(SCHEMA, /timeline_period\s+TEXT CHECK/, "))"), /'([A-Za-z]+)'/g),
+    "frontend/assets/js/timeline/timeline-data.js": () =>
+      quoted(
+        sliceBetween("frontend/assets/js/timeline/timeline-data.js", /export const TIMELINE_PERIODS\s*=\s*\[/, "]"),
+        /"([A-Za-z]+)"/g,
+      ),
+    "admin/assets/js/admin-timeline/timeline-geometry.js": () =>
+      quoted(
+        sliceBetween("admin/assets/js/admin-timeline/timeline-geometry.js", /TIMELINE_PERIODS:\s*\[/, "]"),
+        /"([A-Za-z]+)"/g,
+      ),
+    "api/models/timeline.model.js": () =>
+      quoted(
+        sliceBetween("api/models/timeline.model.js", /const PERIOD_ORDER\s*=\s*\[/, "]"),
+        /"([A-Za-z]+)"/g,
+      ),
+    "admin/assets/js/admin-timeline-taxonomy.js": () =>
+      quoted(
+        sliceBetween("admin/assets/js/admin-timeline-taxonomy.js", /var PERIODS_BY_ERA\s*=\s*\{/, "};"),
+        /value:\s*"([A-Za-z]+)"/g,
+      ),
+  };
+
+  for (const rel of Object.keys(LISTS)) {
+    test(`${rel} holds the schema period list, in the same order`, () => {
+      const expected = LISTS[SCHEMA]();
+      assert.ok(expected.length > 0, `${GUIDE} row 9: found no periods in the CHECK list of ${SCHEMA}.`);
+      const actual = LISTS[rel]();
+      assert.deepEqual(
+        actual,
+        expected,
+        `${GUIDE} row 9: the period list in ${rel} differs from the timeline_period CHECK in ${SCHEMA}. ` +
+          "Every list must hold the same periods in the same order.",
+      );
+    });
+  }
 });

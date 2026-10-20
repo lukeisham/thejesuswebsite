@@ -1,11 +1,11 @@
 /* ==========================================================================
    Timeline Toolbar (Admin)
-   Top bar + toolbar for the admin timeline editor.
+   The top bar and the tool row above the timeline canvas. Markup:
+   admin/diagrams/timeline.html; the save button (#timeline-save-btn) is wired
+   by the inline script there.
    ========================================================================== */
 
-/* -------------------------------------------------------------------------
-   Top Bar
-   ------------------------------------------------------------------------- */
+/* ── Top Bar ───────────────────────────────────────────────────────────── */
 
 .admin-timeline-topbar {
     display: flex;
@@ -38,9 +38,7 @@
     outline-offset: 2px;
 }
 
-/* -------------------------------------------------------------------------
-   Toolbar
-   ------------------------------------------------------------------------- */
+/* ── Toolbar ───────────────────────────────────────────────────────────── */
 
 .admin-timeline-toolbar {
     display: flex;
@@ -52,8 +50,7 @@
     gap: var(--space-sm);
     flex-wrap: wrap;
 }
-.admin-timeline-toolbar__left,
-.admin-timeline-toolbar__right {
+.admin-timeline-toolbar__left {
     display: flex;
     align-items: center;
     gap: var(--space-sm);
@@ -63,7 +60,7 @@
     font-size: 0.875rem;
     font-weight: 500;
     border: 1px solid var(--admin-border);
-    border-radius: 6px;
+    border-radius: var(--admin-radius);
     cursor: pointer;
     min-height: 36px;
     background: var(--admin-surface);
@@ -78,8 +75,13 @@
 .admin-timeline-toolbar__btn--primary:hover {
     background: var(--admin-accent-hover);
 }
-.admin-timeline-toolbar__btn--active {
-    background: var(--admin-accent-hover);
-    color: var(--admin-accent-text);
-    border-color: var(--admin-accent-hover);
+
+/* ── Responsive ────────────────────────────────────────────────────────── */
+
+@media (max-width: 600px) {
+    .admin-timeline-toolbar {
+        padding: var(--space-sm) var(--space-md);
+        flex-direction: column;
+        align-items: stretch;
+    }
 }

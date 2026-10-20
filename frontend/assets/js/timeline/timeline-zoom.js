@@ -8,6 +8,11 @@
  *
  * Disabled below 768px (vertical/mobile mode), matching arbor.
  *
+ * Called by timeline-render.js (`renderTimeline` calls `mountZoomControls`;
+ * `getScale`, `getPan` and `onTransformChange` feed the era heading band and the
+ * zoom stacks), timeline-interactions.js and timeline-nav.js (`setTransform`).
+ * The scale limits are shared with timeline-interactions.js (stack zoom-to-fit).
+ *
  * Line stability under zoom/pan (see timeline/timeline-line-stability.css):
  * - `.timeline-spine` / `.timeline-era-marker` live inside `.timeline-world`,
  *   so `scale()` inflates their declared thickness along with everything else
@@ -29,6 +34,8 @@
 
 import { throttle } from "../utils/debounce.js";
 import { clampPan } from "./timeline-transform.js";
+import { TIMELINE_PERIODS } from "./timeline-data.js";
+import { BASE_PX_PER_PERIOD } from "./timeline-geometry.js";
 
 // ─── State ────────────────────────────────────────────────────────────────────
 
@@ -39,12 +46,15 @@ let panY = 0;
 
 /** Zoom step multiplier. */
 const ZOOM_FACTOR = 1.25;
-/** Scale bounds — mirrors old [30, 300] px-per-period with BASE_PX_PER_PERIOD=100. */
+/** Scale bounds: 30 to 300 px per period at `BASE_PX_PER_PERIOD`. */
 export const SCALE_MIN = 0.3;
 export const SCALE_MAX = 3.0;
 
 /** Mobile breakpoint — 768px, matching arbor. */
 const MOBILE_QUERY = "(max-width: 767px)";
+
+/** World width at scale 1; `clampPan` needs it to keep part of the world in view. */
+const WORLD_WIDTH_PX = TIMELINE_PERIODS.length * BASE_PX_PER_PERIOD;
 
 // ─── DOM references ───────────────────────────────────────────────────────────
 
@@ -174,7 +184,8 @@ function isVerticalMode() {
 // ─── Zoom ─────────────────────────────────────────────────────────────────────
 
 /**
- * Zoom in.
+ * Zoom in by one step, up to `SCALE_MAX`.
+ * @returns {void}
  */
 export function zoomIn() {
   const newScale = Math.min(SCALE_MAX, scale * ZOOM_FACTOR);
@@ -184,7 +195,8 @@ export function zoomIn() {
 }
 
 /**
- * Zoom out.
+ * Zoom out by one step, down to `SCALE_MIN`.
+ * @returns {void}
  */
 export function zoomOut() {
   const newScale = Math.max(SCALE_MIN, scale / ZOOM_FACTOR);
@@ -202,7 +214,7 @@ export function zoomOut() {
  */
 function onPanStart(point, originalEvent) {
   if (isVerticalMode()) return;
-  // Don't start pan if clicking a dot, a stack or a control
+  // A press on a dot, stack or control belongs to that element, not to a pan.
   if (originalEvent && originalEvent.target) {
     if (
       originalEvent.target.closest(".timeline-dot") ||
@@ -220,9 +232,8 @@ function onPanStart(point, originalEvent) {
   panStartPanX = panX;
   panStartPanY = panY;
 
-  // Suppress the button-zoom transition so drag-pan tracks the pointer
-  // immediately instead of lagging behind it (mouse and touch both funnel
-  // through this shared onPanStart, so one class toggle covers both).
+  // Drops the 150ms zoom transition so the world tracks the pointer; mouse and
+  // touch both pass through here, so one class toggle covers both.
   if (worldEl) {
     worldEl.classList.add("timeline-world--panning");
   }
@@ -279,10 +290,7 @@ function onMouseMove(e) {
   onPanMove(e.clientX, e.clientY);
 }
 
-/**
- * @param {MouseEvent} e
- */
-function onMouseUp(e) {
+function onMouseUp() {
   onPanEnd();
 }
 
@@ -305,23 +313,25 @@ function onTouchMove(e) {
   onPanMove(e.touches[0].clientX, e.touches[0].clientY);
 }
 
-/**
- * @param {TouchEvent} e
- */
-function onTouchEnd(e) {
+function onTouchEnd() {
   onPanEnd();
 }
 
 // ─── Control bar ─────────────────────────────────────────────────────────────
 
 /**
- * Build and mount the zoom control bar into the timeline viewport.
- * Creates two buttons (zoom-out, zoom-in — no reset, matching arbor)
- * and wires click handlers.
+ * Mount the zoom control bar into the timeline viewport and wire drag-pan.
+ * Creates two buttons (zoom-out, zoom-in — no reset, matching arbor).
  *
- * Call during page init after the viewport container is in the DOM.
+ * Called by `renderTimeline` in timeline-render.js after every render, because a
+ * render replaces `.timeline-world` and the controls. The current zoom is
+ * re-applied to the new world; the pan listeners are bound once per viewport.
+ * Touch move and end are bound to the viewport, not the window: a touch stays
+ * targeted at the element where it began, and a window listener with
+ * `passive: false` would make every touch on the page non-passive (SR-3).
  *
  * @param {HTMLElement} viewport - the scroll/zoom viewport container (.timeline-container)
+ * @returns {void}
  */
 export function mountZoomControls(viewport) {
   if (!viewport) {
@@ -341,10 +351,8 @@ export function mountZoomControls(viewport) {
     applyTransform();
   }
 
-  // Don't mount controls in vertical/mobile mode
   if (isVerticalMode()) return;
 
-  // Check if controls already exist
   if (viewport.querySelector(".timeline-controls")) return;
 
   const controls = document.createElement("div");
@@ -356,51 +364,48 @@ export function mountZoomControls(viewport) {
   zoomOutBtn.className = "btn btn--secondary";
   zoomOutBtn.setAttribute("aria-label", "Zoom out");
   zoomOutBtn.innerHTML =
-    '<svg width="20" height="20" aria-hidden="true"><use href="/assets/images/feather-sprite.svg#icon-zoom-out"></use></svg>';
+    '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/images/feather-sprite.svg#icon-zoom-out"></use></svg>';
   zoomOutBtn.addEventListener("click", zoomOut);
 
   const zoomInBtn = document.createElement("button");
   zoomInBtn.className = "btn btn--secondary";
   zoomInBtn.setAttribute("aria-label", "Zoom in");
   zoomInBtn.innerHTML =
-    '<svg width="20" height="20" aria-hidden="true"><use href="/assets/images/feather-sprite.svg#icon-zoom-in"></use></svg>';
+    '<svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><use href="/assets/images/feather-sprite.svg#icon-zoom-in"></use></svg>';
   zoomInBtn.addEventListener("click", zoomIn);
 
   controls.appendChild(zoomOutBtn);
   controls.appendChild(zoomInBtn);
   viewport.appendChild(controls);
 
-  // Wire pan events once per viewport
   if (wiredViewport === viewport) return;
   wiredViewport = viewport;
+  // Mouse move and up stay on the window because a mouse drag can leave the viewport.
   viewport.addEventListener("mousedown", onMouseDown);
   window.addEventListener("mousemove", onMouseMove);
   window.addEventListener("mouseup", onMouseUp);
 
   viewport.addEventListener("touchstart", onTouchStart, { passive: false });
-  window.addEventListener("touchmove", onTouchMove, { passive: false });
-  window.addEventListener("touchend", onTouchEnd);
+  viewport.addEventListener("touchmove", onTouchMove, { passive: false });
+  viewport.addEventListener("touchend", onTouchEnd);
+  viewport.addEventListener("touchcancel", onTouchEnd);
 }
 
 /**
- * Programmatic transform setter — used by chip-jump navigation
- * (timeline-nav.js) and any future feature that needs to set pan/zoom
- * without going through the button or drag handlers.
+ * Programmatic transform setter, used by chip-jump navigation (timeline-nav.js)
+ * and stack zoom-to-fit (timeline-interactions.js).
  *
- * Clamps pan via clampPan() so the world stays at least partially
- * visible, assigns to the module-scope state, applies the transform,
- * and fires `timeline:transformed` on `.timeline-world` so other
- * modules can listen for viewport changes.
+ * Clamps pan via `clampPan` so part of the world stays in view, clamps scale to
+ * the limits, then applies the transform. Ignores non-finite input.
  *
- * @param {number}  newPanX
- * @param {number}  newPanY
- * @param {number}  newScale
- * @param {string}  [eraKey] — era key for the custom event detail
+ * @param {number} newPanX
+ * @param {number} newPanY
+ * @param {number} newScale
+ * @returns {void}
  */
-export function setTransform(newPanX, newPanY, newScale, eraKey) {
+export function setTransform(newPanX, newPanY, newScale) {
   if (isVerticalMode()) return;
 
-  // Guard: ensure all inputs are finite numbers
   if (
     !Number.isFinite(newPanX) ||
     !Number.isFinite(newPanY) ||
@@ -414,36 +419,11 @@ export function setTransform(newPanX, newPanY, newScale, eraKey) {
     return;
   }
 
-  // Derive total world width from the last period index (ERA_BOUNDARIES
-  // end + 1 periods at BASE_PX_PER_PERIOD each).
-  // This is a reasonable approximation — the exact value isn't critical
-  // because clampPan allows up to 90% overflow.
-  var worldWidth = 0;
-  // We import clampPan from timeline-transform but that module also
-  // knows the world bounds; pass a reasonable default.
-  worldWidth = 3800; // 38 periods * 100px, the known total
-
-  // Clamp pan to keep the world in view
-  var clamped = clampPan(newPanX, newPanY, newScale, worldWidth);
-
-  // Clamp scale to valid range
-  var clampedScale = Math.max(SCALE_MIN, Math.min(SCALE_MAX, newScale));
+  const clamped = clampPan(newPanX, newPanY, newScale, WORLD_WIDTH_PX);
 
   panX = clamped.panX;
   panY = clamped.panY;
-  scale = clampedScale;
+  scale = Math.max(SCALE_MIN, Math.min(SCALE_MAX, newScale));
 
   applyTransform();
-
-  // Fire custom event so other modules can react to programmatic transforms
-  if (worldEl) {
-    var eventDetail = { panX: panX, panY: panY, scale: scale };
-    if (eraKey) eventDetail.era = eraKey;
-    worldEl.dispatchEvent(
-      new CustomEvent("timeline:transformed", {
-        bubbles: false,
-        detail: eventDetail,
-      }),
-    );
-  }
 }

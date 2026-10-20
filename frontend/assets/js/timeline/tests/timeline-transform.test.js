@@ -1,124 +1,22 @@
 // Timeline transform tests — node:test + node:assert.
-// Pure math tests for the transform module: era bounds resolution,
-// pan computation for centring an era, and pan clamping.
+// Imports the real timeline-transform.js. The expected numbers are written out
+// by hand from the period layout (100 px per period, 38 periods), so a change to
+// the layout or the era spans fails here.
 
-const { test, describe } = require("node:test");
+const { test, describe, before } = require("node:test");
 const assert = require("node:assert/strict");
+const path = require("path");
+const { pathToFileURL } = require("url");
 
-// ── Simulated data (mirrors timeline-data.js / timeline-geometry.js) ──────────
+const MODULE = path.resolve(__dirname, "..", "timeline-transform.js");
 
-const TIMELINE_PERIODS = [
-  "PreIncarnation",
-  "OldTestament",
-  "EarlyLifeUnborn",
-  "EarlyLifeBirth",
-  "EarlyLifeInfancy",
-  "EarlyLifeChildhood",
-  "LifeTradie",
-  "LifeBaptism",
-  "LifeTemptation",
-  "GalileeCallingTwelve",
-  "GalileeSermonMount",
-  "GalileeMiraclesSea",
-  "GalileeTransfiguration",
-  "JudeanOutsideJudea",
-  "JudeanMissionSeventy",
-  "JudeanTeachingTemple",
-  "JudeanRaisingLazarus",
-  "JudeanFinalJourney",
-  "PassionPalmSunday",
-  "PassionMondayCleansing",
-  "PassionTuesdayTeaching",
-  "PassionWednesdaySilent",
-  "PassionMaundyThursday",
-  "PassionMaundyLastSupper",
-  "PassionMaundyGethsemane",
-  "PassionMaundyBetrayal",
-  "PassionFridaySanhedrin",
-  "PassionFridayCivilTrials",
-  "PassionFridayCrucifixionBegins",
-  "PassionFridayDarkness",
-  "PassionFridayDeath",
-  "PassionFridayBurial",
-  "PassionSaturdayWatch",
-  "PassionSundayResurrection",
-  "PostResurrectionAppearances",
-  "Ascension",
-  "OurResponse",
-  "ReturnOfJesus",
-];
+let getEraWorldBounds;
+let computePanForEra;
+let clampPan;
 
-const ERA_BOUNDARIES = {
-  PreIncarnation: { start: 0, end: 0, label: "Pre-Incarnation" },
-  OldTestament: { start: 1, end: 1, label: "Old Testament" },
-  EarlyLife: { start: 2, end: 5, label: "Early Life" },
-  Life: { start: 6, end: 8, label: "Life" },
-  GalileeMinistry: { start: 9, end: 12, label: "Galilee Ministry" },
-  JudeanMinistry: { start: 13, end: 17, label: "Judean Ministry" },
-  PassionWeek: { start: 18, end: 33, label: "Passion Week" },
-  "Post-Passion": {
-    start: 34,
-    end: TIMELINE_PERIODS.length - 1,
-    label: "Post-Passion",
-  },
-};
-
-const BASE_PX_PER_PERIOD = 100;
-
-/**
- * Mirrors timeline-geometry.js periodX().
- */
-function periodX(periodIndex) {
-  return periodIndex * BASE_PX_PER_PERIOD + BASE_PX_PER_PERIOD / 2;
-}
-
-// ── Simulated transform functions (mirrors timeline-transform.js) ─────────────
-
-function getEraWorldBounds(eraKey) {
-  if (eraKey === "all" || eraKey === "All") {
-    const lastIdx = TIMELINE_PERIODS.length - 1;
-    return {
-      minX: 0,
-      maxX: periodX(lastIdx) + BASE_PX_PER_PERIOD / 2,
-      minY: 0,
-      maxY: 0,
-    };
-  }
-
-  const bounds = ERA_BOUNDARIES[eraKey];
-  if (!bounds) {
-    return null;
-  }
-
-  const halfSlot = BASE_PX_PER_PERIOD / 2;
-  return {
-    minX: periodX(bounds.start) - halfSlot,
-    maxX: periodX(bounds.end) + halfSlot,
-    minY: 0,
-    maxY: 0,
-  };
-}
-
-function computePanForEra(eraKey, viewportWidth, scale) {
-  if (scale == null) scale = 1.0;
-  const bounds = getEraWorldBounds(eraKey);
-  if (!bounds) return null;
-  const eraCentreX = (bounds.minX + bounds.maxX) / 2;
-  return {
-    panX: viewportWidth / 2 - eraCentreX * scale,
-    panY: 0,
-  };
-}
-
-function clampPan(panX, panY, scale, worldWidth) {
-  const scaledWorld = worldWidth * scale;
-  const minPanX = -scaledWorld * 0.9;
-  const maxPanX = worldWidth * 0.1;
-  return {
-    panX: Math.max(minPanX, Math.min(maxPanX, panX)),
-    panY: panY,
-  };
-}
+before(async () => {
+  ({ getEraWorldBounds, computePanForEra, clampPan } = await import(pathToFileURL(MODULE).href));
+});
 
 // ── Tests ────────────────────────────────────────────────────────────────────
 

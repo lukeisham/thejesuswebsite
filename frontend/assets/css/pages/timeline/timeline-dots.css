@@ -5,7 +5,9 @@
 
 /* -------------------------------------------------------------------------
    Event Dots
-   Positioned absolutely on the spine by JS. Colour varies by era.
+   timeline-render.js (createDot) positions each dot with inline `left` and
+   `top`, and adds the era--, dot-cat-- and filtered-out classes used below.
+   Dots sit above the labels (z-index 1) and below the stacks (z-index 3).
    ------------------------------------------------------------------------- */
 
 .timeline-dot {
@@ -24,14 +26,14 @@
 }
 
 .timeline-dot:hover {
-    box-shadow: 0 0 0 4px rgba(92, 64, 51, 0.15);
+    box-shadow: var(--timeline-hover-shadow);
     transform: translate(-50%, -50%) scale(1.3);
 }
 
 /* WCAG 44×44px minimum touch target — transparent, doesn't affect the
    visible 10×10px dot. Same-period dots that share a cluster are spaced as
-   little as 12px apart at the closest zoom tier (cluster-placement.js
-   SPACING.compact) along whichever axis they stack on, so that axis is
+   little as 12px apart at the tightest density tier (cluster-placement.js
+   SPACING, compact) along whichever axis they stack on, so that axis is
    capped to 12px — a full 44px there would make adjacent dots' invisible
    hit areas overlap and steal taps meant for a neighbour. */
 .timeline-dot::before {
@@ -72,6 +74,8 @@
 
 /* -------------------------------------------------------------------------
    Era Dot Colours
+   Class names come from eraKebab() in timeline-render.js; the colours are the
+   --era-* tokens in variables.css.
    ------------------------------------------------------------------------- */
 
 .timeline-dot.era--pre-incarnation {
@@ -112,7 +116,8 @@
 
 /* -------------------------------------------------------------------------
    Cluster Glow
-   Toggled by JS when hovering a dot to highlight its period-siblings.
+   timeline-interactions.js (setClusterGlow) toggles this class on a hovered
+   dot's period-siblings.
    ------------------------------------------------------------------------- */
 
 .timeline-dot--cluster-glow {

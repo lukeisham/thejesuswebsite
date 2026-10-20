@@ -1,20 +1,33 @@
 /**
  * Admin timeline staged-changes store.
  *
- * Centralised local-staging buffer for timeline edits.  The holding pen,
- * timeline drag-move, and remove-from-timeline actions all push into this
- * store.  The toolbar "Save Changes" button flushes everything via the API.
+ * Local buffer for timeline edits that the toolbar "Save Changes" button
+ * (`#timeline-save-btn`, in the toolbar; the edit panel's own Save button saves
+ * one event's title and era through `Events.onSaveEvent`) flushes in one go.
+ * `admin/diagrams/timeline.html` wires that button to `save()`.
  *
- * Three independent collections so the UI can distinguish new placements,
- * period moves, and removals, but a single `pendingCount` / `hasChanges`
- * drives the save-button affordance.
+ * The only production caller that stages a change is timeline-node-drag.js,
+ * which calls `stageOffset` when a dot is dropped. `stagePlacement`,
+ * `stageMove` and `stageUnassign` have no caller outside
+ * admin/tests/admin-timeline-staged.test.js. timeline-events.js reads
+ * `getOffset` so a dot that was dropped but not yet saved keeps its place when
+ * the canvas re-renders.
+ *
+ * Each item is saved with `UpdateRecord.saveEvent` (admin/assets/js/update-record.js),
+ * which sends `PUT /evidence/:id`; `validateOffsets` in api/models/evidence.model.js
+ * clamps the offsets there (x to -0.5..0.5, y to -0.4..0.4). After a save with no
+ * failures the store calls `AdminTimelineEvents.loadEvents` to redraw the canvas.
+ *
+ * Four collections (placements, moves, unassigns, offsets) are saved separately;
+ * `pendingCount` / `hasChanges` sum them and drive the save button's label and
+ * enabled state.
  *
  * @module admin-timeline/timeline-staged-changes
  */
 window.AdminTimelineStaged = {};
 
 (function () {
-  var self = window.AdminTimelineStaged;
+  var Staged = window.AdminTimelineStaged;
 
   /* ── Internal state ─────────────────────────────────────────────────────── */
 
@@ -45,32 +58,46 @@ window.AdminTimelineStaged = {};
     if (_saving || typeof document === "undefined") return;
     var saveBtn = document.getElementById("timeline-save-btn");
     if (!saveBtn) return;
-    saveBtn.disabled = !self.hasChanges();
-    saveBtn.textContent = self.hasChanges()
-      ? "Save Changes (" + self.pendingCount() + ")"
+    saveBtn.disabled = !Staged.hasChanges();
+    saveBtn.textContent = Staged.hasChanges()
+      ? "Save Changes (" + Staged.pendingCount() + ")"
       : "Save Changes";
   }
 
   /* ── Public helpers ─────────────────────────────────────────────────────── */
 
-  /** Total staged items across all four collections. */
-  self.pendingCount = function () {
+  /**
+   * Total staged items across all four collections.
+   *
+   * @returns {number}
+   */
+  Staged.pendingCount = function () {
     return (
       _placements.length + _moves.length + _unassigns.length + _offsets.length
     );
   };
 
-  /** True when there is at least one change waiting to be saved. */
-  self.hasChanges = function () {
-    return self.pendingCount() > 0;
+  /**
+   * True when at least one change is waiting to be saved.
+   *
+   * @returns {boolean}
+   */
+  Staged.hasChanges = function () {
+    return Staged.pendingCount() > 0;
   };
 
   /* ── Stage helpers ──────────────────────────────────────────────────────── */
 
   /**
-   * Stage a new placement (evidence previously without a period now gets one).
+   * Stage a new placement (evidence without a period gets one).
+   * Not de-duplicated: staging the same id twice saves it twice.
+   *
+   * @param {number} id  evidence id
+   * @param {string} period  timeline_period value
+   * @param {string} era  timeline_era value
+   * @returns {void}
    */
-  self.stagePlacement = function (id, period, era) {
+  Staged.stagePlacement = function (id, period, era) {
     _placements.push({ id: id, timeline_period: period, timeline_era: era });
     refreshSaveButton();
   };
@@ -78,8 +105,12 @@ window.AdminTimelineStaged = {};
   /**
    * Stage a period move for an already-placed event.
    * Replaces any prior move for the same id (last move wins).
+   *
+   * @param {number} id  evidence id
+   * @param {string} period  timeline_period value
+   * @returns {void}
    */
-  self.stageMove = function (id, period) {
+  Staged.stageMove = function (id, period) {
     for (var i = 0; i < _moves.length; i++) {
       if (_moves[i].id === id) {
         _moves[i].timeline_period = period;
@@ -92,9 +123,13 @@ window.AdminTimelineStaged = {};
   };
 
   /**
-   * Stage an unassignment (event removed from timeline — period set to null).
+   * Stage an unassignment: saving sets the event's timeline_period to null.
+   * Not de-duplicated: staging the same id twice saves it twice.
+   *
+   * @param {number} id  evidence id
+   * @returns {void}
    */
-  self.stageUnassign = function (id) {
+  Staged.stageUnassign = function (id) {
     _unassigns.push({ id: id });
     refreshSaveButton();
   };
@@ -102,9 +137,16 @@ window.AdminTimelineStaged = {};
   /**
    * Stage a placement offset adjustment for an already-placed event.
    * Replaces any prior offset for the same id (last offset wins).
-   * Both offsets are optional; omit/null to clear.
+   * Values are saved as given. A null is a staged value, not a removal of the
+   * entry, and is stored as null by the API. Called with numbers only, by
+   * timeline-node-drag.js.
+   *
+   * @param {number} id  evidence id
+   * @param {number} offsetX  fraction of the period slot width
+   * @param {number} offsetY  fraction of the canvas height
+   * @returns {void}
    */
-  self.stageOffset = function (id, offsetX, offsetY) {
+  Staged.stageOffset = function (id, offsetX, offsetY) {
     for (var i = 0; i < _offsets.length; i++) {
       if (_offsets[i].id === id) {
         _offsets[i].timeline_offset_x = offsetX;
@@ -124,11 +166,12 @@ window.AdminTimelineStaged = {};
   /**
    * Get the currently staged offset for an event (if any).
    * Returns both offsetX and offsetY, or null if no staged offset exists.
+   * Read by timeline-events.js on every render.
    *
    * @param {number} id
    * @returns {{timeline_offset_x: number, timeline_offset_y: number}|null}
    */
-  self.getOffset = function (id) {
+  Staged.getOffset = function (id) {
     for (var i = 0; i < _offsets.length; i++) {
       if (_offsets[i].id === id) {
         return {
@@ -143,17 +186,43 @@ window.AdminTimelineStaged = {};
   /* ── Save ───────────────────────────────────────────────────────────────── */
 
   /**
+   * Send every item of one collection with `UpdateRecord.saveEvent`, one request
+   * at a time, and record each failure.
+   *
+   * @param {Array<{id: number}>} items  the staged collection
+   * @param {string} collectionName  reported in `failed` and in the error toast
+   * @param {function(object): object} buildPayload  maps a staged item to the saveEvent body
+   * @param {Array<{collection: string, id: number, error: *}>} failed  failures are appended here
+   * @returns {Promise<Array<{id: number}>>}  the items that did not save
+   */
+  async function saveCollection(items, collectionName, buildPayload, failed) {
+    var succeededIds = [];
+    for (var i = 0; i < items.length; i++) {
+      var item = items[i];
+      try {
+        await UpdateRecord.saveEvent(item.id, buildPayload(item));
+        succeededIds.push(item.id);
+      } catch (err) {
+        failed.push({ collection: collectionName, id: item.id, error: err });
+      }
+    }
+    return items.filter(function (item) {
+      return succeededIds.indexOf(item.id) === -1;
+    });
+  }
+
+  /**
    * Persist all staged changes via the API.
    *
-   * Each item is sent individually with UpdateRecord.saveEvent.  Successfully
-   * persisted items are removed from their collection; failed items remain
-   * so the user can retry.
+   * Successfully persisted items are removed from their collection; failed items
+   * remain so the user can retry. A call while a save is running, or with
+   * nothing staged, does nothing and reports no failures.
    *
-   * @returns {Promise<{failed: Array}>}  list of items that could not be saved
+   * @returns {Promise<{failed: Array<{collection: string, id: number, error: *}>}>}  items that could not be saved
    */
-  self.save = async function () {
+  Staged.save = async function () {
     if (_saving) return { failed: [] };
-    if (self.pendingCount() === 0) return { failed: [] };
+    if (Staged.pendingCount() === 0) return { failed: [] };
 
     var saveBtn = document.getElementById("timeline-save-btn");
     _saving = true;
@@ -164,89 +233,63 @@ window.AdminTimelineStaged = {};
 
     var failed = [];
 
-    // ── Placements ──────────────────────────────────────────────────────
-    var succeededPlacements = [];
-    for (var i = 0; i < _placements.length; i++) {
-      var p = _placements[i];
-      try {
-        await UpdateRecord.saveEvent(p.id, {
+    _placements = await saveCollection(
+      _placements,
+      "placements",
+      function (p) {
+        return {
           timeline_period: p.timeline_period,
           timeline_era: p.timeline_era,
-        });
-        succeededPlacements.push(p.id);
-      } catch (err) {
-        failed.push({ collection: "placements", id: p.id, error: err });
-      }
-    }
-    _placements = _placements.filter(function (p) {
-      return succeededPlacements.indexOf(p.id) === -1;
-    });
-    self._placements = _placements;
+        };
+      },
+      failed,
+    );
+    Staged._placements = _placements;
 
-    // ── Moves ───────────────────────────────────────────────────────────
-    var succeededMoves = [];
-    for (var j = 0; j < _moves.length; j++) {
-      var m = _moves[j];
-      try {
-        await UpdateRecord.saveEvent(m.id, {
-          timeline_period: m.timeline_period,
-        });
-        succeededMoves.push(m.id);
-      } catch (err) {
-        failed.push({ collection: "moves", id: m.id, error: err });
-      }
-    }
-    _moves = _moves.filter(function (m) {
-      return succeededMoves.indexOf(m.id) === -1;
-    });
-    self._moves = _moves;
+    _moves = await saveCollection(
+      _moves,
+      "moves",
+      function (m) {
+        return { timeline_period: m.timeline_period };
+      },
+      failed,
+    );
+    Staged._moves = _moves;
 
-    // ── Unassigns ───────────────────────────────────────────────────────
-    var succeededUnassigns = [];
-    for (var k = 0; k < _unassigns.length; k++) {
-      var u = _unassigns[k];
-      try {
-        await UpdateRecord.saveEvent(u.id, { timeline_period: null });
-        succeededUnassigns.push(u.id);
-      } catch (err) {
-        failed.push({ collection: "unassigns", id: u.id, error: err });
-      }
-    }
-    _unassigns = _unassigns.filter(function (u) {
-      return succeededUnassigns.indexOf(u.id) === -1;
-    });
-    self._unassigns = _unassigns;
+    _unassigns = await saveCollection(
+      _unassigns,
+      "unassigns",
+      function () {
+        return { timeline_period: null };
+      },
+      failed,
+    );
+    Staged._unassigns = _unassigns;
 
-    // ── Offsets ──────────────────────────────────────────────────────────
-    var succeededOffsets = [];
-    for (var l = 0; l < _offsets.length; l++) {
-      var o = _offsets[l];
-      try {
-        await UpdateRecord.saveEvent(o.id, {
+    _offsets = await saveCollection(
+      _offsets,
+      "offsets",
+      function (o) {
+        return {
           timeline_offset_x: o.timeline_offset_x,
           timeline_offset_y: o.timeline_offset_y,
-        });
-        succeededOffsets.push(o.id);
-      } catch (err) {
-        failed.push({ collection: "offsets", id: o.id, error: err });
-      }
-    }
-    _offsets = _offsets.filter(function (o) {
-      return succeededOffsets.indexOf(o.id) === -1;
-    });
-    self._offsets = _offsets;
+        };
+      },
+      failed,
+    );
+    Staged._offsets = _offsets;
 
-    // ── Post-save ───────────────────────────────────────────────────────
     _saving = false;
 
     if (saveBtn) {
-      saveBtn.disabled = !self.hasChanges();
-      saveBtn.textContent = self.hasChanges()
-        ? "Save Changes (" + self.pendingCount() + " remaining)"
+      saveBtn.disabled = !Staged.hasChanges();
+      saveBtn.textContent = Staged.hasChanges()
+        ? "Save Changes (" + Staged.pendingCount() + " remaining)"
         : "Save Changes";
     }
 
-    // Refresh the timeline after successful save
+    // Skipped on partial failure: the canvas keeps showing the unsaved positions
+    // (through getOffset) of the items that are still staged.
     if (failed.length === 0) {
       try {
         if (
@@ -255,8 +298,11 @@ window.AdminTimelineStaged = {};
         ) {
           await AdminTimelineEvents.loadEvents();
         }
-      } catch (_) {
-        /* best-effort */
+      } catch (err) {
+        console.error(
+          "Timeline reload after a successful save failed; the changes are saved:",
+          err,
+        );
       }
     }
 
@@ -278,9 +324,14 @@ window.AdminTimelineStaged = {};
     return { failed: failed };
   };
 
-  /* ── Clear (for testing / reset) ────────────────────────────────────────── */
+  /* ── Clear ──────────────────────────────────────────────────────────────── */
 
-  self.clear = function () {
+  /**
+   * Drop every staged item without saving. Used by the tests; no page code calls it.
+   *
+   * @returns {void}
+   */
+  Staged.clear = function () {
     _placements.length = 0;
     _moves.length = 0;
     _unassigns.length = 0;
@@ -288,13 +339,13 @@ window.AdminTimelineStaged = {};
     refreshSaveButton();
   };
 
-  /* ── Expose internals for testing ───────────────────────────────────────── */
+  /* ── Internals read by the tests ────────────────────────────────────────── */
 
-  self._placements = _placements;
-  self._moves = _moves;
-  self._unassigns = _unassigns;
-  self._offsets = _offsets;
+  Staged._placements = _placements;
+  Staged._moves = _moves;
+  Staged._unassigns = _unassigns;
+  Staged._offsets = _offsets;
 
-  // The button starts disabled: nothing is staged yet.
+  // The toolbar markup ships an enabled button; this disables it until something is staged.
   refreshSaveButton();
 })();

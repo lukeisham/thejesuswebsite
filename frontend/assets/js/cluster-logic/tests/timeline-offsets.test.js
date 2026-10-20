@@ -40,6 +40,14 @@ describe("timeline offsets: pixel conversion", () => {
     assert.equal(offsets.crossAxisToTopPercent(offsets.offsetYToPixels(0.1)), 64);
     assert.equal(offsets.crossAxisToTopPercent(-20), 40);
   });
+
+  test("topPercentToCrossAxis inverts crossAxisToTopPercent", () => {
+    assert.equal(offsets.topPercentToCrossAxis(offsets.crossAxisToTopPercent(40)), 40);
+  });
+
+  test("crossAxisToVerticalLeftPx halves the cross-axis offset", () => {
+    assert.equal(offsets.crossAxisToVerticalLeftPx(40), 20);
+  });
 });
 
 describe("timeline offsets: pointer distance", () => {

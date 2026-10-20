@@ -112,10 +112,9 @@ export function computeZoomStacks(nodes, scale, spineY) {
     });
 
     members.forEach((nodeIndex, rank) => {
-      const stackX = meanX;
       const stackY = spineY + (rank - (members.length - 1) / 2) * spacing;
       positions[nodeIndex] = {
-        x: stackX + (nodes[nodeIndex].x - stackX) * blend,
+        x: meanX + (nodes[nodeIndex].x - meanX) * blend,
         y: stackY + (nodes[nodeIndex].y - stackY) * blend,
         stackIndex,
       };
@@ -135,8 +134,8 @@ export function computeZoomStacks(nodes, scale, spineY) {
  * @param {number} minX - smallest exact x of the stack's nodes
  * @param {number} maxX - largest exact x
  * @param {number} viewportWidth - width of the timeline view in screen pixels
- * @param {number} minScale - smallest scale the zoom allows
- * @param {number} maxScale - largest scale the zoom allows
+ * @param {number} minScale - smallest scale the zoom allows (`SCALE_MIN` in timeline-zoom.js)
+ * @param {number} maxScale - largest scale the zoom allows (`SCALE_MAX` in timeline-zoom.js)
  * @returns {{scale:number, panX:number}}
  */
 export function fitStackView(minX, maxX, viewportWidth, minScale, maxScale) {

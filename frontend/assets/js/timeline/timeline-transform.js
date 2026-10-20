@@ -18,7 +18,7 @@
  * See also:
  *   - timeline-data.js     (ERA_BOUNDARIES, period indices)
  *   - timeline-geometry.js (periodX, periodY, BASE_PX_PER_PERIOD)
- *   - timeline-zoom.js     (setTransform consumer)
+ *   - timeline-zoom.js     (`setTransform` calls `clampPan`)
  *
  * @module timeline/timeline-transform
  */
@@ -37,7 +37,7 @@ import { BASE_PX_PER_PERIOD, periodX } from "./timeline-geometry.js";
  *
  * For the "all" / "All" era sentinel, returns the full-timeline bounds.
  *
- * @param {string} eraKey — one of the eight canonical era keys, or "all"/"All"
+ * @param {string} eraKey — a key of ERA_BOUNDARIES, or "all"/"All"
  * @returns {{ minX: number, maxX: number, minY: number, maxY: number }|null}
  *   null if the era key is unrecognised.
  */
@@ -72,12 +72,13 @@ export function getEraWorldBounds(eraKey) {
 }
 
 /**
- * Compute the pan offset needed to centre an era in the viewport at the given
- * zoom scale.
+ * Compute the pan offset needed to centre an era horizontally in the viewport
+ * at the given zoom scale. The vertical pan is always 0: the era is not
+ * centred vertically.
  *
  * The formula accounts for transform-origin: 0 0 on .timeline-world:
  *   panX = viewportWidth/2 - eraCentreX * scale
- *   panY = viewportHeight/2               (spine is at world y=0)
+ *   panY = 0
  *
  * @param {string}  eraKey         — canonical era key, or "all"/"All"
  * @param {number}  viewportWidth  — width of the viewport in CSS pixels
@@ -93,11 +94,6 @@ export function computePanForEra(eraKey, viewportWidth, scale) {
 
   const eraCentreX = (bounds.minX + bounds.maxX) / 2;
 
-  // Default viewport height to a reasonable value; Y pan only matters for
-  // vertical centring of the spine, and the spine is always at world y=0,
-  // so panY = viewportHeight/2.  We use 0 as a default so the caller can
-  // supply their own height if needed — a Y-pan of 0 simply means the
-  // spine's world origin stays at viewport y=0.
   const panX = viewportWidth / 2 - eraCentreX * scale;
   const panY = 0;
 

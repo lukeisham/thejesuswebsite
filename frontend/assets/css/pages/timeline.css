@@ -1,6 +1,10 @@
 /* ==========================================================================
    Timeline
    Layout container, spine, era markers, and filter bar.
+   timeline-render.js builds .timeline-container's contents; the files under
+   pages/timeline/ and components/timeline-era-headings.css style the pieces
+   it adds. The files under pages/timeline/ load after this one (see
+   evidence/timeline/*.html) and override it at equal specificity.
    ========================================================================== */
 
 /* -------------------------------------------------------------------------
@@ -44,7 +48,9 @@
     position: relative;
     /* .timeline-world is absolutely positioned, so without a reserved
        min-height overflow:hidden clips content and .timeline-controls
-       overlaps it. Mirrors .arbor-canvas. */
+       overlaps it. CONTAINER_MIN_HEIGHT in timeline-render.js must equal this
+       value, or its clipping warning checks the wrong height. Mirrors
+       .arbor-canvas. */
     min-height: 600px;
     cursor: grab;
     padding: var(--space-xl) 0 var(--space-3xl);
@@ -70,6 +76,8 @@
 
 /* -------------------------------------------------------------------------
    Timeline World — Transform Wrapper (for Arbor-style zoom/pan)
+   timeline-zoom.js writes the inline transform and --timeline-zoom-scale.
+   timeline-responsive.css turns the transform off in vertical mode.
    ------------------------------------------------------------------------- */
 
 .timeline-world {
@@ -89,6 +97,8 @@
 
 /* -------------------------------------------------------------------------
    Zoom Controls (matching .arbor-controls)
+   Added by timeline-render.js in horizontal mode only. z-index 10 keeps them
+   above the era heading band (z-index 4) and the dots.
    ------------------------------------------------------------------------- */
 
 .timeline-controls {
@@ -107,6 +117,8 @@
 
 /* -------------------------------------------------------------------------
    Spine Line
+   Height is counter-scaled under zoom in timeline-line-stability.css, which
+   loads after this file and overrides `height`.
    ------------------------------------------------------------------------- */
 
 .timeline-spine {
@@ -118,13 +130,9 @@
     transform: translateY(-50%);
 }
 
-.timeline-inner > .timeline-spine {
-    /* Only the inner wrapper spine gets positioned; the container's child
-     is replaced by the inner wrapper at render time. */
-}
-
 /* -------------------------------------------------------------------------
    Era Markers — Vertical Divider Lines
+   Width is counter-scaled under zoom in timeline-line-stability.css.
    ------------------------------------------------------------------------- */
 
 .timeline-era-marker {
@@ -135,5 +143,3 @@
     background: var(--border);
     opacity: 0.6;
 }
-
-/* Era labels superseded by .timeline-era-heading (components/timeline-era-headings.css) */

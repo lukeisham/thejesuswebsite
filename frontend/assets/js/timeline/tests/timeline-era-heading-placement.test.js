@@ -153,7 +153,7 @@ describe("computeEraBandLayout", () => {
 describe("computeEraHeadingPositions (mobile layout)", () => {
   test("headings start at a fixed left offset, at the start of their era", async () => {
     const { computeEraHeadingPositions } = await load();
-    const result = computeEraHeadingPositions(ERA_BOUNDARIES, [], 1, 3800);
+    const result = computeEraHeadingPositions(ERA_BOUNDARIES, [], 1);
     assert.equal(result.length, 8);
     const early = result.find((h) => h.era === "EarlyLife");
     assert.equal(early.x, 8);
@@ -164,14 +164,14 @@ describe("computeEraHeadingPositions (mobile layout)", () => {
   test("an event box over a heading moves the heading along x", async () => {
     const { computeEraHeadingPositions } = await load();
     const blocker = [{ era: "EarlyLife", x: 8, y: 208, width: 150, height: 30 }];
-    const result = computeEraHeadingPositions(ERA_BOUNDARIES, blocker, 1, 3800);
+    const result = computeEraHeadingPositions(ERA_BOUNDARIES, blocker, 1);
     const early = result.find((h) => h.era === "EarlyLife");
     assert.ok(early.tier > 0 || early.x !== 8, "the heading did not move");
   });
 
   test("every heading stays inside its era's vertical span", async () => {
     const { computeEraHeadingPositions } = await load();
-    const result = computeEraHeadingPositions(ERA_BOUNDARIES, [], 1, 3800);
+    const result = computeEraHeadingPositions(ERA_BOUNDARIES, [], 1);
     for (const h of result) {
       const bounds = ERA_BOUNDARIES[h.era];
       assert.ok(h.y >= bounds.start * 100, `${h.era} starts above its era`);
@@ -182,8 +182,8 @@ describe("computeEraHeadingPositions (mobile layout)", () => {
   test("invalid input returns an empty list and warns", async () => {
     const { computeEraHeadingPositions } = await load();
     const warnings = captureWarnings(() => {
-      assert.deepEqual(computeEraHeadingPositions(null, [], 1, 3800), []);
-      assert.deepEqual(computeEraHeadingPositions(ERA_BOUNDARIES, [], 0, 3800), []);
+      assert.deepEqual(computeEraHeadingPositions(null, [], 1), []);
+      assert.deepEqual(computeEraHeadingPositions(ERA_BOUNDARIES, [], 0), []);
     });
     assert.equal(warnings.length, 2);
   });

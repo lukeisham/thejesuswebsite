@@ -11,10 +11,6 @@
         />
         <link
             rel="stylesheet"
-            href="../assets/css/admin-diagrams/timeline-canvas.css"
-        />
-        <link
-            rel="stylesheet"
             href="../assets/css/admin-diagrams/timeline-dots.css"
         />
         <link
@@ -29,6 +25,10 @@
             rel="stylesheet"
             href="../assets/css/admin-diagrams/timeline-node-drag.css"
         />
+        <!-- Script order matters: classic deferred scripts run in this order, and
+             the module bridge (timeline-bridge.js) must run before the readers
+             of window.AdminTimeline* globals (timeline-axis.js onward). See
+             "Cross-module patterns" in setup/ARCHITECTURE/Website_guide.md. -->
         <script defer src="../assets/js/admin.js"></script>
         <script defer src="../assets/js/admin-http.js"></script>
         <script defer src="../assets/js/auth.js"></script>
@@ -85,13 +85,11 @@
         ></script>
     </head>
     <body>
-        <!-- ── Admin Top Bar ──────────────────────────────────────────────────────── -->
         <header class="admin-timeline-topbar">
             <h1>Timeline Editor</h1>
             <a href="/admin/index.html" class="admin-timeline-topbar__back-link">← Dashboard</a>
         </header>
 
-        <!-- ── Toolbar ────────────────────────────────────────────────────────────── -->
         <nav class="admin-timeline-toolbar" aria-label="Timeline editor tools">
             <div class="admin-timeline-toolbar__left">
                 <button
@@ -104,20 +102,18 @@
             </div>
         </nav>
 
-        <!-- ── Era Filter ─────────────────────────────────────────────────────────── -->
         <div
             id="timeline-era-filter"
             class="admin-timeline-era-filter"
+            role="group"
             aria-label="Filter by era"
         ></div>
 
-        <!-- ── Timeline Editor Canvas ─────────────────────────────────────────────── -->
         <main>
             <div id="timeline-canvas" class="admin-timeline-canvas">
                 <div class="admin-timeline-world" id="admin-timeline-world">
                     <div id="timeline-axis"></div>
                 </div>
-                <!-- Zoom controls: zoom in and out only (matching arbor, no reset) -->
                 <div
                     class="admin-timeline-controls"
                     id="admin-timeline-controls"
@@ -144,8 +140,6 @@
             </div>
         </main>
 
-
-        <!-- ── Event Edit Panel ────────────────────────────────────────────────────── -->
         <aside
             id="timeline-event-panel"
             class="admin-timeline-panel"
@@ -239,17 +233,14 @@
             </form>
         </aside>
 
-        <!-- ── Backdrop ────────────────────────────────────────────────────────────── -->
         <div
             id="timeline-panel-backdrop"
             class="admin-timeline-panel-backdrop"
             hidden
         ></div>
 
-        <!-- ── Bootstrap ───────────────────────────────────────────────────────────── -->
         <script>
             document.addEventListener("DOMContentLoaded", function () {
-                // Once all deferred scripts have loaded, init each module.
                 var axisContainer = document.getElementById("timeline-axis");
                 AdminTimelineAxis.init(axisContainer);
 

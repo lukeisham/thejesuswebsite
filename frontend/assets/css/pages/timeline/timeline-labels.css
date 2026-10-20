@@ -1,10 +1,14 @@
 /* ==========================================================================
    Timeline Labels
    Event labels, leader lines, clustering modes, and label inner content.
+   timeline-render.js (createLabel) builds each label and its title and meta
+   spans. Mobile (vertical) label placement is in timeline-responsive.css.
    ========================================================================== */
 
 /* -------------------------------------------------------------------------
    Event Labels
+   z-index 1 keeps labels under the dots (z-index 2); pointer-events: none
+   lets a click through to the dot beneath.
    ------------------------------------------------------------------------- */
 
 .timeline-label {
@@ -18,26 +22,15 @@
     pointer-events: none;
 }
 
-.timeline-label.above {
-    top: auto;
-    bottom: auto;
-    /* top set by JS inline with stagger offset */
-}
-
-.timeline-label.below {
-    top: auto;
-    bottom: auto;
-    /* top set by JS inline with stagger offset */
-}
-
 .timeline-label.filtered-out {
     opacity: 0.15;
 }
 
 /* Horizontal layout: layoutHorizontalLabels (timeline-render.js) sets `left`
    and `top` in px for the label's top-left corner, so the label is not centred
-   on its dot. A label on the left of its dot is right-aligned, so the text ends
-   near the dot. The vertical (mobile) layout keeps the centred rules above. */
+   on its dot, and adds .timeline-label--left when the label is placed left of
+   its dot. A left label is right-aligned, so the text ends near the dot. The
+   vertical (mobile) layout keeps the centred rules above. */
 .timeline-inner:not(.timeline-inner--vertical) .timeline-label {
     transform: none;
     text-align: left;
@@ -47,8 +40,14 @@
     text-align: right;
 }
 
-/* Leader lines: one line from the start of a moved label's name to its dot. The
-   SVG has the size of the dot field; the stroke keeps one pixel at every zoom. */
+/* -------------------------------------------------------------------------
+   Leader Lines
+   One line from the start of a moved label's name to its dot.
+   layoutHorizontalLabels (timeline-render.js) builds the .timeline-leaders SVG
+   at the size of the dot field and one .timeline-leader line per moved label.
+   The stroke keeps one pixel at every zoom.
+   ------------------------------------------------------------------------- */
+
 .timeline-leaders {
     position: absolute;
     top: 0;
@@ -69,7 +68,12 @@
     opacity: 0.15;
 }
 
-/* Clustering label modes */
+/* -------------------------------------------------------------------------
+   Clustering Label Modes
+   timeline-render.js adds label--truncated or label--hidden from the label
+   mode that cluster-logic assigns to each event.
+   ------------------------------------------------------------------------- */
+
 .timeline-label.label--truncated .timeline-label-title {
     text-overflow: ellipsis;
     overflow: hidden;
@@ -79,6 +83,10 @@
 .timeline-label.label--hidden {
     display: none;
 }
+
+/* -------------------------------------------------------------------------
+   Label Content
+   ------------------------------------------------------------------------- */
 
 .timeline-label-title {
     display: -webkit-box;

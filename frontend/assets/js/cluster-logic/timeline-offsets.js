@@ -8,9 +8,10 @@
  *   one period slot (`BASE_PX_PER_PERIOD` pixels), from the slot centre.
  * - `timeline_offset_y` moves the node across the axis, as a fraction of the
  *   canvas height (`TIMELINE_CANVAS_HEIGHT_PX` pixels), from the spine. The
- *   renderers place the dot at `top: 50% + offset_y x 140%` of the inner box
- *   (the pixel value divided by 2, read as a percentage), so the unit is not a
- *   true share of the height; it is the mapping that stored values already use.
+ *   renderers place the dot at `top: 50% + (offset_y x TIMELINE_CANVAS_HEIGHT_PX / 2)%`
+ *   of the inner box (the pixel value divided by 2, read as a percentage), so
+ *   the unit is not a true share of the height; it is the mapping that stored
+ *   values already use.
  *
  * The public renderer (frontend/assets/js/timeline/timeline-render.js) and the
  * admin editor (admin/assets/js/admin-timeline/timeline-events.js and
@@ -18,6 +19,10 @@
  * must convert with these functions, or a node dropped at one spot in the
  * editor shows at another spot on the public page. Changing the mapping moves
  * every stored node.
+ *
+ * `crossAxisToVerticalLeftPx` is the exception to the admin bridge: only the
+ * public vertical (mobile) layout calls it, and the editor has no vertical
+ * layout, so timeline-bridge.js does not publish it.
  *
  * `api/models/evidence.model.js` clamps the stored values to the same limits
  * (`validateOffsets`); api/tests/guide-timeline.test.js fails when the
@@ -106,6 +111,32 @@ export function boxPixelsToCrossAxisPixels(boxPixels) {
  */
 export function crossAxisToTopPercent(crossAxisPixels) {
   return 50 + crossAxisPixels / 2;
+}
+
+/**
+ * Cross-axis pixels for a dot shown at `topPercent`: the inverse of
+ * `crossAxisToTopPercent`. `timeline-node-drag.js` reads a dot's current `top`
+ * with this, so a drag starts from the spot the dot is drawn at.
+ *
+ * @param {number} topPercent - the dot's CSS `top`, as a percentage of the inner box
+ * @returns {number} cross-axis pixels, the unit of `offsetYToPixels`
+ */
+export function topPercentToCrossAxis(topPercent) {
+  return (topPercent - 50) * 2;
+}
+
+/**
+ * Pixels right of the spine for a dot on the vertical (mobile) layout. The
+ * vertical layout keeps the same axes as the horizontal one, so the stored
+ * cross-axis offset moves the dot sideways, at half scale to fit a phone. The
+ * half is the same `/ 2` that `crossAxisToTopPercent` applies. Called by
+ * `buildVerticalLayout` in timeline/timeline-render.js.
+ *
+ * @param {number} crossAxisPixels - result of `offsetYToPixels`, or a cluster offset
+ * @returns {number} pixels, for `left: calc(50% + ${value}px)`
+ */
+export function crossAxisToVerticalLeftPx(crossAxisPixels) {
+  return crossAxisPixels / 2;
 }
 
 /**

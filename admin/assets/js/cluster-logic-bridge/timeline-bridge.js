@@ -20,7 +20,7 @@ import { DENSITY_SPREAD, getClusterDensity } from "/assets/js/cluster-logic/clus
 import { computeDotPositions } from "/assets/js/cluster-logic/cluster-placement.js";
 import { computeLabelModes } from "/assets/js/cluster-logic/cluster-labels.js";
 import { DOT_CLEARANCE_PX, layoutLabelsBesideNodes, computeLeaderLine } from "/assets/js/cluster-logic/cluster-label-layout.js";
-import { offsetXToPixels, pixelsToOffsetX, offsetYToPixels, pixelsToOffsetY, boxPixelsToCrossAxisPixels, crossAxisToTopPercent, clampDragOffsetX, clampOffsetY } from "/assets/js/cluster-logic/timeline-offsets.js";
+import { offsetXToPixels, pixelsToOffsetX, offsetYToPixels, pixelsToOffsetY, boxPixelsToCrossAxisPixels, crossAxisToTopPercent, topPercentToCrossAxis, clampDragOffsetX, clampOffsetY } from "/assets/js/cluster-logic/timeline-offsets.js";
 import { computeEraBandLayout } from "/assets/js/timeline/timeline-era-heading-placement.js";
 
 window.AdminTimelineClusterDensity = {
@@ -45,6 +45,7 @@ window.AdminTimelineOffsets = {
   pixelsToOffsetY,
   boxPixelsToCrossAxisPixels,
   crossAxisToTopPercent,
+  topPercentToCrossAxis,
   clampDragOffsetX,
   clampOffsetY,
 };

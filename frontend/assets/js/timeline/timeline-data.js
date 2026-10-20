@@ -4,6 +4,11 @@
  * Fetches timeline events from the API, defines the canonical period ordering
  * and era boundaries, and groups events by period.
  *
+ * Used by timeline-interactions.js (fetch, group) and timeline-render.js
+ * (period order, era boundaries). The admin editor cannot import this module;
+ * admin/assets/js/admin-timeline/timeline-geometry.js keeps its own copy of the
+ * period and era lists, so a change to either list is made in both.
+ *
  * @module timeline/timeline-data
  */
 
@@ -12,6 +17,7 @@ import { getTimeline } from "../api.js";
 /**
  * Canonical chronological order of timeline_period values as defined in schema.sql.
  * Position in this array determines horizontal placement on the timeline spine.
+ * A period missing here is not drawn: `groupEventsByPeriod` drops its events.
  *
  * @type {string[]}
  */
@@ -74,7 +80,9 @@ export const ERA_LABELS = {
 
 /**
  * Era boundaries: each era's first and last period index (inclusive) in TIMELINE_PERIODS.
- * Derived from TIMELINE_PERIODS order and the era each period belongs to.
+ * The numbers are literals, so they must be changed with TIMELINE_PERIODS. The
+ * admin copy (`ERA_STARTS` in admin-timeline/timeline-geometry.js) must agree,
+ * or the editor draws era bars where the public page does not.
  *
  * @type {Object<string, { start: number, end: number, label: string }>}
  */
@@ -100,22 +108,6 @@ export const ERA_BOUNDARIES = {
 const PERIOD_INDEX = Object.fromEntries(TIMELINE_PERIODS.map((p, i) => [p, i]));
 
 /**
- * Determine which era a period belongs to.
- *
- * @param {string} period
- * @returns {string|null} The era key or null.
- */
-export function getEraForPeriod(period) {
-  const idx = PERIOD_INDEX[period];
-  if (idx === undefined) return null;
-
-  for (const [era, bounds] of Object.entries(ERA_BOUNDARIES)) {
-    if (idx >= bounds.start && idx <= bounds.end) return era;
-  }
-  return null;
-}
-
-/**
  * Fetch all timeline events from the API.
  *
  * @returns {Promise<{data: Array|null, error: string|null}>}
@@ -131,12 +123,12 @@ export async function fetchTimelineEvents() {
  * @returns {boolean}
  */
 function isValidTimelineEvent(event) {
-  return (
+  return Boolean(
     event &&
-    typeof event.id === "number" &&
-    typeof event.title === "string" &&
-    typeof event.timeline_period === "string" &&
-    PERIOD_INDEX.hasOwnProperty(event.timeline_period)
+      typeof event.id === "number" &&
+      typeof event.title === "string" &&
+      typeof event.timeline_period === "string" &&
+      PERIOD_INDEX.hasOwnProperty(event.timeline_period),
   );
 }
 
@@ -150,10 +142,19 @@ function isValidTimelineEvent(event) {
 export function groupEventsByPeriod(events) {
   const groups = new Map();
 
-  if (!Array.isArray(events)) return groups;
+  if (!Array.isArray(events)) {
+    console.warn("timeline-data: expected an array of events", { received: typeof events });
+    return groups;
+  }
 
   for (const event of events) {
-    if (!isValidTimelineEvent(event)) continue;
+    if (!isValidTimelineEvent(event)) {
+      console.warn("timeline-data: dropping an event with missing fields or an unknown period", {
+        id: event?.id,
+        period: event?.timeline_period,
+      });
+      continue;
+    }
 
     const period = event.timeline_period;
     if (!groups.has(period)) {
@@ -162,8 +163,8 @@ export function groupEventsByPeriod(events) {
     groups.get(period).push(event);
   }
 
-  // Ensure period ordering within the map (insertion order is preserved in JS Maps,
-  // but we want the canonical order, so we rebuild)
+  // The API's row order is not the period order, so rebuild the Map in
+  // TIMELINE_PERIODS order; callers iterate it in period order.
   const ordered = new Map();
   for (const period of TIMELINE_PERIODS) {
     if (groups.has(period)) {
@@ -182,20 +183,4 @@ export function groupEventsByPeriod(events) {
  */
 export function getPeriodIndex(period) {
   return PERIOD_INDEX.hasOwnProperty(period) ? PERIOD_INDEX[period] : -1;
-}
-
-/**
- * Filter events to only those within a given era's period boundaries.
- *
- * @param {Array} events
- * @param {string} era - One of the eight era keys.
- * @returns {Array}
- */
-export function filterEventsByEra(events, era) {
-  if (!Array.isArray(events) || !era) return events;
-  const bounds = ERA_BOUNDARIES[era];
-  if (!bounds) return events;
-  const eraPeriods = TIMELINE_PERIODS.slice(bounds.start, bounds.end + 1);
-  const eraPeriodSet = new Set(eraPeriods);
-  return events.filter((e) => eraPeriodSet.has(e.timeline_period));
 }

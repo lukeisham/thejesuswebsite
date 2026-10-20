@@ -1,12 +1,14 @@
 /* ==========================================================================
    Timeline Era Filter (Admin)
-   Horizontal chip row for filtering timeline events by era.
-   Matches the frontend filter look using admin tokens.
+   The row of era chips above the canvas that fades the dots of other eras.
+   It looks like the public filter chips but uses admin tokens. The chips are
+   built by admin-timeline/timeline-era-filter.js into #timeline-era-filter
+   (admin/diagrams/timeline.html). That script adds the era--* class to each
+   chip and toggles --active, so renaming either leaves the chip tints and the
+   active state unstyled.
    ========================================================================== */
 
-/* -------------------------------------------------------------------------
-   Filter row
-   ------------------------------------------------------------------------- */
+/* ── Filter row ────────────────────────────────────────────────────────── */
 
 .admin-timeline-era-filter {
     display: flex;
@@ -17,9 +19,7 @@
     border-bottom: 1px solid var(--admin-border);
 }
 
-/* -------------------------------------------------------------------------
-   Filter chips
-   ------------------------------------------------------------------------- */
+/* ── Filter chips ──────────────────────────────────────────────────────── */
 
 .admin-timeline-era-filter__chip {
     display: inline-flex;
@@ -53,7 +53,7 @@
     outline-offset: 2px;
 }
 
-/* Active chip */
+/* Active chip: the era rules below tint its background. */
 .admin-timeline-era-filter__chip--active {
     background: var(--admin-surface-hover);
     border-color: var(--admin-accent);
@@ -61,9 +61,7 @@
     font-weight: 600;
 }
 
-/* -------------------------------------------------------------------------
-   Era colour hooks — left border tint
-   ------------------------------------------------------------------------- */
+/* ── Era colour hooks — left border tint ───────────────────────────────── */
 
 .admin-timeline-era-filter__chip.era--pre-incarnation  { border-left-color: var(--era-pre-incarnation); }
 .admin-timeline-era-filter__chip.era--old-testament    { border-left-color: var(--era-old-testament); }
@@ -74,7 +72,6 @@
 .admin-timeline-era-filter__chip.era--passion-week     { border-left-color: var(--era-passion-week); }
 .admin-timeline-era-filter__chip.era--post-passion     { border-left-color: var(--era-post-passion); }
 
-/* Active chip gets a prominent era-tinted background */
 .admin-timeline-era-filter__chip--active.era--pre-incarnation  { background: var(--era-pre-incarnation); border-color: var(--era-pre-incarnation); }
 .admin-timeline-era-filter__chip--active.era--old-testament    { background: var(--era-old-testament); border-color: var(--era-old-testament); }
 .admin-timeline-era-filter__chip--active.era--early-life       { background: var(--era-early-life); border-color: var(--era-early-life); }

@@ -1,7 +1,8 @@
 // AdminTimelineNodeDrag tests — node:test + node:assert.
 // Runs the real timeline-node-drag.js against a small hand-built fake DOM
-// (TEST-8): dots, labels, a document that keeps its listeners, and animation
-// frames that the test flushes. The offsets maths, the clamps and the axis are
+// (TEST-8): an axis that keeps its listeners (the module delegates to it), dots,
+// labels, a document that keeps its listeners, and animation frames that the
+// test flushes. The offsets maths, the clamps and the axis are
 // the real admin files, loaded through the bridge helper.
 
 const { test, describe } = require("node:test");
@@ -11,7 +12,6 @@ const { loadBridge, runClassicScript } = require("./helpers/load-bridge");
 // ── Fake DOM ─────────────────────────────────────────────────────────────────
 
 function makeDot(eventId, left, top) {
-  const handlers = {};
   return {
     dataset: { eventId: String(eventId) },
     style: { left, top },
@@ -20,11 +20,21 @@ function makeDot(eventId, left, top) {
       add(n) { this.names.add(n); },
       remove(n) { this.names.delete(n); },
     },
-    handlers,
-    addEventListener(type, fn) { handlers[type] = fn; },
-    removeEventListener(type, fn) { if (handlers[type] === fn) delete handlers[type]; },
+    closest(selector) { return selector === ".admin-timeline-event" ? this : null; },
     setPointerCapture() {},
     releasePointerCapture() {},
+  };
+}
+
+/** The part of the axis the module uses: delegated listeners and a way to fire them. */
+function makeAxis() {
+  const listeners = {};
+  return {
+    listeners,
+    addEventListener(type, fn) {
+      if (!(listeners[type] || []).includes(fn)) (listeners[type] ||= []).push(fn);
+    },
+    dispatch(type, e) { (listeners[type] || []).slice().forEach((fn) => fn(e)); },
   };
 }
 
@@ -46,9 +56,10 @@ function createEnv({ scale = 1, dots, events }) {
   const labels = {};
   for (const dot of dots) labels[dot.dataset.eventId] = makeLabel(dot.dataset.eventId);
 
+  const axis = makeAxis();
   const listeners = {};
   const document = {
-    querySelectorAll: () => dots,
+    getElementById: (id) => (id === "timeline-axis" ? axis : null),
     querySelector: (sel) => {
       const m = /data-event-id="(\d+)"/.exec(sel);
       return m ? labels[m[1]] || null : null;
@@ -87,6 +98,8 @@ function createEnv({ scale = 1, dots, events }) {
   win.AdminTimelineNodeDrag.attachDragListeners();
 
   return {
+    attach: () => win.AdminTimelineNodeDrag.attachDragListeners(),
+    axis,
     document,
     labels,
     relayouts,
@@ -109,9 +122,14 @@ function pointer(type, x, y, extra = {}) {
   };
 }
 
+/** Press on a dot: the pointerdown reaches the axis with the dot as its target. */
+function press(env, dot, x, y, extra = {}) {
+  env.axis.dispatch("pointerdown", { ...pointer("pointerdown", x, y, extra), target: dot });
+}
+
 /** Press on a dot, move to each point, release at the last one. */
 function drag(env, dot, from, points) {
-  dot.handlers.pointerdown({ ...pointer("pointerdown", from[0], from[1]), currentTarget: dot });
+  press(env, dot, from[0], from[1]);
   for (const [x, y] of points) env.document.dispatch("pointermove", pointer("pointermove", x, y));
   const last = points[points.length - 1] || from;
   env.document.dispatch("pointerup", pointer("pointerup", last[0], last[1]));
@@ -123,10 +141,32 @@ const EVENTS = { 7: { id: 7, timeline_period: "OldTestament" } };
 // ── Tests ────────────────────────────────────────────────────────────────────
 
 describe("AdminTimelineNodeDrag: attach and click", () => {
-  test("attachDragListeners puts a pointerdown handler on every dot", () => {
+  test("attachDragListeners listens on the axis once, however often it is called", () => {
     const dot = makeDot(7, "150px", "50%");
-    createEnv({ dots: [dot], events: EVENTS });
-    assert.equal(typeof dot.handlers.pointerdown, "function");
+    const env = createEnv({ dots: [dot], events: EVENTS });
+    env.attach();
+    assert.equal(env.axis.listeners.pointerdown.length, 1);
+    assert.equal(env.axis.listeners.contextmenu.length, 1);
+  });
+
+  test("a press on something that is not a dot starts nothing", () => {
+    const dot = makeDot(7, "150px", "50%");
+    const env = createEnv({ dots: [dot], events: EVENTS });
+    const axisLine = { closest: () => null };
+    env.axis.dispatch("pointerdown", { ...pointer("pointerdown", 100, 100), target: axisLine });
+    env.document.dispatch("pointermove", pointer("pointermove", 160, 100));
+    env.document.dispatch("pointerup", pointer("pointerup", 160, 100));
+    assert.deepEqual(env.staged, []);
+  });
+
+  test("the context menu is blocked on a dot only", () => {
+    const dot = makeDot(7, "150px", "50%");
+    const env = createEnv({ dots: [dot], events: EVENTS });
+    let blocked = 0;
+    const menu = (target) => ({ target, preventDefault() { blocked++; } });
+    env.axis.dispatch("contextmenu", menu(dot));
+    env.axis.dispatch("contextmenu", menu({ closest: () => null }));
+    assert.equal(blocked, 1);
   });
 
   test("a movement under 4 px is a click: nothing is staged", () => {
@@ -198,7 +238,7 @@ describe("AdminTimelineNodeDrag: labels while dragging", () => {
   test("labels are laid out at most once per frame, and once more on drop", () => {
     const dot = makeDot(7, "150px", "50%");
     const env = createEnv({ dots: [dot], events: EVENTS });
-    dot.handlers.pointerdown({ ...pointer("pointerdown", 100, 100), currentTarget: dot });
+    press(env, dot, 100, 100);
     for (const x of [110, 120, 130, 140]) {
       env.document.dispatch("pointermove", pointer("pointermove", x, 100));
     }
@@ -223,21 +263,21 @@ describe("AdminTimelineNodeDrag: drop", () => {
     const dot = makeDot(7, "150px", "50%");
     const env = createEnv({ dots: [dot], events: EVENTS });
     drag(env, dot, [100, 100], [[110, 100], [130, 100]]);
-    dot.handlers.pointerdown({ ...pointer("pointerdown", 100, 100), currentTarget: dot });
+    press(env, dot, 100, 100);
     assert.equal(dot._timelineDragActive, undefined);
   });
 
   test("a right-click drag needs SPREAD density, which is zoom 1.2 or more", () => {
     const dot = makeDot(7, "150px", "50%");
     const env = createEnv({ scale: 1, dots: [dot], events: EVENTS });
-    dot.handlers.pointerdown({ ...pointer("pointerdown", 100, 100, { button: 2 }), currentTarget: dot });
+    press(env, dot, 100, 100, { button: 2 });
     env.document.dispatch("pointermove", pointer("pointermove", 160, 100, { button: 2 }));
     env.document.dispatch("pointerup", pointer("pointerup", 160, 100, { button: 2 }));
     assert.deepEqual(env.staged, []);
 
     const dot2 = makeDot(7, "150px", "50%");
     const env2 = createEnv({ scale: 2, dots: [dot2], events: EVENTS });
-    dot2.handlers.pointerdown({ ...pointer("pointerdown", 100, 100, { button: 2 }), currentTarget: dot2 });
+    press(env2, dot2, 100, 100, { button: 2 });
     env2.document.dispatch("pointermove", pointer("pointermove", 120, 100, { button: 2 }));
     env2.document.dispatch("pointerup", pointer("pointerup", 120, 100, { button: 2 }));
     assert.equal(env2.staged.length, 1);

@@ -1,10 +1,10 @@
 /* ==========================================================================
    Timeline Node Drag (Admin)
-   Visual feedback while a node is dragged (left or right button). The label
-   glide is in timeline-dots.css.
+   Visual feedback while a node is dragged (left or right button).
+   admin-timeline/timeline-node-drag.js adds and removes --dragging on the dot.
+   The label glide is in timeline-dots.css.
    ========================================================================== */
 
-/* Dragging state: grab cursor and visual scale feedback */
 .admin-timeline-event--dragging {
     cursor: grabbing;
     transform: translate(-50%, -50%) scale(1.3);

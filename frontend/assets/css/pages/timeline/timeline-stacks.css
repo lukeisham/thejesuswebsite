@@ -6,6 +6,10 @@
    timeline-interactions.js zooms to the stack when the button is activated.
    ========================================================================== */
 
+/* -------------------------------------------------------------------------
+   Stack Button
+   ------------------------------------------------------------------------- */
+
 /* The button is a fixed screen size at every zoom: the world scales it, so the
    transform divides that scale out (the live --timeline-zoom-scale, set by
    timeline-zoom.js). The box holds the dot column at the bottom and the count
@@ -26,6 +30,10 @@
         translateY(-0.75rem);
 }
 
+/* -------------------------------------------------------------------------
+   Count Badge
+   ------------------------------------------------------------------------- */
+
 .timeline-stack__count {
     position: absolute;
     top: 0;
@@ -43,6 +51,10 @@
     text-align: center;
 }
 
+/* -------------------------------------------------------------------------
+   Stack States
+   ------------------------------------------------------------------------- */
+
 .timeline-stack:hover .timeline-stack__count {
     border-color: var(--accent);
 }
@@ -57,18 +69,18 @@
     pointer-events: none;
 }
 
-/* A dot in a stack is not a target of its own; the stack button is. Its label
-   is hidden; the count badge stands for it. */
+/* -------------------------------------------------------------------------
+   Stacked Dots and Labels
+   ------------------------------------------------------------------------- */
+
+/* For each event inside a stack, applyZoomStacks (timeline-render.js) sets
+   timeline-dot--stacked on the dot and layoutHorizontalLabels sets
+   label--stacked on its label. A stacked dot is not a target of its own; the
+   stack button is. Its label is hidden; the count badge stands for it. */
 .timeline-dot--stacked {
     pointer-events: none;
 }
 
 .timeline-label.label--stacked {
     display: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .timeline-stack {
-        transition: none;
-    }
 }

@@ -1,12 +1,15 @@
 /* ==========================================================================
    Timeline Edit Panel (Admin)
-   Slide-in panel for editing a selected timeline event.
+   The slide-in panel for editing a selected timeline event, and the backdrop
+   behind it. Markup: #timeline-event-panel and #timeline-panel-backdrop in
+   admin/diagrams/timeline.html. Fields and error box: timeline-panel-form.css.
    ========================================================================== */
 
-/* -------------------------------------------------------------------------
-   Panel Container
-   ------------------------------------------------------------------------- */
+/* ── Panel Container ───────────────────────────────────────────────────── */
 
+/* timeline-events.js (openEditPanel / closeEditPanel) adds and removes
+   --open. The inline script in timeline.html watches that class to show the
+   backdrop and set aria-hidden, so renaming it leaves the backdrop stuck. */
 .admin-timeline-panel {
     position: fixed;
     top: 0;
@@ -16,7 +19,7 @@
     height: 100%;
     background: var(--admin-surface);
     border-left: 1px solid var(--admin-border);
-    box-shadow: -2px 0 12px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-panel);
     z-index: 100;
     transform: translateX(100%);
     transition: transform var(--admin-transition);
@@ -27,9 +30,7 @@
     transform: translateX(0);
 }
 
-/* -------------------------------------------------------------------------
-   Panel Header
-   ------------------------------------------------------------------------- */
+/* ── Panel Header ──────────────────────────────────────────────────────── */
 
 .admin-timeline-panel__header {
     display: flex;
@@ -52,15 +53,13 @@
     cursor: pointer;
     padding: var(--space-xs);
     line-height: 1;
-    border-radius: 4px;
+    border-radius: var(--admin-radius-sm);
 }
 .admin-timeline-panel__close:hover {
     background: var(--admin-bg);
 }
 
-/* -------------------------------------------------------------------------
-   Panel Actions
-   ------------------------------------------------------------------------- */
+/* ── Panel Actions ─────────────────────────────────────────────────────── */
 
 .admin-timeline-panel__actions {
     display: flex;
@@ -73,7 +72,7 @@
     font-size: 0.875rem;
     font-weight: 500;
     border: none;
-    border-radius: 6px;
+    border-radius: var(--admin-radius);
     cursor: pointer;
     min-height: 36px;
     transition: background var(--admin-transition);
@@ -95,20 +94,21 @@
     background: var(--admin-border);
 }
 
-/* -------------------------------------------------------------------------
-   Panel Danger Zone
-   ------------------------------------------------------------------------- */
+/* ── Backdrop ──────────────────────────────────────────────────────────── */
 
-.admin-timeline-panel__danger {
-    padding-top: var(--space-md);
-    margin-top: auto;
+/* Sits just under the panel (z-index 100). A click on it closes the panel
+   (inline script in timeline.html). */
+.admin-timeline-panel-backdrop {
+    position: fixed;
+    inset: 0;
+    background: var(--overlay-backdrop);
+    z-index: 99;
 }
-.admin-timeline-panel__btn--danger {
-    background: transparent;
-    color: var(--admin-error-color);
-    border: 1px solid var(--admin-error-color);
-    width: 100%;
-}
-.admin-timeline-panel__btn--danger:hover {
-    background: var(--admin-error-bg);
+
+/* ── Responsive ────────────────────────────────────────────────────────── */
+
+@media (max-width: 600px) {
+    .admin-timeline-panel {
+        width: 100vw;
+    }
 }

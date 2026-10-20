@@ -555,7 +555,7 @@ describe("AdminTimelineStaged", function () {
       assert.equal(savedPayloads[0].data.timeline_offset_y, -0.15);
     });
 
-    test("forwards explicit null offsets (clearing)", async function () {
+    test("forwards explicit null offsets", async function () {
       var savedPayloads = [];
       var ctx = loadStaged({
         saveEvent: async function (id, data) {

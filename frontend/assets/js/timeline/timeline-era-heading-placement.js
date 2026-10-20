@@ -3,7 +3,8 @@
  *
  * Pure, DOM-free functions for placing the era headings. Both take data in and
  * return positions out. The admin editor reaches `computeEraBandLayout` through
- * admin/assets/js/cluster-logic-bridge/timeline-bridge.js.
+ * admin/assets/js/cluster-logic-bridge/timeline-bridge.js, which loads this file
+ * as an ES module, so every import here must resolve under /assets/js/ too.
  *
  * - `computeEraBandLayout` is the horizontal (desktop) layout. Headings sit in
  *   a reserved band above the dots, in screen pixels, in up to three lanes. A
@@ -18,12 +19,14 @@
  */
 
 import { resolveLabelCollisions } from "../cluster-logic/cluster-label-collision.js";
+import { BASE_PX_PER_PERIOD } from "./timeline-geometry.js";
 
 // ── Era band layout (horizontal) ──────────────────────────────────────────────
 
-/** Number of heading lanes in the band. The band height token
- * `--timeline-heading-band-height` in variables.css must hold this many lanes
- * plus the era bar. */
+/** Number of heading lanes in the band. The `--timeline-heading-band-height`
+ * token (variables.css and admin timeline-tokens.css) and the lane count in
+ * both timeline-era-headings.css files must hold this many lanes plus the era
+ * bar, or a lane is cut off. api/tests/guide-timeline.test.js row 4 checks it. */
 export const ERA_BAND_LANES = 3;
 
 /** Space between the left edge of an era and the start of its heading (px). */
@@ -65,10 +68,14 @@ export function computeEraBandLayout(eraBoundaries, pxPerPeriod, textWidths) {
   const result = [];
 
   for (const [era, bounds] of Object.entries(eraBoundaries)) {
-    if (!bounds || !Number.isFinite(bounds.start) || !Number.isFinite(bounds.end)) continue;
+    if (!bounds || !Number.isFinite(bounds.start) || !Number.isFinite(bounds.end)) {
+      console.warn("timeline-era-heading-placement: skipping an era with invalid bounds", { era, bounds });
+      continue;
+    }
 
     const x = bounds.start * pxPerPeriod;
     const width = (bounds.end - bounds.start + 1) * pxPerPeriod;
+    // An era with no measured width takes no space in its lane.
     const textWidth = textWidths && Number.isFinite(textWidths[era]) ? textWidths[era] : 0;
     const textLeft = x + BAND_TEXT_INSET;
 
@@ -97,6 +104,10 @@ export function computeEraBandLayout(eraBoundaries, pxPerPeriod, textWidths) {
 
 // ── Mobile heading layout (vertical) ──────────────────────────────────────────
 
+// These values mirror the heading styles in variables.css and
+// timeline-era-headings.css. The headings are estimated, not measured, so a
+// value that drifts from the CSS makes headings sit too close to labels.
+
 /** Base heading font-size (matches --text-h4 in variables.css). */
 const BASE_FONT_SIZE_REM = 1.125;
 
@@ -119,18 +130,28 @@ const HEADING_PADDING_Y = 4;
 /** Gap between a heading edge and its era region edge (world pixels). */
 const REGION_PADDING = 8;
 
-/** Dot size in world pixels for collision estimation. */
+/** Dot size in world pixels for collision estimation. Equals the
+ * `.timeline-dot` width in timeline-dots.css and the dot box that
+ * `renderEraHeadings` in timeline-render.js passes in. */
 const DOT_SIZE = 10;
-
-/** Pixels per period in world coordinates. Equals `BASE_PX_PER_PERIOD` in
- * timeline-geometry.js; this module stays free of imports from it. */
-const BASE_PX = 100;
 
 /** Rough width of a bold uppercase glyph as a share of the font size,
  * including the 0.08em letter-spacing in timeline-era-headings.css. */
 const AVG_GLYPH_WIDTH_RATIO = 0.65;
+
+/** Bounds on the estimated heading width (px), so a very short or very long
+ * label does not give the collision resolver a box that is too small or large. */
 const MIN_HEADING_WIDTH = 40;
 const MAX_HEADING_WIDTH = 260;
+
+/** One collision tier moves a heading by at most `MAX_TIER_STEP_PX` world
+ * pixels, and by at most `1 / ERA_SPAN_PER_STEP` of its era's span, so that a
+ * heading in a short era is never pushed out of it. */
+const MAX_TIER_STEP_PX = 60;
+const ERA_SPAN_PER_STEP = 8;
+
+/** Step used when the era span is zero. */
+const FALLBACK_TIER_STEP_PX = 24;
 
 /**
  * Estimate the rendered width of a heading from its text.
@@ -161,32 +182,21 @@ function estimateHeadingWidth(label, fontSizePx) {
  *   Boxes of event dots and labels in world coordinates (top-left based).
  *   Pass [] or null if no events are rendered.
  * @param {number} zoomScale - current zoom scale; it only sizes the boxes
- * @param {number} containerWidth - world size of the timeline (px); must be positive
  * @returns {Array<{era:string, x:number, y:number, tier:number, fontSize:string}>}
  *   One entry per era. `tier` is the collision tier (0 means no nudge) and
  *   `fontSize` is a CSS value such as "1.125rem".
  */
-export function computeEraHeadingPositions(
-  eraBoundaries,
-  eventBounds,
-  zoomScale,
-  containerWidth,
-) {
+export function computeEraHeadingPositions(eraBoundaries, eventBounds, zoomScale) {
   if (!eraBoundaries || typeof eraBoundaries !== "object") {
     console.warn(
       "timeline-era-heading-placement: eraBoundaries is missing or invalid — returning empty array",
     );
     return [];
   }
-  if (
-    !Number.isFinite(zoomScale) ||
-    zoomScale <= 0 ||
-    !Number.isFinite(containerWidth) ||
-    containerWidth <= 0
-  ) {
+  if (!Number.isFinite(zoomScale) || zoomScale <= 0) {
     console.warn(
-      "timeline-era-heading-placement: invalid zoom/container dimensions — returning empty array",
-      { zoomScale, containerWidth },
+      "timeline-era-heading-placement: invalid zoomScale — returning empty array",
+      { zoomScale },
     );
     return [];
   }
@@ -203,10 +213,11 @@ export function computeEraHeadingPositions(
   const descriptors = [];
   for (const [era, bounds] of Object.entries(eraBoundaries)) {
     if (!bounds || typeof bounds.start !== "number" || typeof bounds.end !== "number") {
+      console.warn("timeline-era-heading-placement: skipping an era with invalid bounds", { era, bounds });
       continue;
     }
-    const spanStart = bounds.start * BASE_PX;
-    const spanEnd = (bounds.end + 1) * BASE_PX;
+    const spanStart = bounds.start * BASE_PX_PER_PERIOD;
+    const spanEnd = (bounds.end + 1) * BASE_PX_PER_PERIOD;
     const headingWidth = estimateHeadingWidth(bounds.label || era, fontSizePx);
 
     descriptors.push({
@@ -218,7 +229,9 @@ export function computeEraHeadingPositions(
       height: headingHeightPx,
       tierIndex: 0,
       axis: "y", // nudge along x, away from the spine
-      primaryStep: Math.min(60, (spanEnd - spanStart) / 8) || 24,
+      primaryStep:
+        Math.min(MAX_TIER_STEP_PX, (spanEnd - spanStart) / ERA_SPAN_PER_STEP) ||
+        FALLBACK_TIER_STEP_PX,
       _spanStart: spanStart,
       _spanEnd: spanEnd,
       _headingWidth: headingWidth,
@@ -227,10 +240,14 @@ export function computeEraHeadingPositions(
   }
   if (descriptors.length === 0) return [];
 
-  // Event boxes go in first, with tier -1, so they act as fixed obstacles.
+  // Event boxes sort ahead of the headings (tier -1) and have a step of 0, so
+  // `tierShift` never moves them: they are fixed obstacles.
   const allDescriptors = [];
   for (const eb of evBounds) {
-    if (!eb || typeof eb.x !== "number" || typeof eb.y !== "number") continue;
+    if (!eb || typeof eb.x !== "number" || typeof eb.y !== "number") {
+      console.warn("timeline-era-heading-placement: skipping an event box without x and y", { box: eb });
+      continue;
+    }
     allDescriptors.push({
       era: eb.era || "",
       x: eb.x + (eb.width || DOT_SIZE) / 2,
@@ -260,7 +277,12 @@ export function computeEraHeadingPositions(
     const maxY = item._spanEnd - item._headingHeight - REGION_PADDING;
     let y = Math.max(minY, Math.min(maxY, topLeftY));
     if (Math.abs(y - minY) < 0.5 && item.tierIndex > 0) {
-      // The resolver moved the heading up and the clamp undid it; move it down.
+      // Every heading starts at its span start and, with axis "y", the resolver
+      // only changes x (cluster-label-collision.js), so an escalated heading
+      // still sits at minY here. Its x shift is negative on odd tiers, which
+      // pushes it off the left edge, and `Math.max(0, topLeftX)` below pulls it
+      // back onto the event box it was escaping. So an escalated heading also
+      // moves down its own era by the distance of its tier shift.
       const downShift = item.primaryStep * Math.ceil(item.tierIndex / 2);
       y = Math.max(minY, Math.min(maxY, minY + downShift));
     }

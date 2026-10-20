@@ -1,6 +1,10 @@
 /* ==========================================================================
    Timeline Detail Panel & Tooltip
    Fixed-position overlay panel and hover tooltip.
+   The markup is in evidence/timeline/*.html. timeline-interactions.js fills
+   both elements and shows them by toggling `hidden`, and sets the tooltip's
+   inline `left` and `top`. The mobile placement of the panel is in
+   timeline-responsive.css.
    ========================================================================== */
 
 /* -------------------------------------------------------------------------
@@ -28,6 +32,7 @@
 
 /* -------------------------------------------------------------------------
    Detail Panel
+   z-index 50 keeps the panel below the tooltip (z-index 60).
    ------------------------------------------------------------------------- */
 
 .timeline-detail-panel {

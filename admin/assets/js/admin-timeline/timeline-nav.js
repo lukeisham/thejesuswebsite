@@ -1,15 +1,15 @@
 /**
  * Admin timeline navigation module.
  *
- * Exports `jumpToEra(eraKey)` — called when a user clicks an era filter
- * chip in the admin diagram editor to both filter events AND jump the
- * viewport to centre that era at normal zoom (scale 1.0).
+ * `jumpToEra(eraKey)` moves the viewport to centre an era at scale 1, or resets
+ * it for "all". timeline-era-filter.js calls it when an era chip is clicked, as
+ * well as filtering the dots.
  *
- * Uses the AdminCanvasZoom transform model via AdminTimelineZoom.setTransform().
- * Animation is not applied (AdminCanvasZoom applies transforms immediately),
- * so no reduced-motion guard is needed.
- *
- * "All" / "all" behaves as a reset: scale=1.0, pan=(0,0).
+ * Connections: `AdminTimelineTransform` (timeline-transform.js) computes the
+ * pan; `AdminTimelineZoom.setTransform` (timeline-zoom.js) applies it. If
+ * either is missing the jump warns and does nothing, and the chip's filter
+ * still works. AdminCanvasZoom applies a transform at once, so there is no
+ * animation and no reduced-motion case.
  *
  * @module admin-timeline/timeline-nav
  */
@@ -20,15 +20,11 @@ window.AdminTimelineNav = {};
   var Nav = window.AdminTimelineNav;
 
   /**
-   * Jump the viewport to centre an era at normal zoom (scale 1.0).
+   * Centre an era in the viewport at scale 1, or reset the view for "all" /
+   * "All" (scale 1, pan 0). An unrecognised era warns and leaves the view as it is.
    *
-   * "All" / "all" resets to default: scale=1.0, pan=(0,0).
-   *
-   * If the era has no data or is unrecognised, logs a warning and bails
-   * gracefully — the chip's filter action has already succeeded
-   * independently.
-   *
-   * @param {string} eraKey — canonical era key, "all", or "All"
+   * @param {string} eraKey - canonical era key, "all", or "All"
+   * @returns {void}
    */
   Nav.jumpToEra = function (eraKey) {
     if (!eraKey) {
@@ -56,13 +52,11 @@ window.AdminTimelineNav = {};
       return;
     }
 
-    // "All" / "all" — reset to default view
     if (eraKey === "all" || eraKey === "All") {
-      window.AdminTimelineZoom.setTransform(0, 0, 1.0, eraKey);
+      window.AdminTimelineZoom.setTransform(0, 0, 1.0);
       return;
     }
 
-    // Validate era exists
     var bounds = window.AdminTimelineTransform.getEraWorldBounds(eraKey);
     if (!bounds) {
       console.warn(
@@ -72,6 +66,7 @@ window.AdminTimelineNav = {};
       return;
     }
 
+    // The window width stands in for the canvas width the pan is measured against.
     var viewportWidth = window.innerWidth;
     var pan = window.AdminTimelineTransform.computePanForEra(
       eraKey,
@@ -86,6 +81,6 @@ window.AdminTimelineNav = {};
       return;
     }
 
-    window.AdminTimelineZoom.setTransform(pan.panX, pan.panY, 1.0, eraKey);
+    window.AdminTimelineZoom.setTransform(pan.panX, pan.panY, 1.0);
   };
 })();

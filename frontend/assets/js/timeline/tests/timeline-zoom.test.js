@@ -1,269 +1,16 @@
-// Timeline zoom module tests — node:test + node:assert.
-// Tests the pure math of the timeline zoom module: clamp bounds,
-// step math, pan-delta accumulation.
+// Timeline zoom tests — node:test + node:assert.
+// Imports the real timeline-zoom.js and mounts it on a hand-built fake viewport
+// (admin/tests/admin-editor-utils.test.js pattern). The module keeps its zoom in
+// module state, so each test sets its own start scale with startAt().
 
-const { test, describe } = require("node:test");
+const { test, describe, before, beforeEach } = require("node:test");
 const assert = require("node:assert/strict");
-
-// ── Simulated zoom math (mirroring timeline-zoom.js) ──────────────────────────
-
-const ZOOM_FACTOR = 1.25;
-const SCALE_MIN = 0.3;
-const SCALE_MAX = 3.0;
-
-/**
- * Simulate zoomIn — multiply scale, clamp to max.
- * @param {number} currentScale
- * @returns {number}
- */
-function zoomIn(currentScale) {
-  return Math.min(SCALE_MAX, currentScale * ZOOM_FACTOR);
-}
-
-/**
- * Simulate zoomOut — divide scale, clamp to min.
- * @param {number} currentScale
- * @returns {number}
- */
-function zoomOut(currentScale) {
-  return Math.max(SCALE_MIN, currentScale / ZOOM_FACTOR);
-}
-
-/**
- * Simulate pan delta accumulation — raw screen-space delta added to pan.
- * @param {number} panX
- * @param {number} deltaX
- * @returns {number}
- */
-function applyPanDelta(panX, deltaX) {
-  return panX + deltaX;
-}
-
-// ── Tests ────────────────────────────────────────────────────────────────────
-
-describe("TimelineZoom — zoom math", () => {
-  describe("zoomIn", () => {
-    test("multiplies scale by 1.25", () => {
-      assert.strictEqual(zoomIn(1.0), 1.25);
-      assert.strictEqual(zoomIn(0.8), 1.0);
-      assert.strictEqual(zoomIn(2.0), 2.5);
-    });
-
-    test("clamps to SCALE_MAX (3.0)", () => {
-      assert.strictEqual(zoomIn(2.5), 3.0);
-      assert.strictEqual(zoomIn(3.0), 3.0);
-    });
-
-    test("no-op at max (returns same value)", () => {
-      assert.strictEqual(zoomIn(3.0), 3.0);
-    });
-  });
-
-  describe("zoomOut", () => {
-    test("divides scale by 1.25", () => {
-      assert.strictEqual(zoomOut(1.0), 0.8);
-      assert.strictEqual(zoomOut(2.0), 1.6);
-      assert.strictEqual(zoomOut(0.5), 0.4);
-    });
-
-    test("clamps to SCALE_MIN (0.3)", () => {
-      assert.strictEqual(zoomOut(0.3), 0.3);
-      assert.strictEqual(zoomOut(0.35), 0.3);
-    });
-
-    test("no-op at min (returns same value)", () => {
-      assert.strictEqual(zoomOut(0.3), 0.3);
-    });
-  });
-
-  describe("bounds — round-trip stability", () => {
-    test("zoom out then in returns original when inside bounds", () => {
-      var s1 = zoomOut(1.0);
-      var s2 = zoomIn(s1);
-      assert.strictEqual(s2, 1.0);
-    });
-
-    test("zoom in then out returns original when inside bounds", () => {
-      var s1 = zoomIn(1.0);
-      var s2 = zoomOut(s1);
-      assert.strictEqual(s2, 1.0);
-    });
-
-    test("scale stays within [0.3, 3.0] under repeated operations", () => {
-      var s = 1.0;
-      // Zoom in 20 times — should cap at 3.0
-      for (var i = 0; i < 20; i++) s = zoomIn(s);
-      assert.ok(s <= 3.0);
-      assert.ok(s >= 0.3);
-      // Zoom out 30 times — should floor at 0.3
-      for (var j = 0; j < 30; j++) s = zoomOut(s);
-      assert.ok(s >= 0.3);
-      assert.ok(s <= 3.0);
-    });
-  });
-
-  describe("effective px-per-period range", () => {
-    test("BASE_PX_PER_PERIOD * scale maps [0.3, 3.0] to [30, 300]", () => {
-      var BASE = 100;
-      assert.strictEqual(BASE * 0.3, 30);
-      assert.strictEqual(BASE * 3.0, 300);
-      assert.strictEqual(BASE * 1.0, 100);
-      assert.strictEqual(BASE * 1.25, 125);
-    });
-  });
-});
-
-describe("TimelineZoom — pan math", () => {
-  describe("panDelta", () => {
-    test("positive delta increases panX", () => {
-      assert.strictEqual(applyPanDelta(0, 50), 50);
-      assert.strictEqual(applyPanDelta(100, 30), 130);
-    });
-
-    test("negative delta decreases panX", () => {
-      assert.strictEqual(applyPanDelta(100, -50), 50);
-      assert.strictEqual(applyPanDelta(0, -30), -30);
-    });
-
-    test("no clamping — pan can be any value", () => {
-      assert.strictEqual(applyPanDelta(0, 5000), 5000);
-      assert.strictEqual(applyPanDelta(100, -200), -100);
-    });
-
-    test("pan does not depend on scale (raw screen deltas, no division)", () => {
-      // At scale=2.0, pan delta is added directly
-      var panX = 100;
-      panX = applyPanDelta(panX, 60); // 60px screen movement
-      assert.strictEqual(panX, 160);
-    });
-  });
-});
-
-describe("TimelineZoom — transform string format", () => {
-  test("matches arbor format exactly", () => {
-    var scale = 1.5;
-    var panX = 100;
-    var panY = -50;
-    var transform = "translate(" + panX + "px, " + panY + "px) scale(" + scale + ")";
-    assert.strictEqual(transform, "translate(100px, -50px) scale(1.5)");
-  });
-
-  test("default state (scale=1, pan=0)", () => {
-    var scale = 1.0;
-    var panX = 0;
-    var panY = 0;
-    var transform = "translate(" + panX + "px, " + panY + "px) scale(" + scale + ")";
-    assert.strictEqual(transform, "translate(0px, 0px) scale(1)");
-  });
-});
-
-// ── Line stability (counter-scaling + rounding) ────────────────────────────
-// Mirrors timeline-zoom.js's roundToGrid() and the counter-scaling formula
-// applied in timeline-line-stability.css:
-//   height: max(1px, calc(2px / var(--timeline-zoom-scale, 1)))
-//   width:  max(1px, calc(1px / var(--timeline-zoom-scale, 1)))
-
-/**
- * Round a value to the nearest multiple of gridSize (mirrors
- * timeline-zoom.js's exported roundToGrid).
- * @param {number} value
- * @param {number} [gridSize=0.5]
- * @returns {number}
- */
-function roundToGrid(value, gridSize = 0.5) {
-  return Math.round(value / gridSize) * gridSize;
-}
-
-/**
- * Mirrors the CSS counter-scaling calc: max(1px, basePx / scale).
- * @param {number} basePx
- * @param {number} scale
- * @returns {number}
- */
-function counterScaledThickness(basePx, scale) {
-  return Math.max(1, basePx / scale);
-}
-
-describe("TimelineZoom — counter-scaling calculation", () => {
-  const SCALES = [0.3, 0.5, 1.0, 1.5, 2.0, 3.0];
-
-  test("--timeline-zoom-scale round-trips losslessly through the CSSOM string", () => {
-    // applyTransform() does worldEl.style.setProperty("--timeline-zoom-scale", String(scale)).
-    // A custom property is always a string in the CSSOM, so a value that
-    // doesn't survive String() -> parseFloat() would silently corrupt the
-    // counter-scaling calc() on the CSS side.
-    for (const scale of SCALES) {
-      assert.strictEqual(parseFloat(String(scale)), scale);
-    }
-  });
-
-  test("spine thickness (2px base) scales inversely with zoom at each level", () => {
-    assert.strictEqual(counterScaledThickness(2, 0.3), 2 / 0.3);
-    assert.strictEqual(counterScaledThickness(2, 1.0), 2);
-    // At scale=3.0, 2px / 3.0 ≈ 0.67px is below the 1px floor.
-    assert.strictEqual(counterScaledThickness(2, 3.0), 1);
-  });
-
-  test("era-marker thickness (1px base) scales inversely with zoom at each level", () => {
-    for (const scale of SCALES) {
-      assert.strictEqual(counterScaledThickness(1, scale), Math.max(1, 1 / scale));
-    }
-  });
-
-  test("max(1px, ...) floors thickness so high-zoom lines never vanish", () => {
-    // At scale=3.0 (max zoom-in), 1px / 3.0 ≈ 0.33px — must be floored to 1px, not left sub-pixel.
-    assert.strictEqual(counterScaledThickness(1, 3.0), 1);
-    // At scale=2.0, 2px / 2.0 = 1px exactly — right at the floor, still valid.
-    assert.strictEqual(counterScaledThickness(2, 2.0), 1);
-  });
-
-  test("at scale=1.0 (no zoom), thickness equals the unscaled base value", () => {
-    assert.strictEqual(counterScaledThickness(2, 1.0), 2);
-    assert.strictEqual(counterScaledThickness(1, 1.0), 1);
-  });
-});
-
-describe("TimelineZoom — roundToGrid", () => {
-  test("rounds down to the nearest 0.5px grid line", () => {
-    assert.strictEqual(roundToGrid(0.24, 0.5), 0);
-    assert.strictEqual(roundToGrid(12.24, 0.5), 12);
-  });
-
-  test("rounds up to the nearest 0.5px grid line", () => {
-    assert.strictEqual(roundToGrid(0.26, 0.5), 0.5);
-    assert.strictEqual(roundToGrid(12.37, 0.5), 12.5);
-  });
-
-  test("exact grid values are unchanged", () => {
-    assert.strictEqual(roundToGrid(12.5, 0.5), 12.5);
-    assert.strictEqual(roundToGrid(0, 0.5), 0);
-  });
-
-  test("handles negative values symmetrically", () => {
-    assert.strictEqual(roundToGrid(-0.26, 0.5), -0.5);
-    assert.strictEqual(roundToGrid(-12.24, 0.5), -12);
-  });
-
-  test("defaults gridSize to 0.5 when omitted", () => {
-    assert.strictEqual(roundToGrid(0.26), 0.5);
-  });
-
-  test("visual impact of rounding stays well under 1px", () => {
-    // Worst case is exactly half the grid size away from the nearest line.
-    for (const value of [0.1, 5.3, 100.49, 1000.01]) {
-      const rounded = roundToGrid(value, 0.5);
-      assert.ok(Math.abs(rounded - value) <= 0.25);
-    }
-  });
-});
-
-// ── Re-render keeps the zoom (real module, fake DOM) ─────────────────────────
-// timeline-render.js builds a new .timeline-world on every render and calls
-// mountZoomControls again. The new world must get the current zoom, and the pan
-// listeners must not be bound a second time.
-
 const path = require("path");
 const { pathToFileURL } = require("url");
+
+const MODULE = path.resolve(__dirname, "..", "timeline-zoom.js");
+
+// ── Fake DOM ────────────────────────────────────────────────────────────────
 
 function fakeElement() {
   return {
@@ -283,54 +30,196 @@ function fakeElement() {
   };
 }
 
-describe("timeline zoom: a re-render keeps the zoom", () => {
-  test("the new world element gets the scale that the buttons already use", async () => {
-    const windowListeners = [];
-    globalThis.window = {
-      matchMedia: () => ({ matches: false }),
-      addEventListener: (type) => windowListeners.push(type),
-      removeEventListener() {},
-    };
-    globalThis.document = { createElement: fakeElement };
+/** A viewport whose world and controls can be replaced, as a render does. */
+function fakeViewport() {
+  const viewport = fakeElement();
+  viewport.world = fakeElement();
+  viewport.controls = null;
+  viewport.querySelector = function (selector) {
+    if (selector === ".timeline-world") return this.world;
+    if (selector === ".timeline-controls") return this.controls;
+    return null;
+  };
+  viewport.appendChild = function (child) {
+    if (child.className === "timeline-controls") this.controls = child;
+  };
+  return viewport;
+}
 
-    const zoom = await import(
-      pathToFileURL(path.resolve(__dirname, "..", "timeline-zoom.js")).href
-    );
+// ── Setup ───────────────────────────────────────────────────────────────────
 
-    const viewport = fakeElement();
-    viewport.world = fakeElement();
-    viewport.controls = null;
-    viewport.querySelector = function (selector) {
-      if (selector === ".timeline-world") return this.world;
-      if (selector === ".timeline-controls") return this.controls;
-      return null;
-    };
-    viewport.appendChild = function (child) {
-      if (child.className === "timeline-controls") this.controls = child;
-    };
+const windowListeners = [];
+const transformsSeen = [];
+let zoom;
+let viewport;
 
-    zoom.mountZoomControls(viewport);
+before(async () => {
+  globalThis.window = {
+    matchMedia: () => ({ matches: false }),
+    addEventListener: (type) => windowListeners.push(type),
+    removeEventListener() {},
+  };
+  globalThis.document = { createElement: fakeElement };
+
+  zoom = await import(pathToFileURL(MODULE).href);
+  viewport = fakeViewport();
+  zoom.mountZoomControls(viewport);
+  zoom.onTransformChange((state) => transformsSeen.push(state));
+});
+
+beforeEach(() => {
+  transformsSeen.length = 0;
+});
+
+/** Put the module at a known scale, then forget the transform that did it. */
+function startAt(scale) {
+  zoom.setTransform(0, 0, scale);
+  transformsSeen.length = 0;
+}
+
+// ── Zoom steps ──────────────────────────────────────────────────────────────
+
+describe("timeline zoom: zoomIn", () => {
+  test("multiplies the scale by 1.25 and reports it to listeners", () => {
+    startAt(1.0);
     zoom.zoomIn();
-    assert.match(viewport.world.style.transform, /scale\(1\.25\)/);
-
-    // A render replaces the world and the controls.
-    viewport.world = fakeElement();
-    viewport.controls = null;
-    zoom.mountZoomControls(viewport);
-
-    assert.match(viewport.world.style.transform, /scale\(1\.25\)/);
-    assert.equal(viewport.world.style.props["--timeline-zoom-scale"], "1.25");
-    assert.equal(windowListeners.filter((t) => t === "mousemove").length, 1);
+    assert.equal(zoom.getScale(), 1.25);
+    assert.equal(transformsSeen.length, 1);
+    assert.equal(transformsSeen[0].scale, 1.25);
   });
 
-  test("a registered transform listener runs after a zoom", async () => {
-    const zoom = await import(
-      pathToFileURL(path.resolve(__dirname, "..", "timeline-zoom.js")).href
-    );
-    const seen = [];
-    zoom.onTransformChange((state) => seen.push(state.scale));
+  test("stops at SCALE_MAX", () => {
+    startAt(2.5);
+    zoom.zoomIn();
+    assert.equal(zoom.getScale(), zoom.SCALE_MAX);
+  });
+
+  test("at SCALE_MAX it changes nothing and notifies nobody", () => {
+    startAt(zoom.SCALE_MAX);
+    zoom.zoomIn();
+    assert.equal(zoom.getScale(), zoom.SCALE_MAX);
+    assert.equal(transformsSeen.length, 0);
+  });
+});
+
+describe("timeline zoom: zoomOut", () => {
+  test("divides the scale by 1.25", () => {
+    startAt(2.0);
     zoom.zoomOut();
-    assert.equal(seen.length, 1);
-    assert.ok(Math.abs(seen[0] - 1) < 1e-9); // 1.25 / 1.25
+    assert.equal(zoom.getScale(), 1.6);
+  });
+
+  test("a zoomIn then a zoomOut returns to the start scale", () => {
+    startAt(1.0);
+    zoom.zoomIn();
+    zoom.zoomOut();
+    assert.equal(zoom.getScale(), 1.0);
+    assert.equal(transformsSeen.length, 2);
+  });
+
+  test("stops at SCALE_MIN", () => {
+    startAt(0.35);
+    zoom.zoomOut();
+    assert.equal(zoom.getScale(), zoom.SCALE_MIN);
+  });
+
+  test("at SCALE_MIN it changes nothing and notifies nobody", () => {
+    startAt(zoom.SCALE_MIN);
+    zoom.zoomOut();
+    assert.equal(zoom.getScale(), zoom.SCALE_MIN);
+    assert.equal(transformsSeen.length, 0);
+  });
+});
+
+describe("timeline zoom: the transform written to the world", () => {
+  test("publishes the scale as --timeline-zoom-scale for the line-stability CSS", () => {
+    startAt(1.0);
+    zoom.zoomIn();
+    assert.equal(viewport.world.style.props["--timeline-zoom-scale"], "1.25");
+    assert.match(viewport.world.style.transform, /scale\(1\.25\)$/);
+  });
+});
+
+// ── setTransform ────────────────────────────────────────────────────────────
+
+describe("timeline zoom: setTransform", () => {
+  test("clamps the scale to the limits", () => {
+    zoom.setTransform(0, 0, 10);
+    assert.equal(zoom.getScale(), zoom.SCALE_MAX);
+    zoom.setTransform(0, 0, 0.01);
+    assert.equal(zoom.getScale(), zoom.SCALE_MIN);
+  });
+
+  test("keeps part of the 3800 px world in view", () => {
+    zoom.setTransform(-5000, 0, 1);
+    assert.deepEqual(zoom.getPan(), { x: -3420, y: 0 });
+    zoom.setTransform(2000, 0, 1);
+    assert.deepEqual(zoom.getPan(), { x: 380, y: 0 });
+  });
+
+  test("ignores a non-finite value and warns", () => {
+    startAt(1.0);
+    const before = zoom.getPan();
+    const warnings = [];
+    const originalWarn = console.warn;
+    console.warn = (...args) => warnings.push(args);
+    try {
+      zoom.setTransform(Number.NaN, 0, 2);
+    } finally {
+      console.warn = originalWarn;
+    }
+    assert.equal(zoom.getScale(), 1.0);
+    assert.deepEqual(zoom.getPan(), before);
+    assert.equal(warnings.length, 1);
+  });
+});
+
+// ── roundToGrid ─────────────────────────────────────────────────────────────
+
+describe("timeline zoom: roundToGrid", () => {
+  test("rounds to the nearest 0.5 px grid line", () => {
+    assert.equal(zoom.roundToGrid(0.24, 0.5), 0);
+    assert.equal(zoom.roundToGrid(12.37, 0.5), 12.5);
+  });
+
+  test("leaves exact grid values unchanged", () => {
+    assert.equal(zoom.roundToGrid(12.5, 0.5), 12.5);
+    assert.equal(zoom.roundToGrid(0, 0.5), 0);
+  });
+
+  test("rounds negative values symmetrically", () => {
+    assert.equal(zoom.roundToGrid(-0.26, 0.5), -0.5);
+    assert.equal(zoom.roundToGrid(-12.24, 0.5), -12);
+  });
+
+  test("defaults the grid size to 0.5", () => {
+    assert.equal(zoom.roundToGrid(0.26), 0.5);
+  });
+});
+
+// ── Re-render keeps the zoom ────────────────────────────────────────────────
+// timeline-render.js builds a new .timeline-world on every render and calls
+// mountZoomControls again. The new world must get the current zoom, and the pan
+// listeners must not be bound a second time.
+
+describe("timeline zoom: a re-render keeps the zoom", () => {
+  test("the new world element gets the scale that the buttons already use", () => {
+    const rendered = fakeViewport();
+    const mousemoveBefore = windowListeners.filter((t) => t === "mousemove").length;
+
+    startAt(1.0);
+    zoom.mountZoomControls(rendered);
+    zoom.zoomIn();
+    assert.match(rendered.world.style.transform, /scale\(1\.25\)/);
+
+    // A render replaces the world and the controls.
+    rendered.world = fakeElement();
+    rendered.controls = null;
+    zoom.mountZoomControls(rendered);
+
+    assert.match(rendered.world.style.transform, /scale\(1\.25\)/);
+    assert.equal(rendered.world.style.props["--timeline-zoom-scale"], "1.25");
+    const mousemoveAfter = windowListeners.filter((t) => t === "mousemove").length;
+    assert.equal(mousemoveAfter - mousemoveBefore, 1);
   });
 });

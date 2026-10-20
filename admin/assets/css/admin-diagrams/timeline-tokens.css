@@ -1,11 +1,18 @@
 /* ==========================================================================
-   Timeline Tokens (Admin) — WYSIWYG token bridge
-   These frontend tokens are consumed by timeline-canvas.css and
-   timeline-dots.css. Admin-base/variables.css defines --admin-* and
-   --era-* tokens, but the frontend-named palette tokens are not available
-   there. Defining them here (loaded after admin-base/variables.css) fixes
-   the canvas background, dot-grid, dot styling, and labels.
-   Values mirror frontend variables per setup/Style_guide.md §1/§2.
+   Timeline Tokens (Admin)
+   The frontend-named tokens that the timeline editor's stylesheets use. The
+   admin variables.css holds the --admin-* and --era-* tokens only, so the
+   canvas, dots, labels and era headings take their palette, type and motion
+   values from here. Loaded by admin/diagrams/timeline.html after admin.css.
+   Most values equal the same-named tokens in
+   frontend/assets/css/base/variables.css (the style guide is
+   setup/STYLE_GUIDE/foundations.md). Two differ: --ease-out is the plain `ease`
+   curve here and a cubic-bezier on the public site, and --color-black is the
+   brown-black text colour here and #000000 on the public site.
+   The four --timeline-heading-* tokens must equal the frontend ones, because
+   the era heading band is laid out in JS and sized in CSS on both pages. Guide
+   row 4 in setup/ARCHITECTURE/timeline.md states this, and
+   api/tests/guide-timeline.test.js enforces it.
    ========================================================================== */
 
 :root {
@@ -35,9 +42,8 @@
     --radius-round: 50%;
     --radius-sm: 4px;
 
-    /* Era heading band above the dots (timeline-era-headings.css). Values
-       mirror the frontend tokens of the same names. The band holds three
-       heading lanes and the era bar; ERA_BAND_LANES in
+    /* Era heading band above the dots (timeline-era-headings.css). The band
+       holds three heading lanes and the era bar; ERA_BAND_LANES in
        frontend/assets/js/timeline/timeline-era-heading-placement.js must stay 3
        while the band height is this value. */
     --timeline-label-font-size: 0.75rem;

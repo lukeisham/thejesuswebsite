@@ -1,6 +1,11 @@
 /* ==========================================================================
    Timeline Responsive & Print
-   Print styles and mobile vertical-mode overrides.
+   Print styles and mobile vertical-mode overrides. Loads last, so it overrides
+   the base rules in timeline.css, timeline-dots.css, timeline-labels.css and
+   components/timeline-era-headings.css at equal specificity. The 767px
+   breakpoint must match the matchMedia query in timeline-render.js,
+   timeline-zoom.js and timeline-nav.js, which decide when the vertical layout
+   is built.
    ========================================================================== */
 
 /* -------------------------------------------------------------------------
@@ -28,8 +33,11 @@
         background: var(--text-muted);
     }
 
-    .timeline-era-heading {
-        color: var(--color-black) !important;
+    /* Equal specificity to the era colour rules in timeline-era-headings.css
+       (.timeline-era-heading.era--*, .timeline-heading-band .timeline-era-heading),
+       so this wins only because this file loads after it. */
+    .timeline-container .timeline-era-heading {
+        color: var(--color-black);
     }
 
     .timeline-dot {
@@ -92,6 +100,10 @@
     .timeline-world {
         transform: none;
         transition: none;
+        /* Absolute in timeline.css, which would collapse the width:100% vertical inner built by
+           timeline-render.js to 0 and leave the container at its min-height. In flow, the world
+           spans the container and the container grows to the full height of the vertical layout. */
+        position: relative;
     }
 
     .timeline-controls {
@@ -120,9 +132,11 @@
         height: 1px;
     }
 
+    /* createLabel (timeline-render.js) adds .left or .right from the event's
+       X offset in vertical mode; the label sits beside the spine on that side. */
     .timeline-label.left,
     .timeline-label.right {
-        max-width: calc(50% - 24px);
+        max-width: calc(50% - var(--space-lg));
         white-space: normal;
     }
 

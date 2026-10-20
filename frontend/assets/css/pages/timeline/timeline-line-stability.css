@@ -1,8 +1,8 @@
 /* ==========================================================================
    Timeline Line Stability
    Constant-thickness counter-scaling for the spine/era-marker lines under
-   zoom, plus pan-transition suppression. Split out of timeline.css, which
-   is already at the CSS-1 150-line cap.
+   zoom, plus pan-transition suppression. Overrides `height` and `width` set
+   in timeline.css, so it must load after it.
    ========================================================================== */
 
 /* -------------------------------------------------------------------------
@@ -16,7 +16,7 @@
    thickness stays constant across zoom levels. max(1px, ...) floors the
    result so a line at high zoom (e.g. scale 3.0: 2px / 3 ≈ 0.67px) never
    rounds away to nothing — the tradeoff is that very-high-zoom lines render
-   marginally thicker than their nominal 2px/1px (see timeline-zoom.test.js).
+   marginally thicker than their nominal 2px/1px.
    The `, 1` fallback keeps thickness correct even if JS hasn't set
    the property yet (e.g. before first paint, or in mobile mode — see
    timeline-responsive.css).
@@ -36,7 +36,7 @@
 
 /* -------------------------------------------------------------------------
    Pan Transition Suppression
-   .timeline-world's 150ms transform transition (timeline.css) is desirable
+   .timeline-world's transform transition (timeline.css) is desirable
    for button-driven zoom (smooth, reassuring) but makes a click-drag pan lag
    behind the pointer. timeline-zoom.js adds this class only while a drag is
    actively in progress (onPanStart/onPanEnd), so zoom buttons keep the

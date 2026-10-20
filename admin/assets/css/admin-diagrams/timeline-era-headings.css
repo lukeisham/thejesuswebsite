@@ -29,7 +29,7 @@
     overflow: hidden;
     background: var(--bg-primary);
     border-bottom: 1px solid var(--border);
-    z-index: 4; /* above the zoomed world, below the controls (z-index: 10) */
+    z-index: 4; /* above the zoomed world, below the zoom bar (z-index 10, timeline-controls.css) */
     pointer-events: none; /* never block drag or pan */
 }
 
@@ -59,7 +59,11 @@
     transition: left var(--duration-fast) var(--ease-out);
 }
 
-/* The bar sits under the three lanes, spanning its era. */
+/* The bar sits under the three lanes, spanning its era. The `3` here and in the
+   leader below is ERA_BAND_LANES in
+   frontend/assets/js/timeline/timeline-era-heading-placement.js; guide row 4
+   (setup/ARCHITECTURE/timeline.md) and api/tests/guide-timeline.test.js check
+   that it matches. */
 .admin-timeline-era-bar {
     position: absolute;
     top: calc(var(--space-xs) + 3 * var(--timeline-heading-lane-height) + var(--space-xs));

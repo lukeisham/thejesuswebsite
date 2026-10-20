@@ -1,10 +1,15 @@
 /**
- * Admin timeline transform math module.
+ * Admin timeline transform maths.
  *
- * Parallel implementation of the frontend timeline-transform.js — same API,
- * same math, but consuming admin data structures (window.AdminTimelineGeometry)
- * instead of the frontend ES module graph.  No cross-imports between frontend
- * and admin.
+ * Pan and bounds maths for era jumps, kept in step by hand with
+ * frontend/assets/js/timeline/timeline-transform.js: the admin scripts are
+ * classic scripts and cannot import the ES module, and neither file reads the
+ * other. A change to one needs the same change in the other, or an era centres
+ * differently in the editor than on the public page. This copy reads
+ * `window.AdminTimelineGeometry`.
+ *
+ * Called by timeline-nav.js (`getEraWorldBounds`, `computePanForEra`) and
+ * timeline-zoom.js (`clampPan`, inside `setTransform`).
  *
  * Coordinate model (matching AdminCanvasZoom):
  *   - transform-origin: 0 0 on .admin-timeline-world
@@ -27,10 +32,8 @@ window.AdminTimelineTransform = {};
   /**
    * Return the world-pixel bounding box for an era.
    *
-   * Bounds are derived from the era's first and last period indices,
-   * converted to world pixels via Geom.periodToXCentered().
-   *
-   * "All" / "all" sentinel returns the full-timeline bounds.
+   * Bounds run from the left edge of the era's first period slot to the right
+   * edge of its last. "All" / "all" returns the bounds of the whole timeline.
    *
    * @param {string} eraKey
    * @returns {{ minX: number, maxX: number, minY: number, maxY: number }|null}
@@ -41,10 +44,10 @@ window.AdminTimelineTransform = {};
       return null;
     }
 
-    // "All" / "all" — full timeline
+    var halfSlot = Geom.BASE_PX_PER_PERIOD / 2;
+
     if (eraKey === "all" || eraKey === "All") {
       var lastIdx = Geom.TIMELINE_PERIODS.length - 1;
-      var halfSlot = Geom.BASE_PX_PER_PERIOD / 2;
       return {
         minX: 0,
         maxX: Geom.periodToXCentered(lastIdx) + halfSlot,
@@ -62,7 +65,6 @@ window.AdminTimelineTransform = {};
       return null;
     }
 
-    var halfSlot = Geom.BASE_PX_PER_PERIOD / 2;
     return {
       minX: Geom.periodToXCentered(bounds.start) - halfSlot,
       maxX: Geom.periodToXCentered(bounds.end) + halfSlot,
@@ -94,12 +96,15 @@ window.AdminTimelineTransform = {};
   };
 
   /**
-   * Clamp a pan offset so the world remains at least partially visible.
+   * Clamp a pan offset so the world remains at least partially visible: the
+   * world may slide left until a tenth of it shows (`0.9`), and right until a
+   * tenth of its unscaled width shows (`0.1`). The right limit ignores the
+   * scale, as the public clampPan does.
    *
    * @param {number} panX
    * @param {number} panY
    * @param {number} scale
-   * @param {number} worldWidth  — total world width in base pixels (scale 1)
+   * @param {number} worldWidth  - total world width in base pixels (scale 1)
    * @returns {{ panX: number, panY: number }}
    */
   Transform.clampPan = function (panX, panY, scale, worldWidth) {

@@ -12,8 +12,10 @@
  * editor and another on the public page.
  *
  * Read by timeline-axis.js, timeline-era-filter.js, timeline-events.js,
- * timeline-node-drag.js and timeline-transform.js.
- * Positions are fixed world coordinates; zoom is a CSS transform wrapper.
+ * timeline-node-drag.js, timeline-transform.js and timeline-zoom.js, so it
+ * loads first (admin/diagrams/timeline.html). Positions are fixed world
+ * coordinates; zoom is a CSS transform wrapper. A new period or era needs the
+ * same change in frontend/assets/js/timeline/timeline-data.js.
  *
  * @module admin-timeline/timeline-geometry
  */
@@ -97,20 +99,10 @@ window.AdminTimelineGeometry = {
   },
 
   /**
-   * Era boundaries as period indices: each era's first and last period
-   * index (inclusive) in TIMELINE_PERIODS.  Derived from ERA_STARTS by
-   * looking up each start period's index and using the next era's start
-   * minus 1 as the end (or array length - 1 for the final era).
-   * Mirrors frontend timeline-data.js ERA_BOUNDARIES.
-   *
-   * Filled in below the object literal, because it reads TIMELINE_PERIODS,
-   * ERA_STARTS and ERA_ORDER.
+   * Each era's first and last period index (inclusive) in TIMELINE_PERIODS,
+   * with its label. Filled in below the object literal.
    */
   ERA_BOUNDARIES: null,
-
-  /** Stagger offsets (pixels). No admin script reads this array; dot spacing
-   * comes from cluster-logic/cluster-placement.js. */
-  STAGGER_OFFSETS: [0, -8, 8, -16, 16, -24, 24, -32, 32, -40, 40],
 
   /** Fixed base pixels per period at world scale (zoom is applied by CSS transform). */
   BASE_PX_PER_PERIOD: 100,
@@ -120,22 +112,22 @@ window.AdminTimelineGeometry = {
   CANVAS_HEIGHT_PX: 280,
 
   /**
-   * Compute the pixel X position for a period by its canonical index,
-   * centering the dot within its slot (matches frontend periodX).
-   * Uses fixed world pixels — zoom is applied by the transform wrapper.
+   * Pixel X of a period's slot centre, matching the public `periodX`. Fixed
+   * world pixels; zoom is applied by the transform wrapper.
    *
    * @param {number} periodIndex - zero-based index in TIMELINE_PERIODS
-   * @param {number} [basePx] - base pixels per period; defaults to BASE_PX_PER_PERIOD
+   * @param {number} [basePx] - pixels per period; defaults to BASE_PX_PER_PERIOD
    * @returns {number} pixel X coordinate in world space
    */
   periodToXCentered: function (periodIndex, basePx) {
-    var scale = basePx || this.BASE_PX_PER_PERIOD;
-    return periodIndex * scale + scale / 2;
+    var slotWidth = basePx || window.AdminTimelineGeometry.BASE_PX_PER_PERIOD;
+    return periodIndex * slotWidth + slotWidth / 2;
   },
 };
 
-// ERA_BOUNDARIES is computed here, after the object exists, because it reads
-// TIMELINE_PERIODS, ERA_STARTS and ERA_ORDER. Mirrors frontend timeline-data.js.
+// ERA_BOUNDARIES reads TIMELINE_PERIODS, ERA_STARTS and ERA_ORDER, so it is built
+// after the object exists. Each era ends one period before the next era starts;
+// the last era ends at the last period. Mirrors frontend timeline-data.js.
 (function () {
   var G = window.AdminTimelineGeometry;
   var periods = G.TIMELINE_PERIODS;
@@ -146,7 +138,13 @@ window.AdminTimelineGeometry = {
     var era = order[i];
     var startPeriod = starts[era];
     var startIdx = periods.indexOf(startPeriod);
-    if (startIdx === -1) continue;
+    if (startIdx === -1) {
+      console.warn("AdminTimelineGeometry: era start period is not in TIMELINE_PERIODS", {
+        era: era,
+        startPeriod: startPeriod,
+      });
+      continue;
+    }
     var endIdx;
     if (i < order.length - 1) {
       var nextStartPeriod = starts[order[i + 1]];

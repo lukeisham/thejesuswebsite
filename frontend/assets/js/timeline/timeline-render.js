@@ -13,10 +13,16 @@
  *
  * The admin editor (admin/assets/js/admin-timeline/timeline-events.js) draws
  * the same layout from the same stored offsets. Both convert offsets with
- * cluster-logic/timeline-offsets.js, and both read the label clearance and the
- * tier step from cluster-label-collision.js:
+ * cluster-logic/timeline-offsets.js and place horizontal labels with
+ * cluster-logic/cluster-label-layout.js. Only the vertical (mobile) layout uses
+ * cluster-label-collision.js, and the admin editor has no vertical layout.
  * setup/ARCHITECTURE/timeline.md lists the invariants and
  * api/tests/guide-timeline.test.js checks them.
+ *
+ * Called by timeline-interactions.js, which fetches the events, calls
+ * `applyEraFilter` / `clearFilteredOut` and delegates clicks on `.timeline-stack`,
+ * and wires the detail panel to the dots and labels built here (via their
+ * `data-*` attributes).
  *
  * @module timeline/timeline-render
  */
@@ -29,12 +35,7 @@ import {
 } from "./timeline-data.js";
 import { createElement, batchWrite } from "../utils/dom.js";
 import { debounce } from "../utils/debounce.js";
-import {
-  getClusterDensity,
-  DENSITY_COMPACT,
-  DENSITY_NORMAL,
-  DENSITY_SPREAD,
-} from "../cluster-logic/cluster-density.js";
+import { getClusterDensity } from "../cluster-logic/cluster-density.js";
 import { computeDotPositions } from "../cluster-logic/cluster-placement.js";
 import {
   computeLabelModes,
@@ -63,6 +64,7 @@ import {
   offsetXToPixels,
   offsetYToPixels,
   crossAxisToTopPercent,
+  crossAxisToVerticalLeftPx,
 } from "../cluster-logic/timeline-offsets.js";
 import {
   computeEraBandLayout,
@@ -70,6 +72,11 @@ import {
 } from "./timeline-era-heading-placement.js";
 
 // ─── Era Headings ───────────────────────────────────────────────────────────
+
+/** Width and height of a dot box in world pixels. Equals the `.timeline-dot`
+ * size in timeline-dots.css and `DOT_SIZE` in timeline-era-heading-placement.js,
+ * which estimates the same box. */
+const DOT_BOX_PX = 10;
 
 /**
  * Render the era headings of the vertical (mobile) layout: <h3> elements left
@@ -86,26 +93,24 @@ function renderEraHeadings(inner, positions, labelBounds) {
   const eventBounds = [];
   for (const [period, periodPositions] of positions) {
     const periodIdx = getPeriodIndex(period);
-    if (periodIdx < 0) continue;
+    if (periodIdx < 0) {
+      console.warn("timeline-render: skipping a period that is not in TIMELINE_PERIODS", { period });
+      continue;
+    }
 
     for (const pos of periodPositions) {
       eventBounds.push({
         era: pos.event.timeline_era || "",
         x: 0,
         y: periodY(periodIdx),
-        width: 10,
-        height: 10,
+        width: DOT_BOX_PX,
+        height: DOT_BOX_PX,
       });
     }
   }
   eventBounds.push(...labelBounds);
 
-  const headings = computeEraHeadingPositions(
-    ERA_BOUNDARIES,
-    eventBounds,
-    getScale(),
-    TIMELINE_PERIODS.length * BASE_PX_PER_PERIOD,
-  );
+  const headings = computeEraHeadingPositions(ERA_BOUNDARIES, eventBounds, getScale());
 
   for (const h of headings) {
     const heading = createElement("h3", {
@@ -206,6 +211,8 @@ function syncEraBand({ panX, scale }) {
       if (!item) continue;
       item.heading.style.left = `${entry.textX}px`;
       item.heading.style.setProperty("--lane", String(entry.lane));
+      // The bar and the leader are inset from the era edge so neighbouring
+      // bars and the era divider line do not touch.
       item.bar.style.left = `${entry.x + 1}px`;
       item.bar.style.width = `${Math.max(0, entry.width - 3)}px`;
       item.leader.style.left = `${entry.x + 1}px`;
@@ -230,12 +237,15 @@ export const initialEra =
   (typeof document !== "undefined" && document.body?.dataset?.initialEra) ||
   null;
 
-/** Same breakpoint as the 767px media queries in timeline-responsive.css,
- * timeline-dots.css and timeline-era-headings.css. */
+/** Same breakpoint as the 767px media queries in timeline-responsive.css and
+ * timeline-dots.css, and as `MOBILE_QUERY` in timeline-zoom.js and
+ * timeline-nav.js. If they differ, the script builds one layout while the
+ * stylesheet styles the other. */
 const MOBILE_QUERY = "(max-width: 767px)";
 
-/** Equals .timeline-container min-height in timeline.css; the check at the end
- * of renderTimeline warns when the content grows taller than this. */
+/** Equals .timeline-container min-height in pages/timeline.css; the check at the
+ * end of renderTimeline warns when the horizontal layout grows taller than this.
+ * The vertical layout is as tall as its periods by design and is not checked. */
 const CONTAINER_MIN_HEIGHT = 600;
 
 /**
@@ -268,9 +278,6 @@ export function isVerticalMode() {
 let container = null;
 
 /** @type {HTMLElement|null} */
-let spineEl = null;
-
-/** @type {HTMLElement|null} */
 let innerEl = null;
 
 /** @type {HTMLElement|null} */
@@ -284,20 +291,19 @@ let lastGroupedEvents = null;
 let lastActiveEra = "all";
 let currentMode = null;
 
-/** Teardown for the debounced resize listener (JS-6: clean up listeners). */
-let resizeTeardown = null;
-
 /**
  * Initialise cached references to key DOM nodes and wire the
- * debounced resize listener.
+ * debounced resize listener. Call it once, before `renderTimeline`.
+ *
+ * @returns {void}
  */
 export function init() {
   container = document.getElementById("timeline-container");
-  spineEl = document.getElementById("timeline-spine");
   loadingEl = document.getElementById("loading-state");
   emptyEl = document.getElementById("empty-state");
 
-  // Debounced resize — re-render on breakpoint crossing
+  // Only a crossing of the mobile breakpoint needs a new render: the two
+  // layouts are built differently, and a plain resize is handled by the CSS.
   const handleResize = debounce(() => {
     const mode = isVerticalMode();
     if (mode !== currentMode && lastGroupedEvents) {
@@ -307,14 +313,12 @@ export function init() {
 
   window.addEventListener("resize", handleResize);
   window.addEventListener("orientationchange", handleResize);
-  resizeTeardown = () => {
-    window.removeEventListener("resize", handleResize);
-    window.removeEventListener("orientationchange", handleResize);
-  };
 }
 
 /**
  * Show the loading spinner, hide the timeline and empty state.
+ *
+ * @returns {void}
  */
 export function showLoading() {
   if (loadingEl) loadingEl.hidden = false;
@@ -324,6 +328,8 @@ export function showLoading() {
 
 /**
  * Show the empty state, hide the loading spinner and timeline.
+ *
+ * @returns {void}
  */
 export function showEmpty() {
   if (emptyEl) emptyEl.hidden = false;
@@ -331,12 +337,13 @@ export function showEmpty() {
   if (container) container.hidden = true;
 }
 
-// ─── Horizontal label helpers (positioning, side) ────────────────────────────
+// ─── Vertical label helpers (positioning, side) ──────────────────────────────
 
 /**
  * Determine label side for vertical mode based on X offset.
- * @param {number} xOffset
- * @returns {string} "left" or "right"
+ *
+ * @param {number} xOffset - cross-axis pixels of the dot (`offsetYToPixels` or a cluster offset)
+ * @returns {string} "left" or "right"; timeline-responsive.css styles both classes
  */
 function labelSide(xOffset) {
   return xOffset <= 0 ? "left" : "right";
@@ -350,31 +357,43 @@ const LABEL_CLEARANCE_PX = 48;
 const TIER_STEP_PX = 40;
 
 /**
- * Compute the inline style string for a vertical-mode label.
- * @param {number} finalY  - dot's pixel y position
- * @param {number} xOffset - dot's cluster-jittered x offset
- * @returns {string} inline style value
+ * Pixels right of the spine for the anchor of a vertical-mode label: the dot's
+ * own position, from `crossAxisToVerticalLeftPx`, pushed out by the label
+ * clearance on the label's side. It starts from the dot's drawn position, or a
+ * node dragged far from the spine would leave its label far from the dot.
+ *
+ * @param {number} xOffset - cross-axis pixels of the dot
+ * @returns {number} pixels, for `left: calc(50% + ${value}px)`
  */
-function labelStyleVertical(finalY, xOffset) {
-  var labelLeft = xOffset <= 0
-    ? xOffset - LABEL_CLEARANCE_PX
-    : xOffset + LABEL_CLEARANCE_PX;
-  return "top:" + finalY + "px;left:calc(50% + " + labelLeft + "px)";
+function labelLeftVertical(xOffset) {
+  const dotLeftPx = crossAxisToVerticalLeftPx(xOffset);
+  return xOffset <= 0 ? dotLeftPx - LABEL_CLEARANCE_PX : dotLeftPx + LABEL_CLEARANCE_PX;
 }
 
 /**
- * Build the dot element shared by both layout modes.
+ * Compute the inline style string for a vertical-mode label.
+ *
+ * @param {number} finalY - dot's pixel y position
+ * @param {number} labelLeftPx - result of `labelLeftVertical`
+ * @returns {string} inline style value
+ */
+function labelStyleVertical(finalY, labelLeftPx) {
+  return `top:${finalY}px;left:calc(50% + ${labelLeftPx}px)`;
+}
+
+// ─── Element builders (both layouts) ─────────────────────────────────────────
+
+/**
+ * Build the dot element shared by both layout modes. timeline-interactions.js
+ * reads its `data-*` attributes for the tooltip and the detail panel.
+ *
  * @param {Object} event
  * @param {string} style - inline positioning style
  * @param {boolean} isFiltered
  * @returns {HTMLElement}
  */
 function createDot(event, style, isFiltered) {
-  const era = event.timeline_era || "";
-  const eraKebab = era
-    .replace(/([a-z])([A-Z])/g, "$1-$2")
-    .replace(/\s+/g, "-")
-    .toLowerCase();
+  const eraClass = eraKebab(event.timeline_era || "");
 
   const category = event.gospel_category || "";
   let catClass = "";
@@ -384,7 +403,7 @@ function createDot(event, style, isFiltered) {
 
   const className = [
     "timeline-dot",
-    eraKebab ? "era--" + eraKebab : "",
+    eraClass ? "era--" + eraClass : "",
     catClass,
     isFiltered ? "filtered-out" : "",
   ].filter(Boolean).join(" ");
@@ -394,7 +413,7 @@ function createDot(event, style, isFiltered) {
     style: style,
     tabIndex: isFiltered ? "-1" : "0",
     role: "button",
-    ariaLabel: (event.title || "Timeline event"),
+    "aria-label": event.title || "Timeline event",
   });
 
   dot.dataset.eventId = String(event.id);
@@ -411,8 +430,11 @@ function createDot(event, style, isFiltered) {
 
 /**
  * Build the label element shared by both layout modes.
+ *
  * @param {Object} event
- * @param {string} posClass - "above" or "below"
+ * @param {string} posClass - "left" or "right" on the vertical layout (the side
+ *   classes of timeline-responsive.css); "" on the horizontal layout, where
+ *   `layoutHorizontalLabels` sets `timeline-label--left` instead
  * @param {string} style - inline positioning style
  * @param {boolean} isFiltered
  * @returns {HTMLElement}
@@ -449,10 +471,11 @@ function createLabel(event, posClass, style, isFiltered) {
 }
 
 /**
- * Layout era divider markers in horizontal mode (no labels — era headings
- * are rendered separately by renderEraHeadings after dot placement).
- * @param {HTMLElement} innerEl
- * @param {number} slotWidth
+ * Layout era divider markers in horizontal mode. The era headings are drawn
+ * separately by `renderEraBand`.
+ *
+ * @param {HTMLElement} inner - the .timeline-inner element
+ * @param {number} slotWidth - world pixels per period
  */
 function layoutEraMarkersHorizontal(inner, slotWidth) {
   const eraKeys = Object.keys(ERA_BOUNDARIES);
@@ -468,9 +491,11 @@ function layoutEraMarkersHorizontal(inner, slotWidth) {
 }
 
 /**
- * Layout era divider markers in vertical mode (no labels).
- * @param {HTMLElement} innerEl
- * @param {number} slotHeight
+ * Layout era divider markers in vertical mode. The era headings are drawn
+ * separately by `renderEraHeadings`.
+ *
+ * @param {HTMLElement} inner - the .timeline-inner element
+ * @param {number} slotHeight - world pixels per period
  */
 function layoutEraMarkersVertical(inner, slotHeight) {
   const eraKeys = Object.keys(ERA_BOUNDARIES);
@@ -513,11 +538,10 @@ function buildHorizontalLayout(groupedEvents, activeEra) {
 
   layoutEraMarkersHorizontal(inner, BASE_PX_PER_PERIOD);
 
-  // Compute cluster-placement positions and label modes
   const positions = computeDotPositions(groupedEvents, BASE_PX_PER_PERIOD);
   const densityTier = getClusterDensity(null, effectivePx);
 
-  // Build flattened descriptors for label-mode computation
+  // computeLabelModes takes one flat list, not the per-period Map.
   const flatDescs = [];
   for (const [period, periodPositions] of positions) {
     for (const pos of periodPositions) {
@@ -535,7 +559,10 @@ function buildHorizontalLayout(groupedEvents, activeEra) {
 
   for (const [period, periodPositions] of positions) {
     const periodIdx = getPeriodIndex(period);
-    if (periodIdx < 0) continue;
+    if (periodIdx < 0) {
+      console.warn("timeline-render: skipping a period that is not in TIMELINE_PERIODS", { period });
+      continue;
+    }
 
     const x = periodX(periodIdx);
 
@@ -582,7 +609,6 @@ function buildHorizontalLayout(groupedEvents, activeEra) {
         y: (topPercent / 100) * TIMELINE_CANVAS_HEIGHT_PX,
         eventId: event.id,
         era: event.timeline_era || "",
-        filtered: Boolean(isFiltered),
       });
 
       hasEvents = true;
@@ -638,7 +664,10 @@ function buildVerticalLayout(groupedEvents, activeEra) {
 
   for (const [period, periodPositions] of positions) {
     const periodIdx = getPeriodIndex(period);
-    if (periodIdx < 0) continue;
+    if (periodIdx < 0) {
+      console.warn("timeline-render: skipping a period that is not in TIMELINE_PERIODS", { period });
+      continue;
+    }
 
     const y = periodY(periodIdx);
 
@@ -661,8 +690,9 @@ function buildVerticalLayout(groupedEvents, activeEra) {
       const side = labelSide(xOffset);
       const isFiltered =
         activeEra && activeEra !== "all" && event.timeline_era !== activeEra;
-      const dotStyle = `top:${finalY}px;left:calc(50% + ${xOffset / 2}px)`;
-      const labelStyle = labelStyleVertical(finalY, xOffset);
+      const dotStyle = `top:${finalY}px;left:calc(50% + ${crossAxisToVerticalLeftPx(xOffset)}px)`;
+      const labelLeftPx = labelLeftVertical(xOffset);
+      const labelStyle = labelStyleVertical(finalY, labelLeftPx);
 
       inner.appendChild(createDot(event, dotStyle, isFiltered));
 
@@ -680,7 +710,7 @@ function buildVerticalLayout(groupedEvents, activeEra) {
         el: label,
         tierIndex: clusterIndex,
         axis: "y",
-        originalLeft: labelStyle,
+        baseLeftPx: labelLeftPx,
         era: event.timeline_era || "",
       });
 
@@ -697,7 +727,10 @@ function buildVerticalLayout(groupedEvents, activeEra) {
  * apply the result. The horizontal layout does not use it
  * (`layoutHorizontalLabels`).
  *
- * @param {Array} descriptors — array of { el, tierIndex, axis }
+ * @param {Array<{el: HTMLElement, tierIndex: number, baseLeftPx: number}>} descriptors
+ *   `baseLeftPx` is the label's own offset from the spine. It is passed in
+ *   because a negative `calc(50% - Npx)` read back from `style.left` does not
+ *   parse as a plain sum.
  */
 function resolveLabelCollisions(descriptors) {
   if (!descriptors || descriptors.length === 0) return;
@@ -722,19 +755,27 @@ function resolveLabelCollisions(descriptors) {
       tierIndex: d.tierIndex,
       axis: "y",
       primaryStep: primaryStep,
+      baseLeftPx: d.baseLeftPx,
     };
   });
 
+  // `baseLeftPx` reaches the resolved item only because `resolveLabelCollisions`
+  // (cluster-logic/cluster-label-collision.js) copies every descriptor field; if
+  // it stops copying unknown fields, tier-shifted labels lose their base offset.
   const resolved = resolveCollisionsShared(collisionDescs);
 
   for (const item of resolved) {
     if (item.tierIndex <= 0) continue;
     const shift = tierShift(item.tierIndex, TIER_STEP_PX);
-    const match = /calc\(50%\s*\+\s*(-?[\d.]+)px\)/.exec(item.el.style.left);
-    const baseLeft = match ? parseFloat(match[1]) : 0;
-    item.el.style.left = "calc(50% + " + (baseLeft + shift) + "px)";
+    item.el.style.left = `calc(50% + ${item.baseLeftPx + shift}px)`;
   }
 }
+
+/** Radius at which a leader line starts on its dot: the dot's drawn radius,
+ * which is the clearance less its ring and hover margin. The admin editor
+ * (timeline-events.js) uses the same expression, so a leader starts at the same
+ * point in both. */
+const LEADER_START_RADIUS_PX = DOT_CLEARANCE_PX - 2;
 
 /**
  * Place the labels of the horizontal layout beside their dots and draw a leader
@@ -745,7 +786,7 @@ function resolveLabelCollisions(descriptors) {
  * zoom (`stacked`) gets no label; its dot still blocks the other labels.
  *
  * @param {HTMLElement} inner — the attached .timeline-inner element
- * @param {Array<{el: HTMLElement, cx: number, cy: number, stacked: boolean, eventId: number, era: string, filtered: boolean}>} descriptors
+ * @param {Array<{el: HTMLElement, dot: HTMLElement, cx: number, cy: number, stacked: boolean, eventId: number, era: string}>} descriptors
  *   `cx` and `cy` are the dot's current position, which is not its exact
  *   position while it is in a stack or moving towards one
  */
@@ -753,9 +794,13 @@ function layoutHorizontalLabels(inner, descriptors) {
   inner.querySelector(".timeline-leaders")?.remove();
   if (descriptors.length === 0) return;
 
+  // Write every class before the first read: a size read between two writes
+  // would force a layout for each label (SR-3).
+  for (const d of descriptors) {
+    d.el.classList.toggle("label--stacked", Boolean(d.stacked));
+  }
   const nodes = descriptors.map((d) => {
     const hidden = d.stacked || d.el.classList.contains("label--hidden");
-    d.el.classList.toggle("label--stacked", Boolean(d.stacked));
     return {
       x: d.cx,
       y: d.cy,
@@ -767,6 +812,10 @@ function layoutHorizontalLabels(inner, descriptors) {
     width: inner.offsetWidth,
     height: TIMELINE_CANVAS_HEIGHT_PX,
   });
+  if (placed.length !== descriptors.length) {
+    console.warn("timeline-render: layoutLabelsBesideNodes placed", placed.length, "of", descriptors.length, "labels");
+    return;
+  }
 
   const svgNs = "http://www.w3.org/2000/svg";
   const svg = document.createElementNS(svgNs, "svg");
@@ -778,20 +827,18 @@ function layoutHorizontalLabels(inner, descriptors) {
 
   descriptors.forEach((d, i) => {
     const spot = placed[i];
-    if (!spot || spot.height === 0) return;
+    if (!spot) return;
+    // A hidden or stacked label was measured as zero high and stays put.
+    if (spot.height === 0) return;
 
     d.el.style.left = `${spot.left}px`;
     d.el.style.top = `${spot.top}px`;
     d.el.classList.toggle("timeline-label--left", spot.side === "left");
 
     if (!spot.leader) return;
-    const { x1, y1, x2, y2 } = computeLeaderLine(
-      { x: d.cx, y: d.cy },
-      DOT_CLEARANCE_PX - 2,
-      spot,
-    );
+    const { x1, y1, x2, y2 } = computeLeaderLine({ x: d.cx, y: d.cy }, LEADER_START_RADIUS_PX, spot);
     const line = document.createElementNS(svgNs, "line");
-    line.setAttribute("class", d.filtered ? "timeline-leader filtered-out" : "timeline-leader");
+    line.setAttribute("class", isDotFiltered(d) ? "timeline-leader filtered-out" : "timeline-leader");
     line.setAttribute("x1", String(x1));
     line.setAttribute("y1", String(y1));
     line.setAttribute("x2", String(x2));
@@ -809,6 +856,18 @@ function layoutHorizontalLabels(inner, descriptors) {
 let stackState = null;
 
 /**
+ * Whether the era filter fades this descriptor's dot. The `filtered-out` class
+ * is the only record of it: `applyEraFilter` and `clearFilteredOut` change the
+ * class, and a copy of the state on the descriptor would go stale after them.
+ *
+ * @param {{dot: HTMLElement}} d
+ * @returns {boolean}
+ */
+function isDotFiltered(d) {
+  return d.dot.classList.contains("filtered-out");
+}
+
+/**
  * Put every dot where it belongs at this zoom, show a stack button over each
  * stack, and place the labels again. Zoomed out, close nodes sit in a column at
  * their mean position; zoomed in, each sits at the exact spot the admin gave it
@@ -824,7 +883,13 @@ function applyZoomStacks(inner, descriptors, scale) {
     scale,
     TIMELINE_CANVAS_HEIGHT_PX / 2,
   );
-  if (result.positions.length !== descriptors.length) return;
+  if (result.positions.length !== descriptors.length) {
+    console.warn("timeline-render: computeZoomStacks returned a different number of positions", {
+      positions: result.positions.length,
+      descriptors: descriptors.length,
+    });
+    return;
+  }
 
   descriptors.forEach((d, i) => {
     const p = result.positions[i];
@@ -834,7 +899,7 @@ function applyZoomStacks(inner, descriptors, scale) {
     d.dot.style.left = `${p.x}px`;
     d.dot.style.top = `${(p.y / TIMELINE_CANVAS_HEIGHT_PX) * 100}%`;
     d.dot.classList.toggle("timeline-dot--stacked", d.stacked);
-    d.dot.tabIndex = d.stacked || d.filtered ? -1 : 0;
+    d.dot.tabIndex = d.stacked || isDotFiltered(d) ? -1 : 0;
   });
 
   inner.querySelectorAll(".timeline-stack").forEach((el) => el.remove());
@@ -852,7 +917,7 @@ function applyZoomStacks(inner, descriptors, scale) {
  * Space work; timeline-interactions.js zooms to the stack when it is activated.
  *
  * @param {{members:number[], x:number, y:number, count:number, minX:number, maxX:number}} stack
- * @param {Array<{era:string, filtered:boolean}>} descriptors
+ * @param {Array<{era:string, dot:HTMLElement}>} descriptors
  * @returns {HTMLElement}
  */
 function createStackButton(stack, descriptors) {
@@ -872,7 +937,7 @@ function createStackButton(stack, descriptors) {
   button.dataset.minX = String(stack.minX);
   button.dataset.maxX = String(stack.maxX);
   button.dataset.eras = [...new Set(members.map((m) => m.era))].join(",");
-  const allFiltered = members.every((m) => m.filtered);
+  const allFiltered = members.every(isDotFiltered);
   button.classList.toggle("filtered-out", allFiltered);
   button.tabIndex = allFiltered ? -1 : 0;
   return button;
@@ -980,9 +1045,13 @@ function armSettleRerender() {
  *
  * @param {Map<string, Array>} groupedEvents - Map from period → events array.
  * @param {string|null} activeEra - Currently active era filter, or 'all'.
+ * @returns {void}
  */
 export function renderTimeline(groupedEvents, activeEra) {
-  if (!container) return;
+  if (!container) {
+    console.warn("timeline-render: renderTimeline was called before init() found #timeline-container");
+    return;
+  }
 
   lastGroupedEvents = groupedEvents;
   lastActiveEra = activeEra;
@@ -1000,7 +1069,6 @@ export function renderTimeline(groupedEvents, activeEra) {
     // ── Clear and inject ──────────────────────────────────────────────────
     container.innerHTML = "";
 
-    // Create the world wrapper for zoom/pan transform
     const world = createElement("div", {
       className: "timeline-world",
     });
@@ -1042,15 +1110,14 @@ export function renderTimeline(groupedEvents, activeEra) {
     if (loadingEl) loadingEl.hidden = true;
     if (emptyEl) emptyEl.hidden = built.hasEvents;
 
-    // Mount zoom controls into the viewport (only in horizontal mode)
     if (!vertical && !container.querySelector(".timeline-controls")) {
       mountZoomControls(container);
     }
   });
 
-  // Follow-up read-phase pass, scheduled after the batchWrite() callback
-  // above so it runs once the batched writes have flushed (JS-2/SR-3).
+  // Runs after the batchWrite callback has flushed, so the height read sees the final layout.
   requestAnimationFrame(() => {
+    if (vertical) return;
     const world = container && container.querySelector(".timeline-world");
     if (!world || container.hidden) return;
     const contentHeight = world.getBoundingClientRect().height;
@@ -1063,7 +1130,11 @@ export function renderTimeline(groupedEvents, activeEra) {
 }
 
 /**
- * Remove `.filtered-out` from all dots and labels (reset filters).
+ * Remove `.filtered-out` from all dots, labels, leaders and stack buttons
+ * (reset filters), and make the dots and stack buttons reachable by keyboard
+ * again. A dot that is inside a stack stays out of the tab order.
+ *
+ * @returns {void}
  */
 export function clearFilteredOut() {
   if (!container) return;
@@ -1071,52 +1142,56 @@ export function clearFilteredOut() {
     const allFiltered = container.querySelectorAll(".filtered-out");
     for (const el of allFiltered) {
       el.classList.remove("filtered-out");
-      if (el.classList.contains("timeline-stack")) el.tabIndex = 0;
+      if (el.classList.contains("timeline-stack")) {
+        el.tabIndex = 0;
+      } else if (el.classList.contains("timeline-dot")) {
+        el.tabIndex = el.classList.contains("timeline-dot--stacked") ? -1 : 0;
+      }
     }
   });
 }
 
 /**
- * Map dots and labels by their data-era attribute to find indices that
- * don't match the active filter and should be faded out.
+ * Find the dots that do not belong to the active era and should be faded out.
  *
- * @param {NodeListOf<Element>} dots
- * @param {NodeListOf<Element>} labels
+ * @param {NodeListOf<Element>} dots - the `.timeline-dot` elements, each with a `data-era`
  * @param {string} activeEra
- * @returns {number[]}
+ * @returns {Set<number>} indices into `dots`
  */
-function computeFadedIndices(dots, labels, activeEra) {
-  const faded = [];
+function computeFadedIndices(dots, activeEra) {
+  const faded = new Set();
   for (let i = 0; i < dots.length; i++) {
-    const era = dots[i].dataset.era;
-    if (era !== activeEra) {
-      faded.push(i);
-    }
+    if (dots[i].dataset.era !== activeEra) faded.add(i);
   }
   return faded;
 }
 
 /**
  * Apply era filter to the current timeline DOM: fade out dots/labels
- * whose data-era does not match.
+ * whose data-era does not match. `clearFilteredOut` undoes it.
+ *
+ * A label is faded with the dot of the same index, because both layouts append
+ * each dot and then its label (`buildHorizontalLayout`, `buildVerticalLayout`).
+ * A layout that changes that order fades the wrong labels.
  *
  * @param {string} activeEra
+ * @returns {void}
  */
 export function applyEraFilter(activeEra) {
   if (!container) return;
   const dots = container.querySelectorAll(".timeline-dot");
   const labels = container.querySelectorAll(".timeline-label");
 
-  const faded = computeFadedIndices(dots, labels, activeEra);
+  const faded = computeFadedIndices(dots, activeEra);
 
   batchWrite(() => {
     for (let i = 0; i < dots.length; i++) {
-      dots[i].classList.toggle("filtered-out", faded.includes(i));
+      dots[i].classList.toggle("filtered-out", faded.has(i));
       dots[i].tabIndex =
-        faded.includes(i) || dots[i].classList.contains("timeline-dot--stacked") ? -1 : 0;
+        faded.has(i) || dots[i].classList.contains("timeline-dot--stacked") ? -1 : 0;
     }
     for (let i = 0; i < labels.length; i++) {
-      labels[i].classList.toggle("filtered-out", faded.includes(i));
+      labels[i].classList.toggle("filtered-out", faded.has(i));
     }
     for (const leader of container.querySelectorAll(".timeline-leader")) {
       leader.classList.toggle("filtered-out", leader.dataset.era !== activeEra);

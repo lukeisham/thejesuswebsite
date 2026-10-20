@@ -1,12 +1,12 @@
 /**
  * Admin timeline events module.
  *
- * Loads timeline events from the API, renders them as markers along the axis,
- * and runs an edit panel for title and era. Positions come from each event's
- * timeline_period (AdminTimelineAxis) in fixed world coordinates
- * (AdminTimelineGeometry.BASE_PX_PER_PERIOD). Zoom is a CSS transform on the
- * wrapper, so every dot shares one coordinate system. The era heading band sits
- * in the canvas, outside that wrapper.
+ * Loads timeline events from the API (GET /timeline/admin), renders them as
+ * markers along the axis, and runs an edit panel for title and era. Positions
+ * come from each event's timeline_period (AdminTimelineAxis) in fixed world
+ * coordinates (AdminTimelineGeometry.BASE_PX_PER_PERIOD). Zoom is a CSS
+ * transform on the wrapper, so every dot shares one coordinate system. The era
+ * heading band sits in the canvas, outside that wrapper.
  *
  * Stored offsets (timeline_offset_x and timeline_offset_y) replace the cluster
  * position. The public page applies the same offsets in
@@ -16,13 +16,21 @@
  *
  * Dragging is in timeline-node-drag.js (left drag past 4px, or right drag in
  * SPREAD density) and stages offsets in timeline-staged-changes.js. A click
- * below the drag threshold opens the edit panel.
+ * below the drag threshold opens the edit panel. timeline-node-drag.js sets
+ * `_timelineDragActive` on a dot at the end of a drag; the dot's click handler
+ * here reads it, so the click that ends a drag does not select the event.
+ *
+ * Every render makes new dots, so the era fade that timeline-era-filter.js
+ * applies is lost unless it is applied again: `renderEvents` calls
+ * `AdminTimelineEraFilter.reapplyFilter`. The filter finds dots by the
+ * `era--<kebab>` class that `createEventElement` sets, and finds labels by
+ * `data-event-id`. Change either here and the fade stops matching.
  *
  * Reads the globals published by the timeline bridge
  * (cluster-logic-bridge/timeline-bridge.js: density, placement, labels, label
  * layout, offsets, era heading placement) and AdminTimelineGeometry. All of
- * them load before this file (admin/diagrams/timeline.html). UpdateRecord
- * saves edits.
+ * them load before this file (admin/diagrams/timeline.html).
+ * `UpdateRecord.saveEvent` (update-record.js) saves edits.
  *
  * @module admin-timeline/timeline-events
  */
@@ -38,13 +46,13 @@ let events = [];
 /** @type {number|null} */
 let selectedEventId = null;
 
-/** @type {Object|null}  Event currently being dragged. */
-let dragState = null;
-
 /* ── Initialisation ────────────────────────────────────────────────────────── */
 
 /**
- * Wire DOM events for the event edit panel.
+ * Wire the edit panel buttons and keep the era heading band in step with zoom.
+ * Needs `AdminTimelineZoom.init` to have run first (timeline.html bootstrap).
+ *
+ * @returns {void}
  */
 Events.init = function () {
   window.AdminTimelineZoom.onTransformChange(Events.syncEraBand);
@@ -61,17 +69,54 @@ Events.init = function () {
 
 /* ── Event loading ─────────────────────────────────────────────────────────── */
 
+/** The "Loading" or load-error line in the canvas. */
+let loadStatusEl = null;
+
 /**
- * Fetch all timeline events from the API.
+ * Show a line of status text in the canvas, outside the zoomed world so that
+ * `renderEvents` never removes it.
+ *
+ * @param {string} text
+ * @param {boolean} isError - an error is announced at once; a loading line is not
+ * @returns {void}
+ */
+function showLoadStatus(text, isError) {
+  const canvasEl = document.getElementById("timeline-canvas");
+  if (!canvasEl) {
+    console.warn("timeline-events.js: #timeline-canvas is missing. Status not shown: " + text);
+    return;
+  }
+  if (!loadStatusEl || !loadStatusEl.isConnected) {
+    loadStatusEl = document.createElement("p");
+    loadStatusEl.className = "admin-timeline-load-status";
+    canvasEl.appendChild(loadStatusEl);
+  }
+  loadStatusEl.setAttribute("role", isError ? "alert" : "status");
+  loadStatusEl.textContent = text;
+}
+
+/** @returns {void} */
+function clearLoadStatus() {
+  if (loadStatusEl) loadStatusEl.remove();
+  loadStatusEl = null;
+}
+
+/**
+ * Fetch all timeline events from the API and render them. Called by the
+ * timeline.html bootstrap once the session is confirmed, and by
+ * timeline-staged-changes.js after a save to show the stored positions.
  *
  * @returns {Promise<void>}
  */
 Events.loadEvents = async function () {
+  showLoadStatus("Loading\u2026", false);
   try {
     events = await Admin.api.get("/timeline/admin");
+    clearLoadStatus();
   } catch (err) {
     console.error("Failed to load timeline events:", err);
     events = [];
+    showLoadStatus("Failed to load the timeline. Please refresh the page.", true);
   }
   Events.renderEvents();
 };
@@ -95,13 +140,18 @@ Events.getEventById = function (id) {
 /**
  * Render all event markers and labels onto the timeline axis, and make sure the
  * era heading band exists. Stored and staged offsets replace the
- * cluster-computed positions.
+ * cluster-computed positions. Ends by applying the active era fade again,
+ * because every render makes new dots.
+ *
+ * @returns {void}
  */
 Events.renderEvents = function () {
   const axisEl = document.getElementById("timeline-axis");
-  if (!axisEl) return;
+  if (!axisEl) {
+    console.warn("timeline-events.js: #timeline-axis is missing. Events are not drawn.");
+    return;
+  }
 
-  // Remove existing event markers, their labels and the leader lines
   axisEl
     .querySelectorAll(".admin-timeline-event, .admin-timeline-event-label, .admin-timeline-leaders")
     .forEach(function (el) { el.remove(); });
@@ -112,14 +162,12 @@ Events.renderEvents = function () {
   const { offsetXToPixels, offsetYToPixels, crossAxisToTopPercent } =
     window.AdminTimelineOffsets;
 
-  // Group events by period for clustering. The canonical placement function
-  // takes and returns a Map (period -> events).
-  const byPeriod = new Map();
-  for (let j = 0; j < events.length; j++) {
-    const evGroup = events[j];
-    const periodGroup = evGroup.timeline_period || "PreIncarnation";
-    if (!byPeriod.has(periodGroup)) byPeriod.set(periodGroup, []);
-    byPeriod.get(periodGroup).push(evGroup);
+  // The canonical placement function takes and returns a Map (period -> events).
+  const eventsByPeriod = new Map();
+  for (const event of events) {
+    const period = event.timeline_period || "PreIncarnation";
+    if (!eventsByPeriod.has(period)) eventsByPeriod.set(period, []);
+    eventsByPeriod.get(period).push(event);
   }
 
   // Density tiers compare against the effective px-per-period: the base scale
@@ -128,8 +176,8 @@ Events.renderEvents = function () {
     ? window.AdminTimelineZoom.effectivePxPerPeriod()
     : basePx;
 
-  const positions = window.AdminTimelineClusterPlacement.computeDotPositions(
-    byPeriod,
+  const positionsByPeriod = window.AdminTimelineClusterPlacement.computeDotPositions(
+    eventsByPeriod,
     basePx,
   );
   const densityTier = window.AdminTimelineClusterDensity.getClusterDensity(
@@ -137,81 +185,60 @@ Events.renderEvents = function () {
     effectivePx,
   );
 
-  // Build flat descriptor list for label modes
-  const flatDescs = [];
-  for (const [period, periodPositions] of positions) {
-    for (const placed of periodPositions) {
-      flatDescs.push({ event: placed.event, timeline_period: period });
+  const labelDescriptors = [];
+  for (const [period, placedDots] of positionsByPeriod) {
+    for (const placed of placedDots) {
+      labelDescriptors.push({ event: placed.event, timeline_period: period });
     }
   }
-  const labelModes = window.AdminTimelineClusterLabels.computeLabelModes(
-    flatDescs,
+  const labelModeByEventId = {};
+  for (const { event, mode } of window.AdminTimelineClusterLabels.computeLabelModes(
+    labelDescriptors,
     densityTier,
-  );
-  const modeByEventId = {};
-  for (let lm = 0; lm < labelModes.length; lm++) {
-    modeByEventId[labelModes[lm].event.id] = labelModes[lm].mode;
+  )) {
+    labelModeByEventId[event.id] = mode;
   }
 
-  for (const [period2, periodPositions2] of positions) {
-    const baseX = window.AdminTimelineAxis.periodToX(period2, basePx);
+  for (const [period, placedDots] of positionsByPeriod) {
+    const slotX = window.AdminTimelineAxis.periodToX(period, basePx);
 
-    for (let pi2 = 0; pi2 < periodPositions2.length; pi2++) {
-      const pos = periodPositions2[pi2];
-      const ev2 = pos.event;
-      const xFan = pos.xFan || 0;
-
-      let finalX = baseX + xFan;
-      let finalY = pos.yOffset;
+    for (const placed of placedDots) {
+      const ev = placed.event;
+      let dotX = slotX + (placed.xFan || 0);
+      let dotY = placed.yOffset;
 
       // Offset precedence: staged (if present) > saved API offset > cluster placement
       let stagedOffset = null;
       if (window.AdminTimelineStaged && window.AdminTimelineStaged.getOffset) {
-        stagedOffset = window.AdminTimelineStaged.getOffset(ev2.id);
+        stagedOffset = window.AdminTimelineStaged.getOffset(ev.id);
       }
 
       if (stagedOffset) {
-        finalX = baseX + offsetXToPixels(stagedOffset.timeline_offset_x);
-        finalY = offsetYToPixels(stagedOffset.timeline_offset_y);
-      } else if (
-        ev2.timeline_offset_x != null ||
-        ev2.timeline_offset_y != null
-      ) {
-        finalX = baseX + offsetXToPixels(ev2.timeline_offset_x != null ? ev2.timeline_offset_x : 0);
-        if (ev2.timeline_offset_y != null) {
-          finalY = offsetYToPixels(ev2.timeline_offset_y);
+        dotX = slotX + offsetXToPixels(stagedOffset.timeline_offset_x);
+        dotY = offsetYToPixels(stagedOffset.timeline_offset_y);
+      } else if (ev.timeline_offset_x != null || ev.timeline_offset_y != null) {
+        dotX = slotX + offsetXToPixels(ev.timeline_offset_x != null ? ev.timeline_offset_x : 0);
+        if (ev.timeline_offset_y != null) {
+          dotY = offsetYToPixels(ev.timeline_offset_y);
         }
       }
 
-      // The public renderer places dots at the same percentage.
-      const y = crossAxisToTopPercent(finalY) + "%";
-      const mode = modeByEventId[ev2.id] || "full";
-      const el2 = Events.createEventElement(ev2, finalX, y, finalY, mode);
-      axisEl.appendChild(el2);
+      // The public renderer converts the cross-axis pixels to the same percentage
+      // (crossAxisToTopPercent); a different mapping puts the dot elsewhere.
+      const topPercent = crossAxisToTopPercent(dotY) + "%";
+      const labelMode = labelModeByEventId[ev.id] || "full";
+      axisEl.appendChild(Events.createEventElement(ev, dotX, topPercent));
 
-      // Labels are siblings of the dots, the same DOM shape as the public page.
-      if (mode !== "hidden") {
-        let labelText = ev2.title || "";
-        if (mode === "truncated" && labelText.length > 28) {
-          labelText = labelText.slice(0, 26) + "…";
-        }
-        if (labelText) {
-          const label = document.createElement("span");
-          const labelClasses = ["admin-timeline-event-label"];
-          if (mode === "truncated") labelClasses.push("label--truncated");
-          label.className = labelClasses.join(" ");
-          // Starts at the dot; relayoutLabels moves it beside the dot.
-          label.style.left = finalX + "px";
-          label.style.top = y;
-          label.textContent = labelText;
-          label.dataset.eventId = String(ev2.id);
-          axisEl.appendChild(label);
-        }
+      if (labelMode !== "hidden") {
+        const labelEl = createLabelElement(ev, labelMode, dotX, topPercent);
+        if (labelEl) axisEl.appendChild(labelEl);
       }
     }
   }
 
-  // Attach left- and right-click drag listeners to all dots
+  // timeline-node-drag.js listens on #timeline-axis by delegation, so the new dots
+  // need no listeners of their own. The call is idempotent and makes sure that
+  // the two delegated listeners exist.
   if (window.AdminTimelineNodeDrag && window.AdminTimelineNodeDrag.attachDragListeners) {
     window.AdminTimelineNodeDrag.attachDragListeners();
   }
@@ -219,26 +246,53 @@ Events.renderEvents = function () {
   Events.relayoutLabels(false);
 
   Events.renderEraBand();
+
+  if (window.AdminTimelineEraFilter) window.AdminTimelineEraFilter.reapplyFilter();
 };
+
+/**
+ * Create the title label for one dot. Labels are siblings of the dots in
+ * #timeline-axis, the same DOM shape as the public page, and carry
+ * `data-event-id` so `relayoutLabels` and the era filter can pair them with
+ * their dot.
+ *
+ * @param {Object} ev
+ * @param {string} labelMode - "full"|"truncated" ("hidden" has no label)
+ * @param {number} x - the dot's x position, in world pixels
+ * @param {string} topPercent - the dot's top as a CSS percentage string
+ * @returns {HTMLElement|null} null when the event has no title
+ */
+function createLabelElement(ev, labelMode, x, topPercent) {
+  let labelText = ev.title || "";
+  if (labelMode === "truncated" && labelText.length > 28) {
+    labelText = labelText.slice(0, 26) + "…";
+  }
+  if (!labelText) return null;
+
+  const label = document.createElement("span");
+  label.className = labelMode === "truncated"
+    ? "admin-timeline-event-label label--truncated"
+    : "admin-timeline-event-label";
+  // Starts at the dot; relayoutLabels moves it beside the dot.
+  label.style.left = x + "px";
+  label.style.top = topPercent;
+  label.textContent = labelText;
+  label.dataset.eventId = String(ev.id);
+  return label;
+}
 
 /**
  * Create a DOM element for a single timeline event marker.
  *
  * @param {Object} ev
- * @param {number} x        - x position on the axis, in world pixels
- * @param {string} y        - y position as a CSS percentage string, e.g. "62%"
- * @param {number} yOffset  - stagger offset from cluster placement
- * @param {string} labelMode - "full"|"truncated"|"hidden"
+ * @param {number} x - x position on the axis, in world pixels
+ * @param {string} y - y position as a CSS percentage string, e.g. "62%"
  * @returns {HTMLElement}
  */
-Events.createEventElement = function (ev, x, y, yOffset, labelMode) {
+Events.createEventElement = function (ev, x, y) {
   const el = document.createElement("button");
-  // Era class hook (kebab-case)
-  var eraStr = ev.timeline_era || "";
-  var eraKebab = eraStr
-    .replace(/([a-z])([A-Z])/g, "$1-$2")
-    .replace(/\s+/g, "-")
-    .toLowerCase();
+  // timeline-era-filter.js and the dot CSS select on this class.
+  const eraClass = eraKebab(ev.timeline_era || "");
 
   // Category class hook
   var cat = ev.gospel_category || "";
@@ -249,7 +303,7 @@ Events.createEventElement = function (ev, x, y, yOffset, labelMode) {
 
   el.className = [
     "admin-timeline-event",
-    eraKebab ? "era--" + eraKebab : "",
+    eraClass ? "era--" + eraClass : "",
     catClass,
   ]
     .filter(Boolean)
@@ -280,6 +334,8 @@ Events.createEventElement = function (ev, x, y, yOffset, labelMode) {
   return el;
 };
 
+const SVG_NS = "http://www.w3.org/2000/svg";
+
 /** The leader-line layer and what it connects, kept for the animation frames. */
 let leaderLayer = null;
 let leaderTargets = [];
@@ -293,7 +349,6 @@ let leaderFrame = 0;
 function drawLeaders() {
   if (!leaderLayer) return;
   const layout = window.AdminTimelineClusterLabelLayout;
-  const svgNs = "http://www.w3.org/2000/svg";
   leaderLayer.replaceChildren();
 
   for (const target of leaderTargets) {
@@ -306,7 +361,7 @@ function drawLeaders() {
       side: target.spot.side,
     };
     const line = layout.computeLeaderLine(target.node, layout.DOT_CLEARANCE_PX - 2, shown);
-    const el = document.createElementNS(svgNs, "line");
+    const el = document.createElementNS(SVG_NS, "line");
     el.setAttribute("x1", String(line.x1));
     el.setAttribute("y1", String(line.y1));
     el.setAttribute("x2", String(line.x2));
@@ -315,7 +370,11 @@ function drawLeaders() {
   }
 }
 
-/** Keep the leader lines in step with gliding labels for a short while. */
+/**
+ * Keep the leader lines in step with gliding labels. The window is twice the
+ * label `left`/`top` transition (`--duration-fast`, 150ms, in timeline-dots.css);
+ * lengthen the transition and the lines stop following before the label arrives.
+ */
 function followGlidingLabels() {
   cancelAnimationFrame(leaderFrame);
   const until = performance.now() + 300;
@@ -343,7 +402,10 @@ function followGlidingLabels() {
  */
 Events.relayoutLabels = function (glide) {
   const axisEl = document.getElementById("timeline-axis");
-  if (!axisEl) return;
+  if (!axisEl) {
+    console.warn("timeline-events.js: #timeline-axis is missing. Labels are not placed.");
+    return;
+  }
   const layout = window.AdminTimelineClusterLabelLayout;
   if (!layout) {
     console.warn(
@@ -353,7 +415,7 @@ Events.relayoutLabels = function (glide) {
   }
 
   const fieldHeight = window.AdminTimelineGeometry.CANVAS_HEIGHT_PX;
-  const dots = Array.prototype.slice.call(axisEl.querySelectorAll(".admin-timeline-event"));
+  const dots = [...axisEl.querySelectorAll(".admin-timeline-event")];
   const labelById = {};
   axisEl.querySelectorAll(".admin-timeline-event-label").forEach(function (label) {
     labelById[label.dataset.eventId] = label;
@@ -381,6 +443,7 @@ Events.relayoutLabels = function (glide) {
   dots.forEach(function (dot, i) {
     const label = labelById[dot.dataset.eventId];
     const spot = placed[i];
+    // A height of 0 is a node without a visible label; it has nothing to place.
     if (!label || !spot || spot.height === 0) return;
 
     label.style.left = spot.left + "px";
@@ -390,7 +453,7 @@ Events.relayoutLabels = function (glide) {
   });
 
   if (!leaderLayer || !leaderLayer.isConnected) {
-    leaderLayer = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    leaderLayer = document.createElementNS(SVG_NS, "svg");
     leaderLayer.setAttribute("class", "admin-timeline-leaders");
     leaderLayer.setAttribute("aria-hidden", "true");
     axisEl.appendChild(leaderLayer);
@@ -423,6 +486,8 @@ let bandScale = null;
 
 /**
  * Class suffix for an era key: "GalileeMinistry" becomes "galilee-ministry".
+ * timeline-era-filter.js builds the same suffix to match the `era--<suffix>`
+ * class on the dots and chips; the two must give the same result.
  *
  * @param {string} era
  * @returns {string}
@@ -446,7 +511,10 @@ function eraKebab(era) {
  */
 Events.renderEraBand = function (rebuild) {
   const canvasEl = document.getElementById("timeline-canvas");
-  if (!canvasEl) return;
+  if (!canvasEl) {
+    console.warn("timeline-events.js: #timeline-canvas is missing. Era headings are not drawn.");
+    return;
+  }
   if (!window.AdminTimelineEraHeadingPlacement) {
     console.warn(
       "timeline-events.js: window.AdminTimelineEraHeadingPlacement is missing. Era headings are not drawn.",
@@ -538,6 +606,7 @@ Events.syncEraBand = function (state) {
  * Select an event and open the edit panel.
  *
  * @param {number} eventId
+ * @returns {void}
  */
 Events.selectEvent = function (eventId) {
   selectedEventId = eventId;
@@ -549,6 +618,7 @@ Events.selectEvent = function (eventId) {
  * Open the slide-in event edit panel.
  *
  * @param {number} eventId
+ * @returns {void}
  */
 Events.openEditPanel = function (eventId) {
   const panel = document.getElementById("timeline-event-panel");
@@ -572,7 +642,9 @@ Events.openEditPanel = function (eventId) {
 };
 
 /**
- * Close the event edit panel.
+ * Close the event edit panel and clear the selection.
+ *
+ * @returns {void}
  */
 Events.closeEditPanel = function () {
   const panel = document.getElementById("timeline-event-panel");
@@ -584,7 +656,10 @@ Events.closeEditPanel = function () {
 /* ── Save / Remove event ───────────────────────────────────────────────────── */
 
 /**
- * Save event edits.
+ * Save the title and era from the edit panel. The save button is disabled while
+ * the request runs, so a second click cannot send a second save.
+ *
+ * @returns {Promise<void>}
  */
 Events.onSaveEvent = async function () {
   if (!selectedEventId) return;
@@ -603,13 +678,15 @@ Events.onSaveEvent = async function () {
     return;
   }
 
+  const saveBtn = document.getElementById("timeline-event-save-btn");
+  if (saveBtn) saveBtn.disabled = true;
+
   try {
     const payload = { title: title };
     if (era) payload.timeline_era = era;
 
     const updated = await UpdateRecord.saveEvent(selectedEventId, payload);
 
-    // Update local state
     for (let i = 0; i < events.length; i++) {
       if (events[i].id === selectedEventId) {
         events[i].title = updated.title;
@@ -619,9 +696,11 @@ Events.onSaveEvent = async function () {
     }
 
     Events.closeEditPanel();
-    Events.renderEvents();
   } catch (err) {
+    console.error("Failed to save timeline event:", err);
     if (errorEl) errorEl.textContent = err.message;
+  } finally {
+    if (saveBtn) saveBtn.disabled = false;
   }
 };
 
@@ -629,20 +708,20 @@ Events.onSaveEvent = async function () {
 /* ── Era mapping ───────────────────────────────────────────────────────────── */
 
 /**
- * Determine which era a period belongs to.
+ * Determine which era a period belongs to, from the era boundaries in
+ * AdminTimelineGeometry. A period that is not in the canonical order sorts
+ * last, so it belongs to the final era.
  *
  * @param {string} period
  * @returns {string}
  */
 Events.eraForPeriod = function (period) {
-  const ord = window.AdminTimelineAxis.periodOrdinal(period);
+  const periodIndex = window.AdminTimelineAxis.periodOrdinal(period);
+  const boundaries = window.AdminTimelineGeometry.ERA_BOUNDARIES;
+  const eraKeys = Object.keys(boundaries);
 
-  if (ord <= 0) return "PreIncarnation";
-  if (ord <= 1) return "OldTestament";
-  if (ord <= 5) return "EarlyLife";
-  if (ord <= 8) return "Life";
-  if (ord <= 12) return "GalileeMinistry";
-  if (ord <= 17) return "JudeanMinistry";
-  if (ord <= 33) return "PassionWeek";
-  return "Post-Passion";
+  for (const era of eraKeys) {
+    if (periodIndex <= boundaries[era].end) return era;
+  }
+  return eraKeys[eraKeys.length - 1];
 };

@@ -9,15 +9,19 @@
      `width` and a `--lane` custom property; the lane and bar sizes come from the
      --timeline-heading-* tokens in variables.css.
    - Vertical (mobile): headings are placed by JS inside .timeline-inner, left of
-     the spine, and scale with the page (the base rule below).
+     the spine (the base rule below).
+   timeline-responsive.css overrides the heading colour in print.
    ========================================================================== */
 
 /* ── Vertical (mobile) headings ─────────────────────────────────────────── */
 
-/* Mobile headings live inside .timeline-world, which timeline-zoom.js scales
-   with `transform: scale()` and publishes as --timeline-zoom-scale. Their
-   font-size counter-divides that scale so the final size stays inside a
-   readable range. */
+/* Mobile headings are placed by renderEraHeadings (timeline-render.js) from
+   timeline-era-heading-placement.js, which estimates their size from these
+   values, so a change to padding, letter-spacing or font-size here needs the
+   matching change in that file. The font-size divides out --timeline-zoom-scale
+   so a scaled .timeline-world would not resize the text. timeline-zoom.js does
+   not set the scale in vertical mode, so the fallback of 1 applies and the size
+   is 1.125rem (--text-h4). */
 .timeline-era-heading {
     position: absolute;
     font-weight: 700;
@@ -26,12 +30,16 @@
     letter-spacing: 0.08em;
     white-space: nowrap;
     pointer-events: none;
-    z-index: 5; /* below timeline dots (z-index: 10) */
+    z-index: 5; /* above the dots (z-index 2) and labels (z-index 1) */
     line-height: 1.3;
-    padding: var(--space-xs) var(--space-sm); /* 4px 8px */
-    transition: none; /* positions set in JS; no animation for responsiveness */
+    padding: var(--space-xs) var(--space-sm);
+    transition: none; /* JS sets the position; an animation would lag it */
     font-size: calc(
-        clamp(0.875rem, calc(1.125rem * var(--timeline-zoom-scale, 1)), 1.375rem)
+        clamp(
+            var(--text-small),
+            calc(var(--text-h4) * var(--timeline-zoom-scale, 1)),
+            var(--text-h3)
+        )
         / var(--timeline-zoom-scale, 1)
     );
 }
@@ -93,7 +101,8 @@
     transition: left var(--duration-fast) var(--ease-out);
 }
 
-/* The bar sits under the three lanes, spanning its era. */
+/* The bar sits under the three heading lanes (ERA_BAND_LANES in
+   timeline-era-heading-placement.js), spanning its era. */
 .timeline-era-bar {
     position: absolute;
     top: calc(var(--space-xs) + 3 * var(--timeline-heading-lane-height) + var(--space-xs));
@@ -122,6 +131,8 @@
 .timeline-era-leader[hidden] {
     display: none;
 }
+
+/* ── Print ──────────────────────────────────────────────────────────────── */
 
 @media print {
     .timeline-heading-band .timeline-era-bar,
