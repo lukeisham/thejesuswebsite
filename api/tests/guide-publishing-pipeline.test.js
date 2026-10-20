@@ -31,7 +31,7 @@ describe(`${GUIDE}: a blog post is registered in every list`, () => {
     test(`${file} registers blog posts`, () => {
       assert.ok(
         read(file).includes(needle),
-        `Blog registration row: ${file} no longer contains ${needle}. See ${GUIDE}.`,
+        `CORE-3, TEST-10: blog registration row: ${file} no longer contains ${needle}. See ${GUIDE}.`,
       );
     });
   }

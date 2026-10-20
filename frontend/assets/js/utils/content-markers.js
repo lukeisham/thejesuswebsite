@@ -15,8 +15,9 @@ import { escapeHTML } from "./escape-html.js";
  *   - **Raw text** (essays, responses, historiography, evidence) — every
  *     paragraph is HTML-escaped, wrapped in `<p>`, and inline markers are
  *     resolved inside the escaped text.
- *   - **Markdown-rendered HTML** (blog posts) — the text has already been
- *     through `renderMarkdown()`, so blocks start with `<p`, `<h1`–`<h3`,
+ *   - **Markdown-rendered HTML** (`useMarkdown: true`, which every markdown
+ *     caller including blog posts uses) — the text is run through
+ *     `renderMarkdown()` first, so blocks start with `<p`, `<h1`–`<h3`,
  *     `<ul`, `<ol`, `<table`, or `<blockquote`. These blocks are passed
  *     through without re-escaping; `<p>` blocks have inline markers resolved
  *     on the inner (already-escaped) text. `<figure>` and `<aside>` blocks
@@ -64,7 +65,8 @@ import { escapeHTML } from "./escape-html.js";
  * @param {Array<{content: string}>} [options.footnotes] - The item's footnotes in
  *   list order. A [fn:N] marker outside 1..footnotes.length renders nothing.
  * @param {'superscript'|'parenthetical'} [options.citationStyle='superscript']
- * @param {boolean} [options.pullQuotes=false] - Enable [pullquote] shortcode (blog only)
+ * @param {boolean} [options.pullQuotes=false] - Enable [pullquote] shortcode (blog only).
+ *   Without it a [pullquote] stays literal text (escaped by renderMarkdown or Step 4).
  * @param {boolean} [options.useMarkdown=false] - Run text through renderMarkdown()
  *   first, gaining bold/italic/headings/lists/tables/blockquotes. Shortcode
  *   markers survive the round-trip (renderMarkdown preserves them via
@@ -107,11 +109,17 @@ export function parseContentBody(text, options = {}) {
   let processed = useMarkdown ? renderMarkdown(text) : text;
 
   // ── Step 1: Pull-quote shortcode (blog only) ─────────────────────────
+  // With useMarkdown the text inside the markers was already escaped by
+  // renderMarkdown() (markdown.js escapePreservingMarkers); escaping it again
+  // would show `&amp;lt;`. Without useMarkdown the text is raw and is escaped
+  // here. If either side stops escaping, a pull quote carries raw HTML (JS-6).
   if (pullQuotes) {
     processed = processed.replace(
       /\[pullquote\]([\s\S]*?)\[\/pullquote\]/g,
-      (_, content) =>
-        `<aside class="pull-quote">${escapeHTML(content.trim())}</aside>`,
+      (_, content) => {
+        const text = content.trim();
+        return `<aside class="pull-quote">${useMarkdown ? text : escapeHTML(text)}</aside>`;
+      },
     );
   }
 

@@ -37,15 +37,24 @@ import { FIGURE_SHORTCODE_PATTERN } from "./figure-shortcodes.js";
 // Only a [figure] that matches the shared grammar is protected. A looser match
 // would restore attacker text such as `[figure <img onerror=…>]` unescaped
 // (JS-6); content-markers.js escapes the captured src and caption.
+// A [pullquote] is protected only so its two markers survive; its text is
+// escaped on restore (see escapePreservingMarkers).
 const PROTECTED_MARKERS = new RegExp(
   `(\\[(?:mla|id|fn):\\d+\\]|${FIGURE_SHORTCODE_PATTERN().source}|\\[pullquote\\][\\s\\S]*?\\[\\/pullquote\\])`,
   "g",
 );
 
+const PULLQUOTE_MARKER = /^\[pullquote\]([\s\S]*)\[\/pullquote\]$/;
+
 /**
  * Extract bracket shortcode markers, escape the remaining text, then
  * restore markers. This prevents quote characters inside markers like
  * [figure src="/img.webp"] from being HTML-escaped.
+ *
+ * A restored [pullquote] has its inner text escaped here, exactly once.
+ * content-markers.js parseContentBody() relies on this when `useMarkdown` is
+ * set and does not escape it again; if this stops escaping, every caller that
+ * renders markdown sends raw HTML inside a pull quote to innerHTML (JS-6).
  *
  * @param {string} text
  * @returns {string}
@@ -57,7 +66,12 @@ function escapePreservingMarkers(text) {
     return `\x00MARKER${markers.length - 1}\x00`;
   });
   const escaped = escapeHTML(protected_);
-  return escaped.replace(/\x00MARKER(\d+)\x00/g, (_, idx) => markers[parseInt(idx, 10)]);
+  return escaped.replace(/\x00MARKER(\d+)\x00/g, (_, idx) => {
+    const marker = markers[parseInt(idx, 10)];
+    const pullquote = marker.match(PULLQUOTE_MARKER);
+    if (!pullquote) return marker;
+    return `[pullquote]${escapeHTML(pullquote[1])}[/pullquote]`;
+  });
 }
 
 /**

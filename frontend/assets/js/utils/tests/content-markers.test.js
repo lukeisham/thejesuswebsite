@@ -90,3 +90,41 @@ describe("parseContentBody: existing markers still work", () => {
     assert.equal(parseContentBody(undefined), "");
   });
 });
+
+describe("parseContentBody: [pullquote] escaping", () => {
+  const evil = "[pullquote]<img src=x onerror=1>[/pullquote]";
+
+  test("useMarkdown without pullQuotes never emits raw HTML from a pullquote", async () => {
+    const { parseContentBody } = await import(MODULE);
+    const out = parseContentBody(evil, { useMarkdown: true });
+    assert.ok(!out.includes("<img"), out);
+    assert.ok(out.includes("&lt;img"), out);
+  });
+
+  test("useMarkdown with pullQuotes renders an aside, escaped once", async () => {
+    const { parseContentBody } = await import(MODULE);
+    const out = parseContentBody(evil, { useMarkdown: true, pullQuotes: true });
+    assert.ok(
+      out.includes('<aside class="pull-quote">&lt;img src=x onerror=1&gt;</aside>'),
+      out,
+    );
+  });
+
+  test("a quote character in a blog pullquote is escaped once", async () => {
+    const { parseContentBody } = await import(MODULE);
+    const out = parseContentBody('[pullquote]He said "hi" & left[/pullquote]', {
+      useMarkdown: true,
+      pullQuotes: true,
+    });
+    assert.ok(
+      out.includes('<aside class="pull-quote">He said &quot;hi&quot; &amp; left</aside>'),
+      out,
+    );
+  });
+
+  test("without markdown, a pullquote is still escaped once", async () => {
+    const { parseContentBody } = await import(MODULE);
+    const out = parseContentBody(evil, { pullQuotes: true });
+    assert.equal(out, '<aside class="pull-quote">&lt;img src=x onerror=1&gt;</aside>');
+  });
+});

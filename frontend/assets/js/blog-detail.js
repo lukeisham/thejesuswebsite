@@ -13,7 +13,6 @@ import { numberFigures } from "./utils/figures.js";
 import { showToast } from "./utils/toasts.js";
 import { parseContentBody } from "./utils/content-markers.js";
 import { formatMlaCitation } from "./utils/mla.js";
-import { renderMarkdown } from "./utils/markdown.js";
 import { renderCreatedEditedLine } from "./utils/date-format.js";
 
 // ─── DOM refs (cached — JS-6) ───────────────────────────────────────────────
@@ -129,15 +128,14 @@ function renderBody(post) {
     return;
   }
 
-  // Markdown first: parseContentBody expects HTML in which only shortcode
-  // markers remain unrendered.
-  const markdownHtml = renderMarkdown(post.blog_content);
-
-  const htmlContent = parseContentBody(markdownHtml, {
+  // useMarkdown must stay on: parseContentBody skips its own pull-quote
+  // escape because renderMarkdown() has already escaped it.
+  const htmlContent = parseContentBody(post.blog_content, {
     mlaSources: post.mla_sources || [],
     identifiers: post.identifiers || [],
     citationStyle: "parenthetical",
     pullQuotes: true,
+    useMarkdown: true,
   });
   $body.innerHTML = htmlContent;
 

@@ -49,3 +49,15 @@ describe("renderMarkdown: [figure] marker protection", () => {
     assert.ok(out.includes("<figure"), out);
   });
 });
+
+describe("renderMarkdown: [pullquote] marker protection", () => {
+  test("markers survive and the text between them is escaped once", async () => {
+    const { renderMarkdown } = await import(MODULE);
+    const out = renderMarkdown("[pullquote]<img src=x onerror=1>[/pullquote]");
+    assert.ok(!out.includes("<img"), out);
+    assert.ok(
+      out.includes("[pullquote]&lt;img src=x onerror=1&gt;[/pullquote]"),
+      out,
+    );
+  });
+});
