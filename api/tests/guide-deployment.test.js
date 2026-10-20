@@ -191,6 +191,8 @@ describe(`${GUIDE} row 11: sync-to-home skill`, () => {
       "cd /Users/lukeishammacbookair/Developer/thejesuswebsite",
       "git check-ignore -v",
       "set -o noclobber",
+      "setup/ISSUES/issues.md",
+      "files ~~ issue ~~ rule ~~ plan",
     ]) {
       assert.ok(
         text.includes(needle),

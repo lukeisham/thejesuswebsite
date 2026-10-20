@@ -38,7 +38,7 @@ The script pushes the work to a `claude/send-…` branch. The workflow
 ## Local-only additions
 
 Git does not carry gitignored files to GitHub or to the home computer. Examples
-are `setup/ISSUES/Issues.md`, `setup/PLANS/`, `setup/TESTS/`, `scratchpad.md` and
+are `setup/ISSUES/issues.md`, `setup/PLANS/`, `setup/TESTS/`, `scratchpad.md` and
 `CLAUDE.local.md`. If the cloud session wrote text that belongs in one of these
 files, or would have, put that text in the bundle. Luke pastes it into Terminal.
 
@@ -52,6 +52,35 @@ Build the bundle with these rules:
 6. Put all commands in one block. Start the block with `cd` to the project folder, so the block works from any folder.
 7. End the block with a `tail -n 3` command for each file, so Luke can see the text arrived.
 8. Write the text itself in simple English, as `CLAUDE.local.md` requires.
+
+### Issues
+
+The issue log `setup/ISSUES/issues.md` is a local-only file with its own rules. The
+cloud session cannot see the file, so it cannot know the next row number. The home
+computer must choose the number. Follow these rules:
+
+1. Never write a row number in the bundle. Never refer to a new issue by number in the reply. Refer to it by its file and its title.
+2. Write each new issue on one line, in this form: `files ~~ issue ~~ rule ~~ plan`. Use `none` for the plan if no plan exists. Do not use `~~` inside a cell.
+3. Escape each literal `|` inside a cell as `\|`.
+4. Use the issue block below. It adds the number, the date and the status `open`, and it adds the rows directly after the last row.
+5. If the new work fixes an issue that is already in the log, do not edit the old row in the bundle. Tell Luke the old issue number if you know it. Tell Luke to ask Claude on the home computer to change its status to `resolved`.
+
+The issue block:
+
+```bash
+cd /Users/lukeishammacbookair/Developer/thejesuswebsite
+f=setup/ISSUES/issues.md
+[ -n "$(tail -c1 "$f")" ] && echo >> "$f"
+n=$(grep -oE '^\| [0-9]+ ' "$f" | tr -dc '0-9\n' | sort -n | tail -1)
+awk -F'~~' -v n="$n" -v d="$(date +%F)" '{
+  for (i = 1; i <= 4; i++) gsub(/^ +| +$/, "", $i)
+  n++
+  printf "| %d | %s | %s | %s | %s | %s | open |\n", n, $1, $2, $3, $4, d
+}' >> "$f" <<'EOF'
+api/routes/example.js ~~ What is wrong, in simple English. ~~ API-6 ~~ none
+EOF
+tail -n 2 "$f"
+```
 
 ## Part 2 — What Luke does on the home computer
 
@@ -127,10 +156,10 @@ Do this step only if the cloud session gave you a bundle. Run it after Step 4, s
 ```bash
 cd /Users/lukeishammacbookair/Developer/thejesuswebsite
 set -o noclobber
-cat >> setup/ISSUES/Issues.md <<'EOF'
-(the text for the issue log)
+cat >> scratchpad.md <<'EOF'
+(the text for the note)
 EOF
-tail -n 3 setup/ISSUES/Issues.md
+tail -n 3 scratchpad.md
 ```
 
 Make sure that the `tail` output shows the new text at the end of each file. If a command prints `cannot overwrite existing file`, the file already exists. Nothing was changed. Ask Claude for an append command instead.
