@@ -481,3 +481,128 @@ describe(`${GUIDE} row 9: the period list is identical everywhere`, () => {
     });
   }
 });
+
+// ── Row 10: the era pages share one markup ───────────────────────────────────
+
+describe(`${GUIDE} row 10: the pages in frontend/evidence/timeline/ share identical markup`, () => {
+  const DIR = "frontend/evidence/timeline";
+
+  /**
+   * The page with its per-era parts removed and whitespace normalised. The
+   * snapshot script is written at deploy time by embed-initial-data.js.
+   */
+  function sharedMarkup(html) {
+    return html
+      .replace(/<title>[\s\S]*?<\/title>/, "")
+      .replace(/<meta\s+name="description"[^>]*>/, "")
+      .replace(/<link\s+rel="canonical"[^>]*>/, "")
+      .replace(/<body[^>]*>/, "<body>")
+      .replace(/<h1>[\s\S]*?<\/h1>/, "<h1></h1>")
+      .replace(/<h2>[\s\S]*?<\/h2>/, "<h2></h2>")
+      .replace(/<p class="timeline-description">[\s\S]*?<\/p>/, '<p class="timeline-description"></p>')
+      .replace(/<script type="application\/json" id="timeline-data">[\s\S]*?<\/script>/, "")
+      .replace(/<button class="filter-chip active"/, '<button class="filter-chip"')
+      .replace(/\s+/g, " ")
+      .replace(/> /g, ">")
+      .replace(/ </g, "<");
+  }
+
+  const pages = fs
+    .readdirSync(path.join(REPO, DIR))
+    .filter((name) => name.endsWith(".html"))
+    .map((name) => `${DIR}/${name}`);
+
+  test("the folder holds the index and the eight era pages", () => {
+    assert.equal(pages.length, 9, `${GUIDE} row 10: expected 9 pages in ${DIR}, found ${pages.length}.`);
+  });
+
+  const reference = `${DIR}/index.html`;
+  for (const rel of pages.filter((p) => p !== reference)) {
+    test(`${rel} matches ${reference} outside its per-era parts`, () => {
+      const expected = sharedMarkup(read(reference));
+      const actual = sharedMarkup(read(rel));
+      let i = 0;
+      while (i < expected.length && expected[i] === actual[i]) i++;
+      assert.equal(
+        actual,
+        expected,
+        `${GUIDE} row 10: ${rel} differs from ${reference} near "${actual.slice(Math.max(0, i - 40), i + 60)}". ` +
+          "Change shared markup in every page. Only the title, description, data-initial-era, h1, h2, intro and snapshot differ.",
+      );
+    });
+  }
+});
+
+// ── Row 11: the admin timeline stylesheet styles only its own page ───────────
+
+describe(`${GUIDE} row 11: timeline-canvas.css has no bare html, body or main selector`, () => {
+  const CSS = "admin/assets/css/admin-diagrams/timeline-canvas.css";
+  const PAGE_CLASS = ".admin-diagram-page";
+
+  test("every html, body or main selector is scoped to the page class", () => {
+    const css = blankComments(read(CSS));
+    const rules = [...css.matchAll(/([^{}]+)\{/g)];
+    assert.ok(rules.length > 0, `${GUIDE} row 11: found no rules in ${CSS}.`);
+    for (const rule of rules) {
+      for (const selector of rule[1].split(",").map((s) => s.trim())) {
+        const hasElement = /(^|[\s>+~(])(html|body|main)(?![\w-])/.test(selector);
+        if (!hasElement) continue;
+        assert.ok(
+          selector.includes(PAGE_CLASS),
+          `${GUIDE} row 11: ${CSS} line ${lineOf(css, rule.index)} has the selector "${selector}", which styles every admin page ` +
+            `(admin.css imports this file on all of them). Scope it to ${PAGE_CLASS}.`,
+        );
+      }
+    }
+  });
+
+  for (const page of ["admin/diagrams/timeline.html", "admin/diagrams/maps.html", "admin/diagrams/arbor.html"]) {
+    test(`${page} sets the page class on <body>`, () => {
+      assert.match(
+        read(page),
+        /<body[^>]*class="[^"]*\badmin-diagram-page\b/,
+        `${GUIDE} row 11: ${page} has no ${PAGE_CLASS} on <body>, so it loses the full-height flex shell.`,
+      );
+    });
+  }
+});
+
+// ── Row 12: the admin editors convert an era key in one place ────────────────
+
+describe(`${GUIDE} row 12: the era-to-class conversion is only in admin-era-utils.js`, () => {
+  const UTILS = "admin/assets/js/admin-era-utils.js";
+  const USERS = [
+    "admin/assets/js/admin-timeline/timeline-events.js",
+    "admin/assets/js/admin-timeline/timeline-era-filter.js",
+    "admin/assets/js/admin-maps/maps-pins.js",
+    "admin/assets/js/admin-maps/maps-holding-pen.js",
+  ];
+
+  for (const rel of USERS) {
+    test(`${rel} calls AdminEraUtils.eraToKebab and holds no copy of the conversion`, () => {
+      const code = blankComments(read(rel));
+      const copy = /replace\(\s*\/\(\[a-z\]\)\(\[A-Z\]\)\/g,\s*"\$1-\$2"/.exec(code);
+      assert.ok(
+        !copy,
+        `${GUIDE} row 12: ${rel} line ${copy ? lineOf(code, copy.index) : 0} converts an era key itself. Call AdminEraUtils.eraToKebab from ${UTILS}.`,
+      );
+      assert.match(
+        code,
+        /AdminEraUtils\.eraToKebab\(/,
+        `${GUIDE} row 12: ${rel} does not call AdminEraUtils.eraToKebab from ${UTILS}.`,
+      );
+    });
+  }
+
+  for (const page of ["admin/diagrams/timeline.html", "admin/diagrams/maps.html"]) {
+    test(`${page} loads admin-era-utils.js before the scripts that use it`, () => {
+      const html = read(page);
+      const utilsAt = html.indexOf("admin-era-utils.js");
+      assert.ok(utilsAt >= 0, `${GUIDE} row 12: ${page} does not load ${UTILS}.`);
+      for (const user of USERS.filter((rel) => html.includes(path.posix.basename(rel)))) {
+        const userAt = html.indexOf(path.posix.basename(user));
+        assert.ok(utilsAt < userAt, `${GUIDE} row 12: ${page} loads ${user} before ${UTILS}.`);
+      }
+    });
+  }
+});

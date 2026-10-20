@@ -3,7 +3,8 @@
  *
  * Places a pin on canvas click, drags to reposition, edits label and linked
  * evidence, and creates/updates/deletes via POST/PUT/DELETE /maps/pins.
- * Depends on AdminMapsRender for coordinate conversion.
+ * Depends on AdminMapsRender for coordinate conversion and on
+ * `AdminEraUtils.eraToKebab` (admin-era-utils.js) for the `era--<kebab>` class.
  *
  * @module admin-maps/maps-pins
  */
@@ -157,7 +158,7 @@ Pins.createPinElement = function (pin, offset) {
   const el = document.createElement("button");
   el.className = "admin-map-pin";
   if (pin.timeline_era) {
-    el.classList.add("era--" + AdminMapsEraUtils.eraToKebab(pin.timeline_era));
+    el.classList.add("era--" + AdminEraUtils.eraToKebab(pin.timeline_era));
   }
   if (pin.id === selectedPinId) {
     el.classList.add("admin-map-pin--selected");
@@ -234,7 +235,7 @@ Pins._createStagedPinElement = function (staged, offset) {
   el.className = "admin-map-pin admin-map-pin--staged";
   if (staged.timeline_era) {
     el.classList.add(
-      "era--" + AdminMapsEraUtils.eraToKebab(staged.timeline_era),
+      "era--" + AdminEraUtils.eraToKebab(staged.timeline_era),
     );
   }
   el.style.left = (offset ? staged.x + offset.xOffset : staged.x) + "%";

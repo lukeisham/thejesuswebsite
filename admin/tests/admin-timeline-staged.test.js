@@ -116,108 +116,11 @@ describe("AdminTimelineStaged", function () {
       assert.equal(ctx.mockBtn.textContent, "Save Changes (1)");
     });
 
-    test("counts placements, moves and unassigns too", function () {
-      var ctx = loadStaged();
-      ctx.Staged.stagePlacement(1, "LifeBaptism", "Life");
-      ctx.Staged.stageMove(2, "LifeTemptation");
-      ctx.Staged.stageUnassign(3);
-      assert.equal(ctx.mockBtn.textContent, "Save Changes (3)");
-    });
-
     test("clear returns the button to its plain text", function () {
       var ctx = loadStaged();
       ctx.Staged.stageOffset(1, 0.1, 0.2);
       ctx.Staged.clear();
       assert.equal(ctx.mockBtn.textContent, "Save Changes");
-    });
-  });
-
-  // ── Stage helpers ──────────────────────────────────────────────────────────
-
-  describe("stagePlacement", function () {
-    test("adds a pending placement to _placements", function () {
-      var ctx = loadStaged();
-      ctx.Staged.stagePlacement(1, "LifeBaptism", "Life");
-      assert.equal(ctx.Staged._placements.length, 1);
-      assert.equal(ctx.Staged._placements[0].id, 1);
-      assert.equal(ctx.Staged._placements[0].timeline_period, "LifeBaptism");
-      assert.equal(ctx.Staged._placements[0].timeline_era, "Life");
-    });
-
-    test("accumulates multiple placements", function () {
-      var ctx = loadStaged();
-      ctx.Staged.stagePlacement(1, "LifeBaptism", "Life");
-      ctx.Staged.stagePlacement(2, "PassionPalmSunday", "PassionWeek");
-      assert.equal(ctx.Staged._placements.length, 2);
-      assert.equal(ctx.Staged._placements[0].id, 1);
-      assert.equal(ctx.Staged._placements[1].id, 2);
-    });
-
-    test("does not affect _moves or _unassigns", function () {
-      var ctx = loadStaged();
-      ctx.Staged.stagePlacement(1, "LifeBaptism", "Life");
-      assert.equal(ctx.Staged._moves.length, 0);
-      assert.equal(ctx.Staged._unassigns.length, 0);
-    });
-  });
-
-  // ── stageMove ──────────────────────────────────────────────────────────────
-
-  describe("stageMove", function () {
-    test("adds a pending move to _moves", function () {
-      var ctx = loadStaged();
-      ctx.Staged.stageMove(10, "PassionFridayDeath");
-      assert.equal(ctx.Staged._moves.length, 1);
-      assert.equal(ctx.Staged._moves[0].id, 10);
-      assert.equal(ctx.Staged._moves[0].timeline_period, "PassionFridayDeath");
-    });
-
-    test("accumulates moves for different ids", function () {
-      var ctx = loadStaged();
-      ctx.Staged.stageMove(10, "EarlyLifeBirth");
-      ctx.Staged.stageMove(20, "Ascension");
-      assert.equal(ctx.Staged._moves.length, 2);
-    });
-
-    test("replaces prior move for same id", function () {
-      var ctx = loadStaged();
-      ctx.Staged.stageMove(10, "EarlyLifeBirth");
-      ctx.Staged.stageMove(10, "LifeTradie");
-      assert.equal(ctx.Staged._moves.length, 1);
-      assert.equal(ctx.Staged._moves[0].timeline_period, "LifeTradie");
-    });
-
-    test("does not affect _placements or _unassigns", function () {
-      var ctx = loadStaged();
-      ctx.Staged.stageMove(10, "LifeBaptism");
-      assert.equal(ctx.Staged._placements.length, 0);
-      assert.equal(ctx.Staged._unassigns.length, 0);
-    });
-  });
-
-  // ── stageUnassign ──────────────────────────────────────────────────────────
-
-  describe("stageUnassign", function () {
-    test("adds a pending unassignment to _unassigns", function () {
-      var ctx = loadStaged();
-      ctx.Staged.stageUnassign(99);
-      assert.equal(ctx.Staged._unassigns.length, 1);
-      assert.equal(ctx.Staged._unassigns[0].id, 99);
-    });
-
-    test("accumulates multiple unassignments", function () {
-      var ctx = loadStaged();
-      ctx.Staged.stageUnassign(1);
-      ctx.Staged.stageUnassign(2);
-      ctx.Staged.stageUnassign(3);
-      assert.equal(ctx.Staged._unassigns.length, 3);
-    });
-
-    test("does not affect _placements or _moves", function () {
-      var ctx = loadStaged();
-      ctx.Staged.stageUnassign(1);
-      assert.equal(ctx.Staged._placements.length, 0);
-      assert.equal(ctx.Staged._moves.length, 0);
     });
   });
 
@@ -229,35 +132,11 @@ describe("AdminTimelineStaged", function () {
       assert.equal(ctx.Staged.pendingCount(), 0);
     });
 
-    test("reflects placements", function () {
+    test("counts one item per staged node", function () {
       var ctx = loadStaged();
-      ctx.Staged.stagePlacement(1, "LifeBaptism", "Life");
-      ctx.Staged.stagePlacement(2, "OldTestament", "OldTestament");
+      ctx.Staged.stageOffset(1, 0.1, 0.1);
+      ctx.Staged.stageOffset(2, 0.2, 0.2);
       assert.equal(ctx.Staged.pendingCount(), 2);
-    });
-
-    test("reflects moves", function () {
-      var ctx = loadStaged();
-      ctx.Staged.stageMove(10, "PassionFridayDeath");
-      ctx.Staged.stageMove(20, "Ascension");
-      assert.equal(ctx.Staged.pendingCount(), 2);
-    });
-
-    test("reflects unassignments", function () {
-      var ctx = loadStaged();
-      ctx.Staged.stageUnassign(1);
-      ctx.Staged.stageUnassign(2);
-      ctx.Staged.stageUnassign(3);
-      assert.equal(ctx.Staged.pendingCount(), 3);
-    });
-
-    test("reflects all three collections combined", function () {
-      var ctx = loadStaged();
-      ctx.Staged.stagePlacement(1, "LifeBaptism", "Life");
-      ctx.Staged.stageMove(10, "Ascension");
-      ctx.Staged.stageUnassign(99);
-      // 1 placement + 1 move + 1 unassign = 3
-      assert.equal(ctx.Staged.pendingCount(), 3);
     });
   });
 
@@ -269,13 +148,13 @@ describe("AdminTimelineStaged", function () {
 
     test("returns true when pendingCount > 0", function () {
       var ctx = loadStaged();
-      ctx.Staged.stagePlacement(1, "LifeBaptism", "Life");
+      ctx.Staged.stageOffset(1, 0.1, 0.1);
       assert.equal(ctx.Staged.hasChanges(), true);
     });
 
-    test("returns false after all collections are cleared", function () {
+    test("returns false after clear", function () {
       var ctx = loadStaged();
-      ctx.Staged.stagePlacement(1, "LifeBaptism", "Life");
+      ctx.Staged.stageOffset(1, 0.1, 0.1);
       ctx.Staged.clear();
       assert.equal(ctx.Staged.hasChanges(), false);
     });
@@ -284,50 +163,20 @@ describe("AdminTimelineStaged", function () {
   // ── save ───────────────────────────────────────────────────────────────────
 
   describe("save", function () {
-    test("removes successfully persisted placements", async function () {
+    test("removes successfully persisted offsets", async function () {
       var ctx = loadStaged({
         saveEvent: async function () {
           /* all succeed */
         },
       });
-      ctx.Staged.stagePlacement(1, "LifeBaptism", "Life");
-      ctx.Staged.stagePlacement(2, "Ascension", "Post-Passion");
+      ctx.Staged.stageOffset(1, 0.1, 0.1);
+      ctx.Staged.stageOffset(2, 0.2, 0.2);
 
       var result = await ctx.Staged.save();
 
       assert.equal(result.failed.length, 0);
-      assert.equal(ctx.Staged._placements.length, 0);
+      assert.equal(ctx.Staged._offsets.length, 0);
       assert.equal(ctx.Staged.pendingCount(), 0);
-    });
-
-    test("removes successfully persisted moves", async function () {
-      var ctx = loadStaged({
-        saveEvent: async function () {
-          /* all succeed */
-        },
-      });
-      ctx.Staged.stageMove(10, "LifeBaptism");
-      ctx.Staged.stageMove(20, "Ascension");
-
-      var result = await ctx.Staged.save();
-
-      assert.equal(result.failed.length, 0);
-      assert.equal(ctx.Staged._moves.length, 0);
-    });
-
-    test("removes successfully persisted unassignments", async function () {
-      var ctx = loadStaged({
-        saveEvent: async function () {
-          /* all succeed */
-        },
-      });
-      ctx.Staged.stageUnassign(1);
-      ctx.Staged.stageUnassign(2);
-
-      var result = await ctx.Staged.save();
-
-      assert.equal(result.failed.length, 0);
-      assert.equal(ctx.Staged._unassigns.length, 0);
     });
 
     test("keeps failed items and reports them", async function () {
@@ -337,61 +186,18 @@ describe("AdminTimelineStaged", function () {
           if (id === 2) throw new Error("Simulated failure");
         },
       });
-      ctx.Staged.stagePlacement(1, "LifeBaptism", "Life");
-      ctx.Staged.stagePlacement(2, "PassionPalmSunday", "PassionWeek");
-      ctx.Staged.stagePlacement(3, "Ascension", "Post-Passion");
+      ctx.Staged.stageOffset(1, 0.1, 0.1);
+      ctx.Staged.stageOffset(2, 0.2, 0.2);
+      ctx.Staged.stageOffset(3, 0.3, 0.3);
 
       var result = await ctx.Staged.save();
 
-      // 2 is the only failure
       assert.equal(result.failed.length, 1);
       assert.equal(result.failed[0].id, 2);
-
-      // 1 and 3 should be removed; 2 remains
-      assert.equal(ctx.Staged._placements.length, 1);
-      assert.equal(ctx.Staged._placements[0].id, 2);
+      assert.equal(ctx.Staged._offsets.length, 1);
+      assert.equal(ctx.Staged._offsets[0].id, 2);
       assert.equal(ctx.Staged.pendingCount(), 1);
       assert.equal(ctx.Staged.hasChanges(), true);
-    });
-
-    test("keeps failed moves while removing successful ones", async function () {
-      var ctx = loadStaged({
-        saveEvent: async function (id) {
-          if (id === 20) throw new Error("Move failed");
-        },
-      });
-      ctx.Staged.stageMove(10, "EarlyLifeBirth");
-      ctx.Staged.stageMove(20, "Ascension");
-
-      var result = await ctx.Staged.save();
-
-      assert.equal(result.failed.length, 1);
-      assert.equal(ctx.Staged._moves.length, 1);
-      assert.equal(ctx.Staged._moves[0].id, 20);
-    });
-
-    test("mixed collections — partial failure across types", async function () {
-      var ctx = loadStaged({
-        saveEvent: async function (id) {
-          if (id === 2 || id === 20) throw new Error("Partial failure");
-        },
-      });
-      ctx.Staged.stagePlacement(1, "LifeBaptism", "Life");
-      ctx.Staged.stagePlacement(2, "GalileeCallingTwelve", "GalileeMinistry");
-      ctx.Staged.stageMove(10, "Ascension");
-      ctx.Staged.stageMove(20, "PassionFridayDeath");
-      ctx.Staged.stageUnassign(99);
-
-      var result = await ctx.Staged.save();
-
-      // 2 placements, 2 moves, 1 unassign → 2 failed (id 2 and 20)
-      assert.equal(result.failed.length, 2);
-
-      // Remaining: placement #2, move #20
-      assert.equal(ctx.Staged.pendingCount(), 2);
-      assert.equal(ctx.Staged._placements.length, 1);
-      assert.equal(ctx.Staged._moves.length, 1);
-      assert.equal(ctx.Staged._unassigns.length, 0);
     });
 
     test("returns early when nothing is staged", async function () {
@@ -407,7 +213,7 @@ describe("AdminTimelineStaged", function () {
           /* succeed */
         },
       });
-      ctx.Staged.stagePlacement(1, "LifeBaptism", "Life");
+      ctx.Staged.stageOffset(1, 0.1, 0.1);
 
       // Button starts enabled
       assert.equal(ctx.mockBtn.disabled, false);
@@ -456,8 +262,8 @@ describe("AdminTimelineStaged", function () {
           if (id === 2) throw new Error("Failed");
         },
       });
-      ctx.Staged.stagePlacement(1, "LifeBaptism", "Life");
-      ctx.Staged.stagePlacement(2, "PassionPalmSunday", "PassionWeek");
+      ctx.Staged.stageOffset(1, 0.1, 0.1);
+      ctx.Staged.stageOffset(2, 0.2, 0.2);
 
       await ctx.Staged.save();
 
@@ -476,7 +282,7 @@ describe("AdminTimelineStaged", function () {
           toastCalls.push({ msg: msg, level: level });
         },
       });
-      ctx.Staged.stagePlacement(1, "LifeBaptism", "Life");
+      ctx.Staged.stageOffset(1, 0.1, 0.1);
 
       await ctx.Staged.save();
 
@@ -499,7 +305,7 @@ describe("AdminTimelineStaged", function () {
       vm.runInNewContext(stagedSource, s.sandbox);
       var Staged = s.sandbox.window.AdminTimelineStaged;
 
-      Staged.stagePlacement(1, "LifeBaptism", "Life");
+      Staged.stageOffset(1, 0.1, 0.1);
       await Staged.save();
 
       assert.equal(eventsCalls.count, 1);
@@ -518,23 +324,19 @@ describe("AdminTimelineStaged", function () {
       vm.runInNewContext(stagedSource, s.sandbox);
       var Staged = s.sandbox.window.AdminTimelineStaged;
 
-      Staged.stagePlacement(1, "LifeBaptism", "Life");
+      Staged.stageOffset(1, 0.1, 0.1);
       await Staged.save();
 
       assert.equal(eventsCalls.count, 0);
     });
 
-    test("clear empties all three collections", function () {
+    test("clear empties the staged offsets", function () {
       var ctx = loadStaged();
-      ctx.Staged.stagePlacement(1, "LifeBaptism", "Life");
-      ctx.Staged.stageMove(10, "Ascension");
-      ctx.Staged.stageUnassign(99);
+      ctx.Staged.stageOffset(1, 0.1, 0.1);
 
       ctx.Staged.clear();
 
-      assert.equal(ctx.Staged._placements.length, 0);
-      assert.equal(ctx.Staged._moves.length, 0);
-      assert.equal(ctx.Staged._unassigns.length, 0);
+      assert.equal(ctx.Staged._offsets.length, 0);
       assert.equal(ctx.Staged.pendingCount(), 0);
     });
 

@@ -91,6 +91,8 @@ window.AdminTimelineTransform = {};
     var eraCentreX = (bounds.minX + bounds.maxX) / 2;
     return {
       panX: viewportWidth / 2 - eraCentreX * scale,
+      // 0 because the world has no vertical era bounds: the dots sit around a
+      // fixed spine. The public timeline-transform.js returns the same 0.
       panY: 0,
     };
   };

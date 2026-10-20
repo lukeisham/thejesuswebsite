@@ -30,7 +30,9 @@
  * (cluster-logic-bridge/timeline-bridge.js: density, placement, labels, label
  * layout, offsets, era heading placement) and AdminTimelineGeometry. All of
  * them load before this file (admin/diagrams/timeline.html).
- * `UpdateRecord.saveEvent` (update-record.js) saves edits.
+ * `UpdateRecord.saveEvent` (update-record.js) saves edits. The `era--<kebab>`
+ * suffix comes from `AdminEraUtils.eraToKebab` (admin-era-utils.js), loaded
+ * before this file; the era stylesheets name the same class.
  *
  * @module admin-timeline/timeline-events
  */
@@ -292,7 +294,7 @@ function createLabelElement(ev, labelMode, x, topPercent) {
 Events.createEventElement = function (ev, x, y) {
   const el = document.createElement("button");
   // timeline-era-filter.js and the dot CSS select on this class.
-  const eraClass = eraKebab(ev.timeline_era || "");
+  const eraClass = AdminEraUtils.eraToKebab(ev.timeline_era || "");
 
   // Category class hook
   var cat = ev.gospel_category || "";
@@ -485,21 +487,6 @@ let bandTextWidths = {};
 let bandScale = null;
 
 /**
- * Class suffix for an era key: "GalileeMinistry" becomes "galilee-ministry".
- * timeline-era-filter.js builds the same suffix to match the `era--<suffix>`
- * class on the dots and chips; the two must give the same result.
- *
- * @param {string} era
- * @returns {string}
- */
-function eraKebab(era) {
-  return era
-    .replace(/([a-z])([A-Z])/g, "$1-$2")
-    .replace(/\s+/g, "-")
-    .toLowerCase();
-}
-
-/**
  * Build the era heading band at the top of the canvas, outside the zoomed
  * world, and lay it out for the current zoom and pan. The placement comes from
  * `computeEraBandLayout`, the function that the public timeline uses
@@ -534,7 +521,7 @@ Events.renderEraBand = function (rebuild) {
   bandItems = [];
 
   for (const era of eras) {
-    const kebab = eraKebab(era);
+    const kebab = AdminEraUtils.eraToKebab(era);
     const heading = document.createElement("h3");
     heading.className = "admin-timeline-era-heading era--" + kebab;
     heading.textContent = eraLabels[era] || era;

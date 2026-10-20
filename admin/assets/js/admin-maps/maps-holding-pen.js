@@ -4,7 +4,8 @@
  * Renders unplaced evidence as draggable chips above the map canvas.
  * Dropping a chip onto the map stages a new pin locally (no API call).
  * Depends on AdminMapsRender for coordinate conversion and AdminMapsStaged
- * for the staged-changes store.
+ * for the staged-changes store, and on `AdminEraUtils.eraToKebab`
+ * (admin-era-utils.js) for the chip's `era--<kebab>` class.
  *
  * @module admin-maps/maps-holding-pen
  */
@@ -163,7 +164,7 @@ HoldingPen.createChip = function (evidence) {
     const swatch = document.createElement("span");
     swatch.className =
       "holding-pen__chip-swatch era-swatch--" +
-      AdminMapsEraUtils.eraToKebab(evidence.timeline_era);
+      AdminEraUtils.eraToKebab(evidence.timeline_era);
     chip.appendChild(swatch);
   }
 

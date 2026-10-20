@@ -40,7 +40,11 @@
         color: var(--color-black);
     }
 
-    .timeline-dot {
+    /* Era dots print black. The :not() lifts this above the era colour rules
+       in timeline-dots.css (.timeline-dot.era--*) without depending on load
+       order, and leaves the person, place and object dots their own print
+       marks (roundel ring, grey), so a reader can still tell them apart. */
+    .timeline-container .timeline-dot:not(.dot-cat--place, .dot-cat--person, .dot-cat--object) {
         background: var(--color-black);
         border-color: var(--color-white);
     }

@@ -6,21 +6,18 @@
  * one event's title and era through `Events.onSaveEvent`) flushes in one go.
  * `admin/diagrams/timeline.html` wires that button to `save()`.
  *
- * The only production caller that stages a change is timeline-node-drag.js,
- * which calls `stageOffset` when a dot is dropped. `stagePlacement`,
- * `stageMove` and `stageUnassign` have no caller outside
- * admin/tests/admin-timeline-staged.test.js. timeline-events.js reads
- * `getOffset` so a dot that was dropped but not yet saved keeps its place when
- * the canvas re-renders.
+ * The only caller that stages a change is timeline-node-drag.js, which calls
+ * `stageOffset` when a dot is dropped. timeline-events.js reads `getOffset` so
+ * a dot that was dropped but not yet saved keeps its place when the canvas
+ * re-renders.
  *
  * Each item is saved with `UpdateRecord.saveEvent` (admin/assets/js/update-record.js),
  * which sends `PUT /evidence/:id`; `validateOffsets` in api/models/evidence.model.js
  * clamps the offsets there (x to -0.5..0.5, y to -0.4..0.4). After a save with no
  * failures the store calls `AdminTimelineEvents.loadEvents` to redraw the canvas.
  *
- * Four collections (placements, moves, unassigns, offsets) are saved separately;
- * `pendingCount` / `hasChanges` sum them and drive the save button's label and
- * enabled state.
+ * `pendingCount` / `hasChanges` count the staged offsets and drive the save
+ * button's label and enabled state.
  *
  * @module admin-timeline/timeline-staged-changes
  */
@@ -30,15 +27,6 @@ window.AdminTimelineStaged = {};
   var Staged = window.AdminTimelineStaged;
 
   /* ── Internal state ─────────────────────────────────────────────────────── */
-
-  /** @type {Array<{id: number, timeline_period: string, timeline_era: string}>} */
-  var _placements = [];
-
-  /** @type {Array<{id: number, timeline_period: string}>} */
-  var _moves = [];
-
-  /** @type {Array<{id: number}>} */
-  var _unassigns = [];
 
   /** @type {Array<{id: number, timeline_offset_x: number, timeline_offset_y: number}>} */
   var _offsets = [];
@@ -67,14 +55,12 @@ window.AdminTimelineStaged = {};
   /* ── Public helpers ─────────────────────────────────────────────────────── */
 
   /**
-   * Total staged items across all four collections.
+   * Total staged items.
    *
    * @returns {number}
    */
   Staged.pendingCount = function () {
-    return (
-      _placements.length + _moves.length + _unassigns.length + _offsets.length
-    );
+    return _offsets.length;
   };
 
   /**
@@ -87,52 +73,6 @@ window.AdminTimelineStaged = {};
   };
 
   /* ── Stage helpers ──────────────────────────────────────────────────────── */
-
-  /**
-   * Stage a new placement (evidence without a period gets one).
-   * Not de-duplicated: staging the same id twice saves it twice.
-   *
-   * @param {number} id  evidence id
-   * @param {string} period  timeline_period value
-   * @param {string} era  timeline_era value
-   * @returns {void}
-   */
-  Staged.stagePlacement = function (id, period, era) {
-    _placements.push({ id: id, timeline_period: period, timeline_era: era });
-    refreshSaveButton();
-  };
-
-  /**
-   * Stage a period move for an already-placed event.
-   * Replaces any prior move for the same id (last move wins).
-   *
-   * @param {number} id  evidence id
-   * @param {string} period  timeline_period value
-   * @returns {void}
-   */
-  Staged.stageMove = function (id, period) {
-    for (var i = 0; i < _moves.length; i++) {
-      if (_moves[i].id === id) {
-        _moves[i].timeline_period = period;
-        refreshSaveButton();
-        return;
-      }
-    }
-    _moves.push({ id: id, timeline_period: period });
-    refreshSaveButton();
-  };
-
-  /**
-   * Stage an unassignment: saving sets the event's timeline_period to null.
-   * Not de-duplicated: staging the same id twice saves it twice.
-   *
-   * @param {number} id  evidence id
-   * @returns {void}
-   */
-  Staged.stageUnassign = function (id) {
-    _unassigns.push({ id: id });
-    refreshSaveButton();
-  };
 
   /**
    * Stage a placement offset adjustment for an already-placed event.
@@ -233,39 +173,6 @@ window.AdminTimelineStaged = {};
 
     var failed = [];
 
-    _placements = await saveCollection(
-      _placements,
-      "placements",
-      function (p) {
-        return {
-          timeline_period: p.timeline_period,
-          timeline_era: p.timeline_era,
-        };
-      },
-      failed,
-    );
-    Staged._placements = _placements;
-
-    _moves = await saveCollection(
-      _moves,
-      "moves",
-      function (m) {
-        return { timeline_period: m.timeline_period };
-      },
-      failed,
-    );
-    Staged._moves = _moves;
-
-    _unassigns = await saveCollection(
-      _unassigns,
-      "unassigns",
-      function () {
-        return { timeline_period: null };
-      },
-      failed,
-    );
-    Staged._unassigns = _unassigns;
-
     _offsets = await saveCollection(
       _offsets,
       "offsets",
@@ -332,18 +239,12 @@ window.AdminTimelineStaged = {};
    * @returns {void}
    */
   Staged.clear = function () {
-    _placements.length = 0;
-    _moves.length = 0;
-    _unassigns.length = 0;
     _offsets.length = 0;
     refreshSaveButton();
   };
 
   /* ── Internals read by the tests ────────────────────────────────────────── */
 
-  Staged._placements = _placements;
-  Staged._moves = _moves;
-  Staged._unassigns = _unassigns;
   Staged._offsets = _offsets;
 
   // The toolbar markup ships an enabled button; this disables it until something is staged.

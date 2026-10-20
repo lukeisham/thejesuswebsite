@@ -9,8 +9,10 @@
  *
  * A dot belongs to an era by its `era--<kebab>` class, which
  * timeline-events.js sets in `createEventElement`; the chips carry the same
- * class. A label belongs to the dot with the same `data-event-id`. Labels are
- * siblings of the dots in #timeline-axis, not children.
+ * class. Both build the suffix with `AdminEraUtils.eraToKebab`
+ * (admin-era-utils.js, loaded earlier), so the two always match. A label
+ * belongs to the dot with the same `data-event-id`. Labels are siblings of the
+ * dots in #timeline-axis, not children.
  *
  * Every `AdminTimelineEvents.renderEvents` makes new dots, so it calls
  * `reapplyFilter` at its end. Without that call the fade is lost while the chip
@@ -70,10 +72,7 @@ EraFilter.init = function () {
   for (var i = 0; i < eraOrder.length; i++) {
     var era = eraOrder[i];
     var label = eraLabels[era] || era;
-    var eraKebab = era
-      .replace(/([a-z])([A-Z])/g, "$1-$2")
-      .replace(/\s+/g, "-")
-      .toLowerCase();
+    var eraKebab = AdminEraUtils.eraToKebab(era);
 
     var chip = document.createElement("button");
     chip.className = "admin-timeline-era-filter__chip era--" + eraKebab;
@@ -107,11 +106,7 @@ EraFilter.init = function () {
  */
 EraFilter.applyFilter = function (era) {
   const eraClass = era
-    ? "era--" +
-      era
-        .replace(/([a-z])([A-Z])/g, "$1-$2")
-        .replace(/\s+/g, "-")
-        .toLowerCase()
+    ? "era--" + AdminEraUtils.eraToKebab(era)
     : null;
 
   const labelByEventId = new Map();
@@ -153,10 +148,7 @@ EraFilter._highlightChip = function (container, era) {
     // The first chip is "All Eras" (built first in init).
     chips[0].classList.add("admin-timeline-era-filter__chip--active");
   } else {
-    var eraKebab = era
-      .replace(/([a-z])([A-Z])/g, "$1-$2")
-      .replace(/\s+/g, "-")
-      .toLowerCase();
+    var eraKebab = AdminEraUtils.eraToKebab(era);
     var target = container.querySelector(".era--" + eraKebab);
     if (target) target.classList.add("admin-timeline-era-filter__chip--active");
   }

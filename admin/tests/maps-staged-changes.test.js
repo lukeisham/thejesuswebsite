@@ -1,9 +1,7 @@
-// maps-era-utils.test.js — Tests for the shared era-utils helper and
-// staged-changes pure-logic functions. Uses node:test + node:assert with
-// vm sandboxing to load the browser-targeted modules.
+// maps-staged-changes.test.js — Tests for the staged-changes pure-logic functions.
+// Uses node:test + node:assert with vm sandboxing to load the browser-targeted modules.
 //
 // Tested functions:
-//   - AdminMapsEraUtils.eraToKebab(era)
 //   - AdminMapsStaged.stageCreate / .stageMove / .getCreates / .getMoves
 //     / .count / .hasChanges
 
@@ -40,18 +38,6 @@ function createSandbox() {
   };
 }
 
-// ── Load maps-era-utils.js ──────────────────────────────────────────────────
-
-const eraUtilsPath = path.resolve(
-  __dirname,
-  "..",
-  "assets",
-  "js",
-  "admin-maps",
-  "maps-era-utils.js",
-);
-const eraUtilsSource = fs.readFileSync(eraUtilsPath, "utf8");
-
 // ── Load maps-staged-changes.js ─────────────────────────────────────────────
 
 const stagedPath = path.resolve(
@@ -65,60 +51,6 @@ const stagedPath = path.resolve(
 const stagedSource = fs.readFileSync(stagedPath, "utf8");
 
 // ═══════════════════════════════════════════════════════════════════════════
-// eraToKebab
-// ═══════════════════════════════════════════════════════════════════════════
-
-describe("AdminMapsEraUtils.eraToKebab", () => {
-  let eraToKebab;
-
-  beforeEach(() => {
-    const sandbox = createSandbox();
-    vm.runInNewContext(eraUtilsSource, sandbox);
-    eraToKebab = sandbox.window.AdminMapsEraUtils.eraToKebab;
-  });
-
-  test("converts simple CamelCase", () => {
-    assert.equal(eraToKebab("EarlyLife"), "early-life");
-  });
-
-  test("converts multi-word CamelCase", () => {
-    assert.equal(eraToKebab("GalileeMinistry"), "galilee-ministry");
-  });
-
-  test("converts consecutive capitals (e.g. OTVerses)", () => {
-    assert.equal(eraToKebab("OTVerses"), "ot-verses");
-  });
-
-  test("converts PassionWeek → passion-week", () => {
-    assert.equal(eraToKebab("PassionWeek"), "passion-week");
-  });
-
-  test("converts PostPassion → post-passion", () => {
-    assert.equal(eraToKebab("PostPassion"), "post-passion");
-  });
-
-  test("converts PreIncarnation → pre-incarnation", () => {
-    assert.equal(eraToKebab("PreIncarnation"), "pre-incarnation");
-  });
-
-  test("converts OldTestament → old-testament", () => {
-    assert.equal(eraToKebab("OldTestament"), "old-testament");
-  });
-
-  test("converts JudeanMinistry → judean-ministry", () => {
-    assert.equal(eraToKebab("JudeanMinistry"), "judean-ministry");
-  });
-
-  test("returns already-lowercase string as lowercase", () => {
-    assert.equal(eraToKebab("galilee"), "galilee");
-  });
-
-  test("handles empty string", () => {
-    assert.equal(eraToKebab(""), "");
-  });
-});
-
-// ═══════════════════════════════════════════════════════════════════════════
 // AdminMapsStaged — pure staged-changes logic
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -127,7 +59,6 @@ describe("AdminMapsStaged", () => {
 
   beforeEach(() => {
     const sandbox = createSandbox();
-    vm.runInNewContext(eraUtilsSource, sandbox);
     vm.runInNewContext(stagedSource, sandbox);
     Staged = sandbox.window.AdminMapsStaged;
   });

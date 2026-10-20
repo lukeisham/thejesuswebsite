@@ -11,13 +11,19 @@
 
 /* ── Page Shell ────────────────────────────────────────────────────────── */
 
-html,
-body {
+/* admin.css imports this file on every admin page, so the full-height flex
+   shell is scoped to `.admin-diagram-page`, a class on the <body> of the
+   diagram editors only (timeline.html, maps.html, arbor.html). A bare
+   html, body or main rule here would reshape every other admin page. The
+   `:root:has()` rule gives <html> the height that the body's 100% needs. */
+
+:root:has(> .admin-diagram-page) {
     height: 100%;
-    margin: 0;
 }
 
-body {
+.admin-diagram-page {
+    height: 100%;
+    margin: 0;
     display: flex;
     flex-direction: column;
 }
@@ -28,8 +34,10 @@ body {
    child of a flex container. As a block, the canvas shrinks to the axis
    min-height (CANVAS_HEIGHT_PX in admin-timeline/timeline-geometry.js, set
    inline by AdminTimelineAxis) and its `overflow: hidden` clips every dot
-   below the vertical midpoint. */
-main {
+   below the vertical midpoint. The arbor editor's canvas needs the same.
+   `:where()` keeps the specificity of a bare `main`, so a page class such as
+   `.admin-map-editor-canvas` still sets its own `display`. */
+:where(.admin-diagram-page) main {
     display: flex;
     flex-direction: column;
     flex: 1;

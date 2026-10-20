@@ -6,7 +6,9 @@
  * (JS-6); the panel close button, document click and Escape key use direct
  * listeners.
  *
- * Zoom and pan live in timeline-zoom.js, which `renderTimeline` mounts.
+ * Zoom and pan live in timeline-zoom.js, which `renderTimeline` mounts. The
+ * key and pointer-type tests are in timeline-input-guards.js, which a test can
+ * import because this module wires the page on load.
  * The element ids read in `init` (`timeline-container`, `timeline-tooltip`,
  * `detail-panel`, `detail-*`, `era-filters`) are in the markup of every
  * timeline page; renaming one there silences the matching feature.
@@ -28,6 +30,7 @@ import {
   initialEra,
 } from "./timeline-render.js";
 import { fetchTimelineEvents, groupEventsByPeriod } from "./timeline-data.js";
+import { isActivationKey, isMousePointer } from "./timeline-input-guards.js";
 import { showToast } from "../utils/toasts.js";
 import { readEmbeddedData } from "../api.js";
 import { announce } from "../utils/announce.js";
@@ -78,7 +81,7 @@ let tooltipTimer = null;
  * of its children. `mouseenter`/`mouseleave` do not bubble, so delegation
  * listens for `mouseover`/`mouseout`, which fire again on every child.
  *
- * @param {MouseEvent} e - a `mouseover` or `mouseout` event
+ * @param {MouseEvent|PointerEvent} e - a `mouseover`, `mouseout`, `pointerover` or `pointerout` event
  * @param {Element} dot - the matched `.timeline-dot`
  * @returns {boolean}
  */
@@ -89,7 +92,7 @@ function crossesDotBoundary(e, dot) {
 /**
  * Fill the tooltip for a dot, show it and place it at the pointer.
  *
- * @param {MouseEvent|TouchEvent} e
+ * @param {PointerEvent} e
  * @param {HTMLElement} dot
  */
 function showTooltip(e, dot) {
@@ -114,22 +117,20 @@ function showTooltip(e, dot) {
 /**
  * Place the shown tooltip beside the pointer, flipped to stay inside the
  * viewport. Called on every mouse move, so it only writes `left` and `top`.
- * A `TouchEvent` has no `clientX`/`clientY`; its first touch point carries them.
  *
- * @param {MouseEvent|TouchEvent} e
+ * @param {MouseEvent|PointerEvent} e
  */
 function positionTooltip(e) {
   const padding = 12;
-  const point = e.touches?.[0] ?? e;
-  let left = point.clientX + padding;
-  let top = point.clientY + padding;
+  let left = e.clientX + padding;
+  let top = e.clientY + padding;
 
   const rect = tooltipEl.getBoundingClientRect();
   if (left + rect.width > window.innerWidth) {
-    left = point.clientX - rect.width - padding;
+    left = e.clientX - rect.width - padding;
   }
   if (top + rect.height > window.innerHeight) {
-    top = point.clientY - rect.height - padding;
+    top = e.clientY - rect.height - padding;
   }
 
   tooltipEl.style.left = `${left}px`;
@@ -332,32 +333,24 @@ async function loadAndRender() {
  * from the container, so the dots that `renderTimeline` redraws keep working.
  */
 function wireDotInteractions() {
-  // Tooltip: `mouseover`/`mouseout` because `mouseenter`/`mouseleave` do not
-  // bubble to a delegating root.
-  delegate(container, ".timeline-dot", "mouseover", (e, dot) => {
-    if (!crossesDotBoundary(e, dot)) return;
+  // Tooltip: a real mouse only (isMousePointer), so a tap opens the detail
+  // panel without a tooltip. `pointerover`/`pointerout` because
+  // `pointerenter`/`pointerleave` do not bubble to a delegating root.
+  delegate(container, ".timeline-dot", "pointerover", (e, dot) => {
+    if (!isMousePointer(e) || !crossesDotBoundary(e, dot)) return;
     tooltipTimer = setTimeout(() => showTooltip(e, dot), TOOLTIP_DELAY_MS);
   });
 
-  delegate(container, ".timeline-dot", "mouseout", (e, dot) => {
-    if (!crossesDotBoundary(e, dot)) return;
+  delegate(container, ".timeline-dot", "pointerout", (e, dot) => {
+    if (!isMousePointer(e) || !crossesDotBoundary(e, dot)) return;
     hideTooltip();
   });
 
-  delegate(container, ".timeline-dot", "mousemove", (e) => {
-    if (tooltipEl && !tooltipEl.hidden) {
+  delegate(container, ".timeline-dot", "pointermove", (e) => {
+    if (isMousePointer(e) && tooltipEl && !tooltipEl.hidden) {
       positionTooltip(e);
     }
   });
-
-  delegate(container, ".timeline-dot", "touchstart", (e, dot) => {
-    tooltipTimer = setTimeout(() => showTooltip(e, dot), TOOLTIP_DELAY_MS);
-  });
-
-  delegate(container, ".timeline-dot", "touchend", hideTooltip);
-
-  // A scroll gesture is not a long press.
-  delegate(container, ".timeline-dot", "touchmove", hideTooltip);
 
   delegate(container, ".timeline-dot", "click", (_e, dot) => {
     showDetailPanel(dot);
@@ -365,7 +358,7 @@ function wireDotInteractions() {
   });
 
   delegate(container, ".timeline-dot", "keydown", (e, dot) => {
-    if (e.key === "Enter" || e.key === " ") {
+    if (isActivationKey(e.key)) {
       e.preventDefault(); // Space scrolls the page by default
       showDetailPanel(dot);
       announce(`${dot.dataset.title || "Event"}, details shown`);

@@ -80,6 +80,11 @@ export function getEraWorldBounds(eraKey) {
  *   panX = viewportWidth/2 - eraCentreX * scale
  *   panY = 0
  *
+ * `panY` stays 0 because the world has no vertical era bounds: an era is a
+ * span along the time axis only, and the dots sit around a fixed spine, so
+ * there is no vertical centre to move to. The admin timeline-transform.js
+ * returns the same 0.
+ *
  * @param {string}  eraKey         — canonical era key, or "all"/"All"
  * @param {number}  viewportWidth  — width of the viewport in CSS pixels
  * @param {number}  [scale=1.0]    — desired zoom scale
