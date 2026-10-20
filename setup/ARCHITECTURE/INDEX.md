@@ -135,6 +135,7 @@ git already is one.
 | [`accessibility.md`](accessibility.md) | Heading order, skip link, focus, keyboard controls on the visuals, toasts |
 | [`image-display.md`](image-display.md) | Figures vs thumbnails — the two image patterns, figure numbering, lazy loading |
 | [`esv-api.md`](esv-api.md) | ESV verse proxy and the `data-esv-ref` client contract |
+| [`analytics.md`](analytics.md) | Page-view analytics: what the browser sends, what the server derives, the public write route and the admin reads |
 | [`journal-article-fields.md`](journal-article-fields.md) | Abstract, response strength and footnotes: columns, the `[fn:N]` marker, validation limits shared with the admin |
 | [`timeline.md`](timeline.md) | Timeline: offsets and geometry shared by the editor and the public page, era band, zoom stacks, labels, snapshot |
 | [`arbor.md`](arbor.md) | Arbor: the edge route shared by the editor and the public page |
