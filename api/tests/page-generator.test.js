@@ -135,6 +135,38 @@ describe("generatePage", () => {
     );
   });
 
+  test("output has exactly one <title> and one meta description", () => {
+    seedEvidence({ slug: "one-head", title: "Single Head" });
+
+    const result = generatePage("evidence", "one-head");
+    assert.ok(result.ok);
+
+    const output = fs.readFileSync(result.path, "utf8");
+    assert.equal(output.match(/<title[\s>]/g).length, 1);
+    assert.equal(output.match(/<meta\s+name="description"/g).length, 1);
+  });
+
+  test("no real template carries a <title>, or a description the generator also writes", () => {
+    // The generator writes the <title> for every type, and the description
+    // for types with a descriptionColumn. A static copy in a template would
+    // appear twice in the generated page.
+    for (const config of Object.values(realContentPages.CONTENT_PAGES)) {
+      const template = fs.readFileSync(config.templatePath, "utf8");
+      assert.doesNotMatch(
+        template,
+        /<title[\s>]/,
+        `${config.templatePath} has a static <title>; page-generator.js writes it`,
+      );
+      if (config.descriptionColumn) {
+        assert.doesNotMatch(
+          template,
+          /<meta\s+name="description"/,
+          `${config.templatePath} has a static description; page-generator.js writes it`,
+        );
+      }
+    }
+  });
+
   test("includes escaped OG tags", () => {
     seedEvidence({
       slug: "test-item",

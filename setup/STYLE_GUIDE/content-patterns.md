@@ -115,7 +115,7 @@ A looser, magazine-style layout. Schema type: `schema.org/BlogPosting`.
 - **Reading column**: `--measure-reading-wide` (720px), centered.
 - **Section headings**: `h2` and `h3`, serif, not numbered. `h2` margin top `--space-xl`; `h3` margin top `--space-lg`.
 - **Body text**: `1rem`, `--leading-long`, `--text-primary`.
-- **Pull quotes** (`[pullquote]`, §14): centered, `1.25rem`, italic, `--accent`, no border, margin `--space-xl --space-md`. Blog only.
+- **Pull quotes** (`[pullquote]`, §14): centered, `--text-pull-quote`, italic, `--accent`, no border, margin `--space-xl --space-md`. Blog only.
 - **Citations**: `[mla:N]` shows as `(Author)`, not a superscript. No footnotes.
 - **Bibliography**: `h2.unnumbered` "Bibliography", ordered list in the `.journal-references` style (same as Essay References). Hidden when no source is linked.
 - **Empty state**: "This post is coming soon."

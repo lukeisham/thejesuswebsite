@@ -7,6 +7,7 @@
 
 import { getBlogPostBySlug } from "./api.js";
 import { getSegment } from "./utils/router.js";
+import { requireNode } from "./utils/template-nodes.js";
 import { setSEO } from "./seo.js";
 import { html, raw } from "./utils/templates.js";
 import { numberFigures } from "./utils/figures.js";
@@ -16,18 +17,20 @@ import { formatMlaCitation } from "./utils/mla.js";
 import { renderCreatedEditedLine } from "./utils/date-format.js";
 
 // ─── DOM refs (cached — JS-6) ───────────────────────────────────────────────
+// requireNode warns for an id the template dropped; the `if ($node)` guards below
+// then keep the rest of the page rendering.
 
-const $skeleton = document.getElementById("skeleton-state");
-const $error = document.getElementById("error-state");
-const $empty = document.getElementById("empty-state");
-const $content = document.getElementById("blog-content");
-const $breadcrumbs = document.getElementById("breadcrumbs");
-const $title = document.getElementById("page-h1");
-const $date = document.getElementById("blog-date");
-const $body = document.getElementById("blog-body");
+const $skeleton = requireNode("skeleton-state", "blog-detail");
+const $error = requireNode("error-state", "blog-detail");
+const $empty = requireNode("empty-state", "blog-detail");
+const $content = requireNode("blog-content", "blog-detail");
+const $breadcrumbs = requireNode("breadcrumbs", "blog-detail");
+const $title = requireNode("page-h1", "blog-detail");
+const $date = requireNode("blog-date", "blog-detail");
+const $body = requireNode("blog-body", "blog-detail");
 
-const $bibList = document.getElementById("blog-bibliography-list");
-const $bibSection = document.getElementById("blog-bibliography");
+const $bibList = requireNode("blog-bibliography-list", "blog-detail");
+const $bibSection = requireNode("blog-bibliography", "blog-detail");
 
 // ─── Slug extraction ─────────────────────────────────────────────────────────
 

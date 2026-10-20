@@ -7,26 +7,29 @@
 
 import { getNewsArticleBySlug } from "./api.js";
 import { getSegment } from "./utils/router.js";
+import { requireNode } from "./utils/template-nodes.js";
 import { setSEO } from "./seo.js";
 import { html } from "./utils/templates.js";
 import { renderBadge } from "./utils/templates.js";
 import { showToast } from "./utils/toasts.js";
 
 // ─── DOM refs (cached — JS-6) ───────────────────────────────────────────────
+// requireNode warns for an id the template dropped; the `if ($node)` guards below
+// then keep the rest of the page rendering.
 
-const $skeleton = document.getElementById("skeleton-state");
-const $error = document.getElementById("error-state");
-const $content = document.getElementById("news-content");
+const $skeleton = requireNode("skeleton-state", "news-detail");
+const $error = requireNode("error-state", "news-detail");
+const $content = requireNode("news-content", "news-detail");
 // Content regions
-const $backLink = document.getElementById("news-back-link");
-const $title = document.getElementById("page-h1");
-const $meta = document.getElementById("news-meta");
-const $sourceLink = document.getElementById("news-source-link");
-const $externalLink = document.getElementById("news-external-link");
-const $sourceName = document.getElementById("news-source-name");
-const $summary = document.getElementById("news-summary");
-const $keywordsSection = document.getElementById("news-keywords");
-const $keywordsItems = document.getElementById("news-keywords-items");
+const $backLink = requireNode("news-back-link", "news-detail");
+const $title = requireNode("page-h1", "news-detail");
+const $meta = requireNode("news-meta", "news-detail");
+const $sourceLink = requireNode("news-source-link", "news-detail");
+const $externalLink = requireNode("news-external-link", "news-detail");
+const $sourceName = requireNode("news-source-name", "news-detail");
+const $summary = requireNode("news-summary", "news-detail");
+const $keywordsSection = requireNode("news-keywords", "news-detail");
+const $keywordsItems = requireNode("news-keywords-items", "news-detail");
 
 // ─── Slug extraction ─────────────────────────────────────────────────────────
 

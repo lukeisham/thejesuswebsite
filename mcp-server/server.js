@@ -42,7 +42,8 @@ const toolModules = [
 /**
  * Makes a GET request to the upstream API and returns parsed JSON.
  * Throws on network failure or non-2xx responses so callers get a clean
- * MCP error result rather than an unhandled rejection.
+ * MCP error result rather than an unhandled rejection. The thrown Error
+ * carries the HTTP status as `status`.
  *
  * @param {string} path - URL path with leading slash (e.g. "/search?q=term").
  * @returns {Promise<object>} Parsed JSON body.
@@ -63,9 +64,13 @@ export async function apiRequest(path) {
     } catch {
       // ignore — fall through with status-only message.
     }
-    throw new Error(
+    // tools/get*BySlug.js and getMapData.js branch on error.status to turn a
+    // 404 into their not-found result; keep it a number.
+    const error = new Error(
       `Upstream API returned ${res.status}${detail ? `: ${detail}` : ""}`,
     );
+    error.status = res.status;
+    throw error;
   }
 
   return res.json();

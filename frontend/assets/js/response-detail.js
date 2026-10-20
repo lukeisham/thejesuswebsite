@@ -8,6 +8,7 @@
 
 import { getResponseBySlug } from "./api.js";
 import { getSegment } from "./utils/router.js";
+import { requireNode } from "./utils/template-nodes.js";
 import { setSEO } from "./seo.js";
 import { html, raw } from "./utils/templates.js";
 import { renderBadge } from "./utils/templates.js";
@@ -19,43 +20,45 @@ import { formatMlaCitation } from "./utils/mla.js";
 import { renderCreatedEditedLine } from "./utils/date-format.js";
 
 // ─── DOM refs (cached — JS-6) ───────────────────────────────────────────────
+// requireNode warns for an id the template dropped; the `if ($node)` guards below
+// then keep the rest of the page rendering.
 
-const $skeleton = document.getElementById("skeleton-state");
-const $error = document.getElementById("error-state");
-const $empty = document.getElementById("empty-state");
-const $content = document.getElementById("response-content");
-const $h1 = document.getElementById("page-h1");
-const $breadcrumbs = document.getElementById("breadcrumbs");
+const $skeleton = requireNode("skeleton-state", "response-detail");
+const $error = requireNode("error-state", "response-detail");
+const $empty = requireNode("empty-state", "response-detail");
+const $content = requireNode("response-content", "response-detail");
+const $h1 = requireNode("page-h1", "response-detail");
+const $breadcrumbs = requireNode("breadcrumbs", "response-detail");
 
 // Title block
-const $title = document.getElementById("response-title");
-const $author = document.getElementById("response-author");
-const $authorBio = document.getElementById("response-author-bio");
-const $date = document.getElementById("response-date");
-const $doi = document.getElementById("response-doi");
+const $title = requireNode("response-title", "response-detail");
+const $author = requireNode("response-author", "response-detail");
+const $authorBio = requireNode("response-author-bio", "response-detail");
+const $date = requireNode("response-date", "response-detail");
+const $doi = requireNode("response-doi", "response-detail");
 
 // Abstract & keywords
-const $abstract = document.getElementById("response-abstract");
-const $abstractBody = document.getElementById("response-abstract-body");
-const $keywords = document.getElementById("response-keywords");
-const $keywordsList = document.getElementById("response-keywords-list");
+const $abstract = requireNode("response-abstract", "response-detail");
+const $abstractBody = requireNode("response-abstract-body", "response-detail");
+const $keywords = requireNode("response-keywords", "response-detail");
+const $keywordsList = requireNode("response-keywords-list", "response-detail");
 
 // Challenge reference
-const $challengeRef = document.getElementById("response-challenge-ref");
-const $challengeLink = document.getElementById("response-challenge-link");
+const $challengeRef = requireNode("response-challenge-ref", "response-detail");
+const $challengeLink = requireNode("response-challenge-link", "response-detail");
 
 // Strength indicator
-const $strength = document.getElementById("response-strength");
-const $strengthDots = document.getElementById("response-strength-dots");
+const $strength = requireNode("response-strength", "response-detail");
+const $strengthDots = requireNode("response-strength-dots", "response-detail");
 
 // Body
-const $body = document.getElementById("response-body");
+const $body = requireNode("response-body", "response-detail");
 
 // Footnotes & references
-const $footnotes = document.getElementById("response-footnotes");
-const $footnotesList = document.getElementById("response-footnotes-list");
-const $references = document.getElementById("response-references");
-const $referencesList = document.getElementById("response-references-list");
+const $footnotes = requireNode("response-footnotes", "response-detail");
+const $footnotesList = requireNode("response-footnotes-list", "response-detail");
+const $references = requireNode("response-references", "response-detail");
+const $referencesList = requireNode("response-references-list", "response-detail");
 
 // ─── Slug extraction ─────────────────────────────────────────────────────────
 

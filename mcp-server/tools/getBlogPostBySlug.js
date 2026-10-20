@@ -45,11 +45,10 @@ export async function handler(args, apiRequest) {
   try {
     data = await apiRequest(`/blog-posts/${encodeURIComponent(slug)}`);
   } catch (error) {
-    // server.js apiRequest throws "Upstream API returned <status>..." for every
-    // non-2xx reply, so an unknown or draft slug (404) arrives here, never as
-    // data.error. Any other failure still propagates to the server's error
-    // response. If that message format changes, change this match with it.
-    if (/returned 404\b/.test(error.message)) return notFound;
+    // server.js apiRequest throws for every non-2xx reply with the HTTP status
+    // on error.status, so an unknown or draft slug (404) arrives here, never as
+    // data.error. Any other failure propagates to the server's error response.
+    if (error.status === 404) return notFound;
     throw error;
   }
   if (!data || data.error) return notFound;

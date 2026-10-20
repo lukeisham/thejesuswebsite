@@ -8,6 +8,7 @@
 
 import { getEssayBySlug } from "./api.js";
 import { getSegment } from "./utils/router.js";
+import { requireNode } from "./utils/template-nodes.js";
 import { setSEO } from "./seo.js";
 import { html, raw } from "./utils/templates.js";
 import { renderBadge } from "./utils/templates.js";
@@ -19,36 +20,38 @@ import { formatMlaCitation } from "./utils/mla.js";
 import { renderCreatedEditedLine } from "./utils/date-format.js";
 
 // ─── DOM refs (cached — JS-6) ───────────────────────────────────────────────
+// requireNode warns for an id the template dropped; the `if ($node)` guards below
+// then keep the rest of the page rendering.
 
-const $skeleton = document.getElementById("skeleton-state");
-const $error = document.getElementById("error-state");
-const $empty = document.getElementById("empty-state");
-const $content = document.getElementById("essay-content");
-const $h1 = document.getElementById("page-h1");
-const $breadcrumbs = document.getElementById("breadcrumbs");
+const $skeleton = requireNode("skeleton-state", "essay-detail");
+const $error = requireNode("error-state", "essay-detail");
+const $empty = requireNode("empty-state", "essay-detail");
+const $content = requireNode("essay-content", "essay-detail");
+const $h1 = requireNode("page-h1", "essay-detail");
+const $breadcrumbs = requireNode("breadcrumbs", "essay-detail");
 
 // Title block
-const $titleBlock = document.getElementById("essay-title-block");
-const $title = document.getElementById("essay-title");
-const $author = document.getElementById("essay-author");
-const $authorBio = document.getElementById("essay-author-bio");
-const $date = document.getElementById("essay-date");
-const $doi = document.getElementById("essay-doi");
+const $titleBlock = requireNode("essay-title-block", "essay-detail");
+const $title = requireNode("essay-title", "essay-detail");
+const $author = requireNode("essay-author", "essay-detail");
+const $authorBio = requireNode("essay-author-bio", "essay-detail");
+const $date = requireNode("essay-date", "essay-detail");
+const $doi = requireNode("essay-doi", "essay-detail");
 
 // Abstract & keywords
-const $abstract = document.getElementById("essay-abstract");
-const $abstractBody = document.getElementById("essay-abstract-body");
-const $keywords = document.getElementById("essay-keywords");
-const $keywordsList = document.getElementById("essay-keywords-list");
+const $abstract = requireNode("essay-abstract", "essay-detail");
+const $abstractBody = requireNode("essay-abstract-body", "essay-detail");
+const $keywords = requireNode("essay-keywords", "essay-detail");
+const $keywordsList = requireNode("essay-keywords-list", "essay-detail");
 
 // Body
-const $body = document.getElementById("essay-body");
+const $body = requireNode("essay-body", "essay-detail");
 
 // Footnotes & references
-const $footnotes = document.getElementById("essay-footnotes");
-const $footnotesList = document.getElementById("essay-footnotes-list");
-const $references = document.getElementById("essay-references");
-const $referencesList = document.getElementById("essay-references-list");
+const $footnotes = requireNode("essay-footnotes", "essay-detail");
+const $footnotesList = requireNode("essay-footnotes-list", "essay-detail");
+const $references = requireNode("essay-references", "essay-detail");
+const $referencesList = requireNode("essay-references-list", "essay-detail");
 
 // ─── Slug extraction ─────────────────────────────────────────────────────────
 

@@ -7,6 +7,7 @@
 import { getEvidenceBySlug } from "./api.js";
 import { enhanceEsvVerses } from "./esv_verse.js";
 import { getSegment } from "./utils/router.js";
+import { requireNode } from "./utils/template-nodes.js";
 import { setSEO } from "./seo.js";
 import { html, raw } from "./utils/templates.js";
 import { safeHref } from "./utils/safe-url.js";
@@ -26,33 +27,33 @@ import {
 } from "./utils/figure-shortcodes.js";
 
 // ─── DOM refs (cached — JS-6) ───────────────────────────────────────────────
+// requireNode warns for an id the template dropped; the `if ($node)` guards below
+// then keep the rest of the page rendering.
 
-const $skeleton = document.getElementById("skeleton-state");
-const $error = document.getElementById("error-state");
-const $content = document.getElementById("evidence-content");
-const $h1 = document.getElementById("page-h1");
-const $breadcrumbs = document.getElementById("breadcrumbs");
+const $skeleton = requireNode("skeleton-state", "evidence-detail");
+const $error = requireNode("error-state", "evidence-detail");
+const $content = requireNode("evidence-content", "evidence-detail");
+const $h1 = requireNode("page-h1", "evidence-detail");
+const $breadcrumbs = requireNode("breadcrumbs", "evidence-detail");
 
 // Content regions
-const $title = document.getElementById("evidence-title");
-const $verse = document.getElementById("evidence-verse");
-const $desc = document.getElementById("evidence-description");
-const $descSection = document.getElementById("evidence-description-section");
-const $sources = document.getElementById("evidence-sources");
-const $sourcesSection = document.getElementById("evidence-sources-section");
+const $title = requireNode("evidence-title", "evidence-detail");
+const $verse = requireNode("evidence-verse", "evidence-detail");
+const $desc = requireNode("evidence-description", "evidence-detail");
+const $descSection = requireNode("evidence-description-section", "evidence-detail");
+const $sources = requireNode("evidence-sources", "evidence-detail");
+const $sourcesSection = requireNode("evidence-sources-section", "evidence-detail");
 
 // Pictures
-const $picturesSection = document.getElementById("evidence-pictures-section");
-const $pictures = document.getElementById("evidence-pictures");
+const $picturesSection = requireNode("evidence-pictures-section", "evidence-detail");
+const $pictures = requireNode("evidence-pictures", "evidence-detail");
 
 // Dates
-const $dates = document.getElementById("evidence-dates");
+const $dates = requireNode("evidence-dates", "evidence-detail");
 
 // Page info row — identifiers panel
-const $infoRow = document.getElementById("evidence-info-row");
-const $identifiersPanel = document.getElementById(
-  "evidence-identifiers-panel",
-);
+const $infoRow = requireNode("evidence-info-row", "evidence-detail");
+const $identifiersPanel = requireNode("evidence-identifiers-panel", "evidence-detail");
 
 // ─── Slug extraction ─────────────────────────────────────────────────────────
 

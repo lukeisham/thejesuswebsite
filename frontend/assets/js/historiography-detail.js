@@ -8,6 +8,7 @@
 
 import { getHistoriographyBySlug } from "./api.js";
 import { getSegment } from "./utils/router.js";
+import { requireNode } from "./utils/template-nodes.js";
 import { setSEO } from "./seo.js";
 import { html, raw } from "./utils/templates.js";
 import { renderBadge } from "./utils/templates.js";
@@ -18,37 +19,37 @@ import { footnoteListHTML } from "./utils/footnotes.js";
 import { formatMlaCitation } from "./utils/mla.js";
 
 // ─── DOM refs (cached — JS-6) ───────────────────────────────────────────────
+// requireNode warns for an id the template dropped; the `if ($node)` guards below
+// then keep the rest of the page rendering.
 
-const $skeleton = document.getElementById("skeleton-state");
-const $error = document.getElementById("error-state");
-const $empty = document.getElementById("empty-state");
-const $content = document.getElementById("historiography-content");
-const $h1 = document.getElementById("page-h1");
-const $breadcrumbs = document.getElementById("breadcrumbs");
+const $skeleton = requireNode("skeleton-state", "historiography-detail");
+const $error = requireNode("error-state", "historiography-detail");
+const $empty = requireNode("empty-state", "historiography-detail");
+const $content = requireNode("historiography-content", "historiography-detail");
+const $h1 = requireNode("page-h1", "historiography-detail");
+const $breadcrumbs = requireNode("breadcrumbs", "historiography-detail");
 
 // Title block
-const $title = document.getElementById("historiography-title");
-const $author = document.getElementById("historiography-author");
-const $authorBio = document.getElementById("historiography-author-bio");
-const $date = document.getElementById("historiography-date");
-const $doi = document.getElementById("historiography-doi");
+const $title = requireNode("historiography-title", "historiography-detail");
+const $author = requireNode("historiography-author", "historiography-detail");
+const $authorBio = requireNode("historiography-author-bio", "historiography-detail");
+const $date = requireNode("historiography-date", "historiography-detail");
+const $doi = requireNode("historiography-doi", "historiography-detail");
 
 // Abstract & keywords
-const $abstract = document.getElementById("historiography-abstract");
-const $abstractBody = document.getElementById("historiography-abstract-body");
-const $keywords = document.getElementById("historiography-keywords");
-const $keywordsList = document.getElementById("historiography-keywords-list");
+const $abstract = requireNode("historiography-abstract", "historiography-detail");
+const $abstractBody = requireNode("historiography-abstract-body", "historiography-detail");
+const $keywords = requireNode("historiography-keywords", "historiography-detail");
+const $keywordsList = requireNode("historiography-keywords-list", "historiography-detail");
 
 // Body
-const $body = document.getElementById("historiography-body");
+const $body = requireNode("historiography-body", "historiography-detail");
 
 // Footnotes & references
-const $footnotes = document.getElementById("historiography-footnotes");
-const $footnotesList = document.getElementById("historiography-footnotes-list");
-const $references = document.getElementById("historiography-references");
-const $referencesList = document.getElementById(
-  "historiography-references-list",
-);
+const $footnotes = requireNode("historiography-footnotes", "historiography-detail");
+const $footnotesList = requireNode("historiography-footnotes-list", "historiography-detail");
+const $references = requireNode("historiography-references", "historiography-detail");
+const $referencesList = requireNode("historiography-references-list", "historiography-detail");
 
 // ─── Slug extraction ─────────────────────────────────────────────────────────
 

@@ -70,6 +70,7 @@
     --text-small: 0.875rem;
     --text-xs: 0.8125rem;
     --text-2xs: 0.75rem;
+    --text-pull-quote: 1.25rem;
 
     /* Line Heights */
     --leading-body: 1.65;

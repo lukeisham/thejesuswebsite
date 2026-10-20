@@ -7,6 +7,7 @@ import { describe, it, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { get } from "node:http";
+import { readFileSync } from "node:fs";
 
 // --- Tool imports ------------------------------------------------------------
 
@@ -19,6 +20,18 @@ import * as getTimelineEvents from "../tools/getTimelineEvents.js";
 import * as getMapData from "../tools/getMapData.js";
 
 // --- Mock helper -------------------------------------------------------------
+
+/**
+ * Creates an apiRequest fake that throws like server.js apiRequest does for a
+ * non-2xx reply: a message plus the HTTP status on error.status.
+ */
+function failingApiRequest(status) {
+  return async () => {
+    const error = new Error(`Upstream API returned ${status}`);
+    error.status = status;
+    throw error;
+  };
+}
 
 /**
  * Creates a mock apiRequest that records the called path and returns the given
@@ -157,9 +170,7 @@ describe("getBlogPostBySlug", () => {
   });
 
   it("turns an upstream 404 throw into a not-found result", async () => {
-    const apiRequest = async () => {
-      throw new Error("Upstream API returned 404: E-PERSIST-004 Record not found");
-    };
+    const apiRequest = failingApiRequest(404);
     const result = await getBlogPostBySlug.handler({ slug: "gone" }, apiRequest);
 
     assert.equal(result.isError, true);
@@ -167,9 +178,7 @@ describe("getBlogPostBySlug", () => {
   });
 
   it("rethrows an upstream failure that is not a 404", async () => {
-    const apiRequest = async () => {
-      throw new Error("Upstream API returned 500");
-    };
+    const apiRequest = failingApiRequest(500);
 
     await assert.rejects(
       getBlogPostBySlug.handler({ slug: "x" }, apiRequest),
@@ -270,6 +279,66 @@ describe("getMapData", () => {
 
     assert.equal(result.isError, true);
     assert.match(result.content[0].text, /Map not found/);
+  });
+});
+
+// --- Upstream 404 handling ----------------------------------------------------
+// server.js apiRequest throws on every non-2xx reply, so each tool must turn a
+// status-404 error into its not-found result and rethrow anything else.
+
+describe("upstream 404 handling", () => {
+  const cases = [
+    ["getItemBySlug", getItemBySlug, { slug: "gone" }, /Evidence not found/],
+    ["getEssayBySlug", getEssayBySlug, { slug: "gone" }, /Essay not found/],
+    ["getNewsArticleBySlug", getNewsArticleBySlug, { slug: "gone" }, /News article not found/],
+    ["getMapData", getMapData, { mapKey: "gone" }, /Map not found/],
+  ];
+
+  for (const [toolName, tool, args, notFoundText] of cases) {
+    it(`${toolName} returns not-found on a status-404 error`, async () => {
+      const result = await tool.handler(args, failingApiRequest(404));
+
+      assert.equal(result.isError, true);
+      assert.match(result.content[0].text, notFoundText);
+    });
+
+    it(`${toolName} rethrows a status-500 error`, async () => {
+      await assert.rejects(
+        tool.handler(args, failingApiRequest(500)),
+        /returned 500/,
+      );
+    });
+  }
+});
+
+// --- Real apiRequest status ----------------------------------------------------
+// Importing server.js would start its HTTP server, so this test evaluates the
+// real apiRequest source text from server.js (TEST-9) against a stubbed fetch.
+// The tools above depend on error.status, so a change to how apiRequest sets
+// it must fail here.
+
+describe("server.js apiRequest", () => {
+  const source = readFileSync(new URL("../server.js", import.meta.url), "utf8");
+  const start = source.indexOf("export async function apiRequest");
+  const end = source.indexOf("\n}\n", start);
+  const apiRequest = new Function(
+    "API_BASE_URL",
+    `${source.slice(start, end + 3).replace("export ", "")}\nreturn apiRequest;`,
+  )("http://stub");
+
+  it("throws an error carrying the HTTP status on a 404", async () => {
+    const realFetch = globalThis.fetch;
+    globalThis.fetch = async () =>
+      new Response(JSON.stringify({ error: "Not found" }), { status: 404 });
+    try {
+      await assert.rejects(apiRequest("/essays/x"), (err) => {
+        assert.equal(err.status, 404);
+        assert.match(err.message, /returned 404/);
+        return true;
+      });
+    } finally {
+      globalThis.fetch = realFetch;
+    }
   });
 });
 

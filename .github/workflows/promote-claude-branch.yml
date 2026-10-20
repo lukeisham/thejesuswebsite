@@ -64,6 +64,17 @@ jobs:
           npm ci
           npm test
 
+      # Every node:test file under admin/ and frontend/ (tests/ folders and
+      # nested ones). A red test stops the job before main moves. The
+      # mcp-server tests are not run: they need their own npm ci, and their HTTP
+      # server suite times out in some sandboxes.
+      - name: Run admin and frontend tests
+        if: steps.merge.outputs.changed == 'true'
+        run: |
+          set -euo pipefail
+          find admin frontend -name '*.test.js' -not -path '*/node_modules/*' -print0 \
+            | xargs -0 node --test
+
       - name: Push main
         if: steps.merge.outputs.changed == 'true'
         env:

@@ -158,6 +158,37 @@ describe(`${GUIDE} row 10: claude branch promotion`, () => {
     );
   });
 
+  test(`${PROMOTE_WORKFLOW} runs the api tests and the admin/frontend tests before Push main`, () => {
+    const text = withoutHashComments(read(PROMOTE_WORKFLOW));
+    const api = text.indexOf("name: Run api tests");
+    const frontend = text.indexOf("name: Run admin and frontend tests");
+    const push = text.indexOf("name: Push main");
+    assert.ok(
+      api !== -1 && frontend !== -1 && push !== -1,
+      `${PROMOTE_WORKFLOW} must have the steps "Run api tests", "Run admin and frontend tests" and "Push main". Rule: ${GUIDE}, Invariants row 10.`
+    );
+    assert.ok(
+      api < push && frontend < push,
+      `${PROMOTE_WORKFLOW} line ${lineOf(text, push)}: "Push main" must come after both test steps, or a red test reaches main. Rule: ${GUIDE}, Invariants row 10.`
+    );
+    const stepText = text.slice(frontend, push);
+    assert.match(
+      stepText,
+      /if: steps\.merge\.outputs\.changed == 'true'/,
+      `${PROMOTE_WORKFLOW} line ${lineOf(text, frontend)}: the admin/frontend step must keep its changed == 'true' condition. Rule: ${GUIDE}, Invariants row 10.`
+    );
+    assert.match(
+      stepText,
+      /set -euo pipefail/,
+      `${PROMOTE_WORKFLOW} line ${lineOf(text, frontend)}: the admin/frontend step must keep "set -euo pipefail", or a failing node --test behind the pipe is ignored. Rule: ${GUIDE}, Invariants row 10.`
+    );
+    assert.match(
+      stepText,
+      /find admin frontend -name '\*\.test\.js'.*\n?.*xargs -0 node --test/,
+      `${PROMOTE_WORKFLOW} line ${lineOf(text, frontend)}: the admin/frontend step must run every *.test.js with node --test. Rule: ${GUIDE}, Invariants row 10.`
+    );
+  });
+
   test(`scripts/send-to-main.sh pushes to a claude/ branch that the promote workflow listens to`, () => {
     const text = withoutHashComments(read("scripts/send-to-main.sh"));
     assert.match(

@@ -8,6 +8,7 @@
 
 import { getChallengeBySlug, getAcademicChallengeBySlug } from "./api.js";
 import { getSegment } from "./utils/router.js";
+import { requireNode } from "./utils/template-nodes.js";
 import { setSEO } from "./seo.js";
 import { html, raw } from "./utils/templates.js";
 import { showToast } from "./utils/toasts.js";
@@ -16,22 +17,24 @@ import { numberFigures } from "./utils/figures.js";
 import { formatMlaCitation } from "./utils/mla.js";
 
 // ─── DOM refs (cached — JS-6) ───────────────────────────────────────────────
+// requireNode warns for an id the template dropped; the `if ($node)` guards below
+// then keep the rest of the page rendering.
 
-const $skeleton = document.getElementById("skeleton-state");
-const $error = document.getElementById("error-state");
-const $empty = document.getElementById("empty-state");
-const $content = document.getElementById("challenge-content");
-const $h1 = document.getElementById("page-h1");
-const $breadcrumbs = document.getElementById("breadcrumbs");
+const $skeleton = requireNode("skeleton-state", "challenge-detail");
+const $error = requireNode("error-state", "challenge-detail");
+const $empty = requireNode("empty-state", "challenge-detail");
+const $content = requireNode("challenge-content", "challenge-detail");
+const $h1 = requireNode("page-h1", "challenge-detail");
+const $breadcrumbs = requireNode("breadcrumbs", "challenge-detail");
 
-const $title = document.getElementById("challenge-title");
-const $category = document.getElementById("challenge-category");
-const $picture = document.getElementById("challenge-picture");
-const $body = document.getElementById("challenge-body");
-const $responses = document.getElementById("challenge-responses");
-const $responsesList = document.getElementById("challenge-responses-list");
-const $references = document.getElementById("challenge-references");
-const $referencesList = document.getElementById("challenge-references-list");
+const $title = requireNode("challenge-title", "challenge-detail");
+const $category = requireNode("challenge-category", "challenge-detail");
+const $picture = requireNode("challenge-picture", "challenge-detail");
+const $body = requireNode("challenge-body", "challenge-detail");
+const $responses = requireNode("challenge-responses", "challenge-detail");
+const $responsesList = requireNode("challenge-responses-list", "challenge-detail");
+const $references = requireNode("challenge-references", "challenge-detail");
+const $referencesList = requireNode("challenge-references-list", "challenge-detail");
 
 // ─── Determine challenge type from URL ───────────────────────────────────────
 

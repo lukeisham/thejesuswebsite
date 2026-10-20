@@ -38,13 +38,23 @@ export async function handler(args, apiRequest) {
     };
   }
 
-  const data = await apiRequest(`/maps/${encodeURIComponent(mapKey)}`);
-  if (!data || data.error) {
-    return {
-      content: [{ type: 'text', text: `Map not found for key "${mapKey}".` }],
-      isError: true,
-    };
+  const notFound = {
+    content: [{ type: 'text', text: `Map not found for key "${mapKey}".` }],
+    isError: true,
+  };
+
+  let data;
+  try {
+    data = await apiRequest(`/maps/${encodeURIComponent(mapKey)}`);
+  } catch (error) {
+    // server.js apiRequest throws for every non-2xx reply with the HTTP status
+    // on error.status, so an unknown or unpublished record (404) arrives here,
+    // never as data.error. Any other failure propagates to the server's error
+    // response.
+    if (error.status === 404) return notFound;
+    throw error;
   }
+  if (!data || data.error) return notFound;
 
   return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
 }

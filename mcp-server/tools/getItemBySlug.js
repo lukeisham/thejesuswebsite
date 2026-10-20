@@ -39,13 +39,23 @@ export async function handler(args, apiRequest) {
     };
   }
 
-  const data = await apiRequest(`/evidence/${encodeURIComponent(slug)}`);
-  if (!data || data.error) {
-    return {
-      content: [{ type: 'text', text: `Evidence not found for slug "${slug}".` }],
-      isError: true,
-    };
+  const notFound = {
+    content: [{ type: 'text', text: `Evidence not found for slug "${slug}".` }],
+    isError: true,
+  };
+
+  let data;
+  try {
+    data = await apiRequest(`/evidence/${encodeURIComponent(slug)}`);
+  } catch (error) {
+    // server.js apiRequest throws for every non-2xx reply with the HTTP status
+    // on error.status, so an unknown or unpublished record (404) arrives here,
+    // never as data.error. Any other failure propagates to the server's error
+    // response.
+    if (error.status === 404) return notFound;
+    throw error;
   }
+  if (!data || data.error) return notFound;
 
   return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
 }
