@@ -11,6 +11,7 @@
         <script defer src="../assets/js/admin-http.js"></script>
         <script defer src="../assets/js/auth.js"></script>
         <script defer src="../assets/js/admin.js"></script>
+        <script defer src="../assets/js/admin-editor-utils.js"></script>
         <script defer src="../assets/js/admin-figure-shortcodes.js"></script>
         <script defer src="../assets/js/admin-figure-captions.js"></script>
         <script defer src="../assets/js/admin-insert-image.js"></script>
@@ -229,8 +230,6 @@
                                     <code>[pullquote]</code> for pull-quotes. See the
                                     Formatting Reference sidebar panel for examples.</span
                                 >
-
-                                <button type="button" class="admin-btn admin-btn--secondary admin-btn--sm aimg-insert-btn" id="insert-image-btn">Insert Image</button>
                             </div>
                         </div>
                     </div>
@@ -299,39 +298,6 @@
                             </div>
                             <div id="blog-thumbnail-mount"></div>
                         </div>
-
-                        <div
-                            class="admin-form-card"
-                            style="margin-top: var(--space-md)"
-                        >
-                            <div class="admin-form-card__title">Images</div>
-                            <div id="blog-images-mount"></div>
-                        </div>
-
-                        <div
-                            class="admin-form-card"
-                            style="margin-top: var(--space-md)"
-                        >
-                            <div class="admin-form-group">
-                                <div class="admin-checkbox-group">
-                                    <input
-                                        type="checkbox"
-                                        id="blog-publish"
-                                        name="published_draft"
-                                        value="1"
-                                    />
-                                    <label for="blog-publish"
-                                        >Publish immediately</label
-                                    >
-                                </div>
-                                <span
-                                    class="admin-form-hint"
-                                    style="margin-top: var(--space-xs)"
-                                    >When checked, the post will be published on
-                                    save.</span
-                                >
-                            </div>
-                        </div>
                     </div>
                 </form>
 
@@ -366,13 +332,22 @@
 
         <script>
             document.addEventListener("DOMContentLoaded", async function () {
+                var formError = document.getElementById("form-error");
+
                 var ok = await AdminAuth.requireSession();
-                if (!ok) return;
+                if (!ok) {
+                    console.warn(
+                        "new blog post: session check failed; form not initialised",
+                    );
+                    formError.textContent =
+                        "Unable to verify session. Please check your connection and try again.";
+                    formError.style.display = "block";
+                    return;
+                }
 
                 var titleInput = document.getElementById("blog-title");
                 var slugInput = document.getElementById("blog-slug");
                 var contentInput = document.getElementById("blog-content");
-                var formError = document.getElementById("form-error");
                 var submitStatus = document.getElementById("submit-status");
                 var titleError = document.getElementById("title-error");
                 var slugError = document.getElementById("slug-error");
@@ -380,12 +355,7 @@
                 var slugAuto = true;
                 titleInput.addEventListener("input", function () {
                     if (slugAuto) {
-                        slugInput.value = titleInput.value
-                            .toLowerCase()
-                            .replace(/[^a-z0-9\s-]/g, "")
-                            .replace(/\s+/g, "-")
-                            .replace(/-+/g, "-")
-                            .replace(/^-|-$/g, "");
+                        slugInput.value = Admin.slugify(titleInput.value);
                     }
                 });
                 slugInput.addEventListener("input", function () {
@@ -397,91 +367,46 @@
                     { initialSourceIds: [], hintVariant: "blog" },
                 );
 
-                if (typeof AdminInsertImage !== "undefined") {
-                    AdminInsertImage.wire("#insert-image-btn", "#blog-content");
-                }
-
-                // Images panel — mounted after the insert flow so inserts
-                // and the panel share one textarea
-                if (typeof AdminFigureCaptions !== "undefined") {
-                    AdminFigureCaptions.mount(
-                        document.getElementById("blog-images-mount"),
-                        { textareaId: "blog-content" },
-                    );
-                }
-
                 var thumbnailPicker = AdminImagePicker.mount(
                     document.getElementById("blog-thumbnail-mount"),
                     { initialPath: "" },
                 );
 
-                var formattingRefMount = document.createElement("div");
-                var sidebarEl = document.querySelector(".admin-form-grid__sidebar");
-                if (sidebarEl) {
-                    sidebarEl.appendChild(formattingRefMount);
-                    AdminShortcodeHelp.mountFormattingReference(formattingRefMount);
-                }
+                var sidebarEl = document.querySelector(
+                    ".admin-form-grid__sidebar",
+                );
 
-                function clearErrors() {
-                    formError.style.display = "none";
-                    formError.textContent = "";
-                    titleError.style.display = "none";
-                    titleError.textContent = "";
-                    slugError.style.display = "none";
-                    slugError.textContent = "";
-                    titleInput.classList.remove("admin-input--error");
-                    slugInput.classList.remove("admin-input--error");
-                }
+                AdminEditorUtils.wireInsertImageButton("blog-content");
 
-                function showFieldError(input, errorEl, message) {
-                    input.classList.add("admin-input--error");
-                    errorEl.textContent = message;
-                    errorEl.style.display = "block";
-                }
+                // Images panel — mounted after the insert flow so inserts
+                // and the panel share one textarea
+                AdminEditorUtils.mountFigureCaptionsPanel(
+                    sidebarEl,
+                    "blog-content",
+                );
 
+                AdminShortcodeHelp.mountFormattingReference(sidebarEl);
+
+                // The server validates the slug shape too (API-4); the
+                // regex here must stay in step with it.
                 function validate() {
-                    clearErrors();
-                    var valid = true;
-                    if (!titleInput.value.trim()) {
-                        showFieldError(
-                            titleInput,
-                            titleError,
-                            "Title is required.",
-                        );
-                        valid = false;
-                    }
-                    if (!slugInput.value.trim()) {
-                        showFieldError(
-                            slugInput,
-                            slugError,
-                            "Slug is required.",
-                        );
-                        valid = false;
-                    } else if (
-                        !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(
-                            slugInput.value.trim(),
-                        )
-                    ) {
-                        showFieldError(
-                            slugInput,
-                            slugError,
-                            "Slug must be lowercase letters, numbers, and hyphens.",
-                        );
+                    var valid = AdminEditorUtils.validate(formError, [
+                        {
+                            input: titleInput,
+                            errEl: titleError,
+                            label: "Title",
+                        },
+                        { input: slugInput, errEl: slugError, label: "Slug" },
+                    ]);
+                    var slug = slugInput.value.trim();
+                    if (slug && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
+                        slugError.textContent =
+                            "Slug must be lowercase letters, numbers, and hyphens.";
+                        slugError.style.display = "block";
+                        slugInput.classList.add("admin-input--error");
                         valid = false;
                     }
                     return valid;
-                }
-
-                function parseIdList(str) {
-                    if (!str || !str.trim()) return undefined;
-                    return str
-                        .split(",")
-                        .map(function (s) {
-                            return parseInt(s.trim(), 10);
-                        })
-                        .filter(function (n) {
-                            return !isNaN(n);
-                        });
                 }
 
                 function buildPayload(publish) {
@@ -495,7 +420,7 @@
                                 .getElementById("blog-keywords")
                                 .value.trim() || undefined,
                         published_draft: publish ? 1 : 0,
-                        link_evidence_ids: parseIdList(
+                        link_evidence_ids: AdminEditorUtils.parseIdList(
                             document.getElementById("blog-evidence").value,
                         ),
                         mla_source_ids: mlaSourcesPanel.getSelectedIds(),
@@ -503,7 +428,6 @@
                 }
 
                 async function submit(publish) {
-                    clearErrors();
                     submitStatus.textContent = "";
                     if (!validate()) {
                         titleInput.focus();
@@ -553,7 +477,7 @@
                 document.addEventListener("keydown", function (e) {
                     if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
                         e.preventDefault();
-                        submit(e.shiftKey);
+                        submit(false);
                     }
                 });
             });

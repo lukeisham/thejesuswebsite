@@ -60,34 +60,23 @@ function hideAllStates() {
 
 function formatDate(dateStr) {
   if (!dateStr) return '';
-  try {
-    return new Date(dateStr).toLocaleDateString('en-GB', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  } catch {
-    return dateStr;
+  const date = new Date(dateStr);
+  if (Number.isNaN(date.getTime())) {
+    console.warn('blog-list formatDate: unparseable date', dateStr);
+    return '';
   }
+  return date.toLocaleDateString('en-GB', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
 }
 
 // ─── Data fetching (JS-5: async/await, centralized fetch) ─────────────────────
 
-async function loadPage() {
-  if (isLoading || !hasMore) return;
-  isLoading = true;
-  showState('loading');
-
-  const { data, error } = await getBlogPosts();
-
-  isLoading = false;
-
-  if (error) {
-    showState('error');
-    showToast('Failed to load blog posts', 'error');
-    return;
-  }
-
+// Called by loadPage inside its try/catch, so a bad record shows the error
+// state instead of leaving the loading state on screen.
+function handleLoadedPosts(data) {
   if (!data || data.length === 0) {
     if (allItems.length === 0) {
       showState('empty');
@@ -101,7 +90,6 @@ async function loadPage() {
     return;
   }
 
-  // Normalise raw DB column names (JS-2: defensive mapping)
   const normalized = data.map((post) => ({
     ...post,
     _title: post.blog_title,
@@ -139,6 +127,30 @@ async function loadPage() {
   }
 }
 
+async function loadPage() {
+  if (isLoading || !hasMore) return;
+  isLoading = true;
+  showState('loading');
+
+  const { data, error } = await getBlogPosts();
+
+  isLoading = false;
+
+  if (error) {
+    showState('error');
+    showToast('Failed to load blog posts', 'error');
+    return;
+  }
+
+  try {
+    handleLoadedPosts(data);
+  } catch (err) {
+    console.error('blog-list loadPage: failed to render fetched posts', err);
+    showState('error');
+    showToast('Failed to load blog posts', 'error');
+  }
+}
+
 // ─── Rendering (JS-6: textContent for user data) ──────────────────────────────
 
 function renderCards(items) {
@@ -153,7 +165,6 @@ function renderCards(items) {
     row.setAttribute('target', '_blank');
     row.setAttribute('rel', 'noopener noreferrer');
 
-    // Thumbnail image (prefer blog_thumbnail, fall back to hero_image)
     const thumbSrc = item.blog_thumbnail || item.hero_image;
     if (thumbSrc) {
       const img = document.createElement('img');
@@ -248,7 +259,12 @@ function restoreFromCache() {
       if ($end) $end.textContent = `All ${total} post${total !== 1 ? 's' : ''} loaded`;
       return true;
     }
-  } catch { /* ignore */ }
+  } catch (err) {
+    console.warn('blog-list restoreFromCache: discarding unreadable cache', err);
+    clearCachedItems();
+    allItems = [];
+    hasMore = true;
+  }
   return false;
 }
 

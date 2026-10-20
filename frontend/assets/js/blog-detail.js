@@ -23,7 +23,6 @@ const $error = document.getElementById("error-state");
 const $empty = document.getElementById("empty-state");
 const $content = document.getElementById("blog-content");
 const $breadcrumbs = document.getElementById("breadcrumbs");
-// Content regions
 const $title = document.getElementById("page-h1");
 const $date = document.getElementById("blog-date");
 const $body = document.getElementById("blog-body");
@@ -99,20 +98,23 @@ function renderBreadcrumbs(post) {
 }
 
 function renderHeader(post) {
-  // Title
   if ($title) $title.textContent = post.blog_title || "Untitled";
 
-  // Date
   if ($date) {
     const dateStr = post.blog_date || post.published_at || post.created_at;
     if (dateStr) {
       const d = new Date(dateStr);
-      $date.textContent = d.toLocaleDateString("en-GB", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      });
-      $date.setAttribute("datetime", dateStr);
+      if (Number.isNaN(d.getTime())) {
+        console.warn("blog-detail renderHeader: unparseable date", dateStr);
+        $date.textContent = "";
+      } else {
+        $date.textContent = d.toLocaleDateString("en-GB", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+        $date.setAttribute("datetime", dateStr);
+      }
     } else {
       $date.textContent = "";
     }
@@ -127,10 +129,10 @@ function renderBody(post) {
     return;
   }
 
-  // Step 1: Parse markdown (headings, bold, italic, lists, tables) into HTML
+  // Markdown first: parseContentBody expects HTML in which only shortcode
+  // markers remain unrendered.
   const markdownHtml = renderMarkdown(post.blog_content);
 
-  // Step 2: Parse shortcode markers ([figure], [mla:N], [pullquote]) on top
   const htmlContent = parseContentBody(markdownHtml, {
     mlaSources: post.mla_sources || [],
     identifiers: post.identifiers || [],
@@ -139,7 +141,6 @@ function renderBody(post) {
   });
   $body.innerHTML = htmlContent;
 
-  // Number figures in the body
   numberFigures($body);
 }
 
@@ -231,18 +232,19 @@ async function init() {
     return;
   }
 
-  // Render all sections
-  renderBreadcrumbs(data);
-  renderHeader(data);
-  renderBody(data);
-  renderBibliography(data);
-  renderCreatedEditedLine(data.created_at, data.updated_at);
-
-  // Apply SEO metadata
-  applySEO(data);
-
-  // Show content
-  showContent();
+  try {
+    renderBreadcrumbs(data);
+    renderHeader(data);
+    renderBody(data);
+    renderBibliography(data);
+    renderCreatedEditedLine(data.created_at, data.updated_at);
+    applySEO(data);
+    showContent();
+  } catch (err) {
+    console.error(`blog-detail init: failed to render "${slug}"`, err);
+    showError("Failed to display this blog post.");
+    showToast("Failed to display blog post", "error");
+  }
 }
 
 if (document.readyState === "loading") {

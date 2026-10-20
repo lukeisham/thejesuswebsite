@@ -168,35 +168,22 @@
                             },
                         );
 
-                        var imagesCard = document.createElement("div");
-                        imagesCard.className = "admin-form-card";
-                        imagesCard.style.marginTop = "var(--space-md)";
-                        sidebar.appendChild(imagesCard);
-
-                        var imagesTitle = document.createElement("div");
-                        imagesTitle.className = "admin-form-card__title";
-                        imagesTitle.textContent = "Images";
-                        imagesCard.appendChild(imagesTitle);
-
-                        var imagesMount = document.createElement("div");
-                        imagesMount.id = "blog-images-mount";
-                        imagesCard.appendChild(imagesMount);
-
-                        AdminShortcodeHelp.mountFormattingReference(sidebar);
-
-                        var actions = document.createElement("div");
-                        actions.className = "admin-form-actions";
-                        main.appendChild(actions);
-
                         AdminEditorUtils.wireInsertImageButton(
                             "blog-content",
                         );
 
                         // Images panel — mounted after the insert flow so
                         // inserts and the panel share one textarea
-                        AdminFigureCaptions.mount(imagesMount, {
-                            textareaId: "blog-content",
-                        });
+                        AdminEditorUtils.mountFigureCaptionsPanel(
+                            sidebar,
+                            "blog-content",
+                        );
+
+                        AdminShortcodeHelp.mountFormattingReference(sidebar);
+
+                        var actions = document.createElement("div");
+                        actions.className = "admin-form-actions";
+                        main.appendChild(actions);
 
                         var saveBtn = document.createElement("button");
                         saveBtn.type = "button";
@@ -244,15 +231,14 @@
                             "blog-slug-error",
                         );
 
-                        var slugAuto = true;
+                        // A loaded post keeps its slug: it is the published URL,
+                        // so retitling must not rewrite it.
+                        var slugAuto = !data.slug;
                         titleInput.addEventListener("input", function () {
                             if (slugAuto) {
-                                slugInput.value = titleInput.value
-                                    .toLowerCase()
-                                    .replace(/[^a-z0-9\s-]/g, "")
-                                    .replace(/\s+/g, "-")
-                                    .replace(/-+/g, "-")
-                                    .replace(/^-|-$/g, "");
+                                slugInput.value = Admin.slugify(
+                                    titleInput.value,
+                                );
                             }
                         });
                         slugInput.addEventListener("input", function () {

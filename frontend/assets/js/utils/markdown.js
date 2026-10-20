@@ -32,7 +32,15 @@
  */
 
 import { escapeHTML } from "./escape-html.js";
+import { FIGURE_SHORTCODE_PATTERN } from "./figure-shortcodes.js";
 
+// Only a [figure] that matches the shared grammar is protected. A looser match
+// would restore attacker text such as `[figure <img onerror=…>]` unescaped
+// (JS-6); content-markers.js escapes the captured src and caption.
+const PROTECTED_MARKERS = new RegExp(
+  `(\\[(?:mla|id|fn):\\d+\\]|${FIGURE_SHORTCODE_PATTERN().source}|\\[pullquote\\][\\s\\S]*?\\[\\/pullquote\\])`,
+  "g",
+);
 
 /**
  * Extract bracket shortcode markers, escape the remaining text, then
@@ -44,14 +52,10 @@ import { escapeHTML } from "./escape-html.js";
  */
 function escapePreservingMarkers(text) {
   const markers = [];
-  // Match: [mla:N], [id:N], [fn:N], [figure ...], [pullquote]...[/pullquote]
-  const protected_ = text.replace(
-    /(\[(?:mla|id|fn):\d+\]|\[figure[^\]]*\]|\[pullquote\][\s\S]*?\[\/pullquote\])/g,
-    (match) => {
-      markers.push(match);
-      return `\x00MARKER${markers.length - 1}\x00`;
-    },
-  );
+  const protected_ = text.replace(PROTECTED_MARKERS, (match) => {
+    markers.push(match);
+    return `\x00MARKER${markers.length - 1}\x00`;
+  });
   const escaped = escapeHTML(protected_);
   return escaped.replace(/\x00MARKER(\d+)\x00/g, (_, idx) => markers[parseInt(idx, 10)]);
 }
