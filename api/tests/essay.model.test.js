@@ -54,6 +54,12 @@ function seedMlaSource() {
   return result.lastInsertRowid;
 }
 
+function seedIdentifier() {
+  return testDb
+    .prepare("INSERT INTO identifiers (isbn, published_draft) VALUES (?, 1)")
+    .run("978-3-16-148410-0").lastInsertRowid;
+}
+
 // ── Module loading ──────────────────────────────────────────────────────────
 
 describe("model: essay.model", () => {
@@ -205,6 +211,33 @@ describe("essay: createComposite() writes child/junction rows", () => {
     assert.equal(created.breakouts[0].title, "Section 1");
     assert.equal(created.breakouts[1].title, "Section 2");
     assert.equal(created.mla_sources.length, 1);
+  });
+
+  test("updateComposite() keeps breakouts and identifiers when their keys are absent, clears them on []", () => {
+    const identifierId = seedIdentifier();
+    const created = essayModel.createComposite({
+      slug: "keep-children",
+      essay_title: "Before",
+      breakouts: [{ title: "Section", content: "Body" }],
+      identifier_ids: [identifierId],
+    });
+
+    const kept = essayModel.updateComposite(created.id, { essay_title: "After" });
+    assert.equal(kept.essay_title, "After");
+    assert.equal(kept.breakouts.length, 1);
+    assert.equal(kept.identifiers.length, 1);
+
+    const cleared = essayModel.updateComposite(created.id, {
+      breakouts: [],
+      identifier_ids: [],
+    });
+    assert.equal(cleared.breakouts.length, 0);
+    assert.equal(cleared.identifiers.length, 0);
+  });
+
+  test("updateComposite() with doi null clears the column", () => {
+    const created = essayModel.createComposite({ slug: "clear-doi", doi: "10.1000/xyz" });
+    assert.equal(essayModel.updateComposite(created.id, { doi: null }).doi, null);
   });
 
   test("createComposite() rolls back the essay row when a child insert fails", () => {

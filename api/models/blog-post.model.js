@@ -336,42 +336,56 @@ function updateComposite(id, data) {
     const post = update(id, data);
     if (!post) return undefined;
 
-    replaceChildren("blog_breakouts", "blog_post_id", id, breakouts, [
-      "title",
-      "content",
-    ]);
-    replaceLinks(
-      "blog_post_mla_sources",
-      "blog_post_id",
-      "mla_source_id",
-      "citation_order",
-      id,
-      mlaSourceIds,
-    );
-    replaceLinks(
-      "blog_post_identifiers",
-      "blog_post_id",
-      "identifier_id",
-      "citation_order",
-      id,
-      identifierIds,
-    );
-    replaceLinks(
-      "blog_post_links_evidence",
-      "source_blog_post_id",
-      "target_evidence_id",
-      "sort_order",
-      id,
-      linkEvidenceIds,
-    );
-    replaceLinks(
-      "blog_post_links_context",
-      "source_blog_post_id",
-      "target_context_essay_id",
-      "sort_order",
-      id,
-      linkContextIds,
-    );
+    // Each child and link set is rewritten only when its key is present:
+    // omitted keeps the rows, [] clears them. replaceChildren/replaceLinks
+    // delete before they insert, so rewriting on omission would wipe the set.
+    // See setup/ARCHITECTURE/journal-article-fields.md.
+    if (breakouts !== undefined) {
+      replaceChildren("blog_breakouts", "blog_post_id", id, breakouts, [
+        "title",
+        "content",
+      ]);
+    }
+    if (mlaSourceIds !== undefined) {
+      replaceLinks(
+        "blog_post_mla_sources",
+        "blog_post_id",
+        "mla_source_id",
+        "citation_order",
+        id,
+        mlaSourceIds,
+      );
+    }
+    if (identifierIds !== undefined) {
+      replaceLinks(
+        "blog_post_identifiers",
+        "blog_post_id",
+        "identifier_id",
+        "citation_order",
+        id,
+        identifierIds,
+      );
+    }
+    if (linkEvidenceIds !== undefined) {
+      replaceLinks(
+        "blog_post_links_evidence",
+        "source_blog_post_id",
+        "target_evidence_id",
+        "sort_order",
+        id,
+        linkEvidenceIds,
+      );
+    }
+    if (linkContextIds !== undefined) {
+      replaceLinks(
+        "blog_post_links_context",
+        "source_blog_post_id",
+        "target_context_essay_id",
+        "sort_order",
+        id,
+        linkContextIds,
+      );
+    }
 
     return getAdminById(id);
   });

@@ -37,6 +37,9 @@ const WRITABLE_COLUMNS = [
   "strength",
 ];
 
+// Compiled on first use (SQL-1); see getDetailBySlug().
+let publishedWithChallengeStatement;
+
 /**
  * Published responses for the public site, optionally narrowed to one challenge.
  * Only the whitelisted `challenge_id` filter is honoured (JS-2: no stray query
@@ -117,9 +120,23 @@ function addPublicNames(detail) {
  * Why composite: the public response detail page needs to display breakouts,
  * pictures, bibliography citations, identifiers, and internal links. Assembling
  * this in one function avoids N+1 query storms on the frontend.
+ *
+ * The challenge join supplies challenge_title, challenge_slug and
+ * challenge_type, which renderChallengeReference() in
+ * frontend/assets/js/response-detail.js reads. challenge_type is the
+ * `academic_popular` value ('academic' or 'popular'); that function builds the
+ * link from it, so renaming a value breaks the link. The join admits only
+ * published challenges, so a draft challenge yields null fields and no link.
  */
 function getDetailBySlug(slug) {
-  const response = getBySlug(slug);
+  publishedWithChallengeStatement ??= db.prepare(
+    `SELECT r.*, c.challenge_title, c.slug AS challenge_slug,
+            c.academic_popular AS challenge_type
+     FROM responses r
+     LEFT JOIN challenges c ON c.id = r.challenge_id AND c.published_draft = 1
+     WHERE r.slug = ? AND r.published_draft = 1`,
+  );
+  const response = publishedWithChallengeStatement.get(slug);
   if (!response) return undefined;
   return addPublicNames(assembleDetail(response));
 }
@@ -319,51 +336,62 @@ function updateComposite(id, data) {
     const response = update(id, data);
     if (!response) return undefined;
 
-    replaceChildren("response_breakouts", "response_id", id, breakouts, [
-      "title",
-      "content",
-    ]);
+    // Each child and link set is rewritten only when its key is present:
+    // omitted keeps the rows, [] clears them. replaceChildren/replaceLinks
+    // delete before they insert, so rewriting on omission would wipe the set.
+    // See setup/ARCHITECTURE/journal-article-fields.md.
+    if (breakouts !== undefined) {
+      replaceChildren("response_breakouts", "response_id", id, breakouts, [
+        "title",
+        "content",
+      ]);
+    }
 
-    // Footnotes are replaced only when the key is present (the admin editors
-    // always send it), so a save from another client
-    // cannot wipe them. See setup/ARCHITECTURE/journal-article-fields.md.
     if (data.footnotes !== undefined) {
       replaceChildren("response_footnotes", "response_id", id, data.footnotes, [
         "content",
       ]);
     }
-    replaceLinks(
-      "response_mla_sources",
-      "response_id",
-      "mla_source_id",
-      "citation_order",
-      id,
-      mlaSourceIds,
-    );
-    replaceLinks(
-      "response_identifiers",
-      "response_id",
-      "identifier_id",
-      "citation_order",
-      id,
-      identifierIds,
-    );
-    replaceLinks(
-      "response_links_evidence",
-      "source_response_id",
-      "target_evidence_id",
-      "sort_order",
-      id,
-      linkEvidenceIds,
-    );
-    replaceLinks(
-      "response_links_context",
-      "source_response_id",
-      "target_context_essay_id",
-      "sort_order",
-      id,
-      linkContextIds,
-    );
+    if (mlaSourceIds !== undefined) {
+      replaceLinks(
+        "response_mla_sources",
+        "response_id",
+        "mla_source_id",
+        "citation_order",
+        id,
+        mlaSourceIds,
+      );
+    }
+    if (identifierIds !== undefined) {
+      replaceLinks(
+        "response_identifiers",
+        "response_id",
+        "identifier_id",
+        "citation_order",
+        id,
+        identifierIds,
+      );
+    }
+    if (linkEvidenceIds !== undefined) {
+      replaceLinks(
+        "response_links_evidence",
+        "source_response_id",
+        "target_evidence_id",
+        "sort_order",
+        id,
+        linkEvidenceIds,
+      );
+    }
+    if (linkContextIds !== undefined) {
+      replaceLinks(
+        "response_links_context",
+        "source_response_id",
+        "target_context_essay_id",
+        "sort_order",
+        id,
+        linkContextIds,
+      );
+    }
 
     return getAdminById(id);
   });

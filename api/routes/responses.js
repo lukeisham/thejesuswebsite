@@ -1,13 +1,14 @@
 // Responses HTTP routes. This file only handles the request/response layer:
 // parse input, call the model, shape the response. All SQL lives in the model.
-// POST and PUT run validateJournalFields() first (lib/journal-field-validation.js).
+// POST and PUT run validateJournalFields() first (lib/journal-field-validation.js):
+// it checks the slug and the type of every writable column before the model.
 
 const express = require("express");
 const responseModel = require("../models/response.model");
 const requireAuth = require("../middleware/auth");
 const ERRORS = require("../lib/error-codes");
 const { sendError, sendValidationError } = require("../lib/error-handler");
-const { validateJournalFields } = require("../lib/journal-field-validation");
+const { validateJournalFields, RESPONSE_COLUMNS } = require("../lib/journal-field-validation");
 
 const router = express.Router();
 
@@ -54,15 +55,28 @@ router.get("/:slug", (req, res) => {
   }
 });
 
+// Mirrors the responses CHECK (published_draft = 0 OR challenge_id IS NOT NULL)
+// in schema.sql. On PUT a key missing from the body keeps the stored value, so
+// the effective values are the body's, else the stored row's. POST has no stored row.
+function isPublishedWithoutChallenge(body, stored) {
+  const published = body.published_draft ?? stored?.published_draft;
+  const challengeId = "challenge_id" in body ? body.challenge_id : stored?.challenge_id;
+  return published === 1 && challengeId == null;
+}
+
 // POST /responses — create new response (admin only)
 router.post("/", requireAuth, (req, res) => {
   try {
     if (!req.body.slug) {
       return sendError(res, ERRORS.MISSING_BODY_FIELD, { fields: ["slug"] });
     }
-    const problem = validateJournalFields(req.body, { allowStrength: true });
+    const problem = validateJournalFields(req.body, { allowStrength: true, columns: RESPONSE_COLUMNS });
     if (problem) {
       return sendValidationError(res, problem.field, problem.errorDef, problem.extra);
+    }
+    const publishedWithoutChallenge = isPublishedWithoutChallenge(req.body);
+    if (publishedWithoutChallenge) {
+      return sendValidationError(res, "challenge_id", ERRORS.INVALID_BODY_FIELD);
     }
     const created = responseModel.createComposite(req.body);
     res.status(201).json(created);
@@ -75,9 +89,14 @@ router.post("/", requireAuth, (req, res) => {
 // PUT /responses/:id — update response (admin only)
 router.put("/:id", requireAuth, (req, res) => {
   try {
-    const problem = validateJournalFields(req.body, { allowStrength: true });
+    const stored = responseModel.getById(Number(req.params.id));
+    const problem = validateJournalFields(req.body, { allowStrength: true, columns: RESPONSE_COLUMNS, storedSlug: stored?.slug });
     if (problem) {
       return sendValidationError(res, problem.field, problem.errorDef, problem.extra);
+    }
+    const publishedWithoutChallenge = isPublishedWithoutChallenge(req.body, stored);
+    if (publishedWithoutChallenge) {
+      return sendValidationError(res, "challenge_id", ERRORS.INVALID_BODY_FIELD);
     }
     const updated = responseModel.updateComposite(
       Number(req.params.id),

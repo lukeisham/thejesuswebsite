@@ -48,6 +48,12 @@ function seedChallenge(overrides = {}) {
   return { id: row.lastInsertRowid, ...overrides };
 }
 
+function seedIdentifier() {
+  return testDb
+    .prepare("INSERT INTO identifiers (isbn, published_draft) VALUES (?, 1)")
+    .run("978-3-16-148410-0").lastInsertRowid;
+}
+
 function seedMinimalResponse(overrides = {}) {
   const challenge = seedChallenge();
   return responseModel.create({
@@ -427,24 +433,36 @@ describe("response.model: updateComposite()", () => {
     assert.equal(updated.breakouts[1].title, "New 2");
   });
 
-  test("updateComposite clears relations when not specified in update data", () => {
+  test("updateComposite keeps breakouts and identifiers when their keys are absent, clears them on []", () => {
     const challenge = seedChallenge();
     const created = responseModel.createComposite({
-      slug: "clear-relations",
-      response_title: "Clear Relations",
+      slug: "keep-relations",
+      response_title: "Keep Relations",
       response_content: "Content",
       challenge_id: challenge.id,
       published_draft: 1,
       breakouts: [{ title: "Original", content: "This" }],
+      identifier_ids: [seedIdentifier()],
     });
 
-    const updated = responseModel.updateComposite(created.id, {
+    const kept = responseModel.updateComposite(created.id, {
       response_title: "Updated Title",
-      // No breakouts specified — implementation clears them
     });
+    assert.equal(kept.response_title, "Updated Title");
+    assert.equal(kept.breakouts.length, 1);
+    assert.equal(kept.identifiers.length, 1);
 
-    assert.equal(updated.response_title, "Updated Title");
-    assert.equal(updated.breakouts.length, 0, "breakouts should be cleared when not specified");
+    const cleared = responseModel.updateComposite(created.id, {
+      breakouts: [],
+      identifier_ids: [],
+    });
+    assert.equal(cleared.breakouts.length, 0);
+    assert.equal(cleared.identifiers.length, 0);
+  });
+
+  test("updateComposite with doi null clears the column", () => {
+    const created = seedMinimalResponse({ slug: "clear-doi", doi: "10.1000/xyz" });
+    assert.equal(responseModel.updateComposite(created.id, { doi: null }).doi, null);
   });
 });
 
@@ -541,6 +559,40 @@ describe("response.model: detail assembly", () => {
     assert.ok(detail);
     assert.equal(detail.response_title, "Detail Test");
     assert.equal(detail.breakouts.length, 1);
+  });
+
+  test("getDetailBySlug carries the challenge title, slug and type", () => {
+    const challenge = seedChallenge({ slug: "why-resurrection", challenge_title: "Why the Resurrection?" });
+    testDb
+      .prepare("UPDATE challenges SET academic_popular = 'academic' WHERE id = ?")
+      .run(challenge.id);
+    responseModel.create({
+      slug: "with-challenge",
+      response_title: "With Challenge",
+      challenge_id: challenge.id,
+      published_draft: 1,
+    });
+
+    const detail = responseModel.getDetailBySlug("with-challenge");
+    assert.equal(detail.challenge_title, "Why the Resurrection?");
+    assert.equal(detail.challenge_slug, "why-resurrection");
+    assert.equal(detail.challenge_type, "academic");
+    assert.equal(detail.slug, "with-challenge", "response slug is not overwritten by the join");
+  });
+
+  test("getDetailBySlug gives null challenge fields when the challenge is a draft", () => {
+    const challenge = seedChallenge({ slug: "draft-challenge", published_draft: 0 });
+    responseModel.create({
+      slug: "draft-challenge-response",
+      response_title: "Draft Challenge Response",
+      challenge_id: challenge.id,
+      published_draft: 1,
+    });
+
+    const detail = responseModel.getDetailBySlug("draft-challenge-response");
+    assert.equal(detail.challenge_title, null);
+    assert.equal(detail.challenge_slug, null);
+    assert.equal(detail.challenge_type, null);
   });
 
   test("getDetailBySlug returns undefined if row is not published", () => {

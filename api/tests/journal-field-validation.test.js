@@ -125,3 +125,58 @@ describe("validateJournalFields: footnotes", () => {
     assert.equal(problem.errorDef, ERRORS.INPUT_EXCEEDS_MAX_LENGTH);
   });
 });
+
+describe("validateJournalFields: slug and typed columns", () => {
+  const { ESSAY_COLUMNS, RESPONSE_COLUMNS, HISTORIOGRAPHY_COLUMNS } = require("../lib/journal-field-validation");
+
+  test("a valid slug and null optional columns pass", () => {
+    const body = { slug: "a-slug-2", essay_title: null, doi: null, two_column: 0 };
+    assert.equal(validateJournalFields(body, { ...ESSAY, columns: ESSAY_COLUMNS }), null);
+  });
+
+  test("a bad slug returns INVALID_SLUG", () => {
+    const problem = validateJournalFields({ slug: "Bad_Slug" }, ESSAY);
+    assert.equal(problem.field, "slug");
+    assert.equal(problem.errorDef, ERRORS.INVALID_SLUG);
+  });
+
+  test("a wrong type returns INVALID_BODY_FIELD naming the column", () => {
+    const problem = validateJournalFields(
+      { essay_title: 5 },
+      { ...ESSAY, columns: ESSAY_COLUMNS },
+    );
+    assert.equal(problem.field, "essay_title");
+    assert.equal(problem.errorDef, ERRORS.INVALID_BODY_FIELD);
+  });
+
+  test("published_draft takes only 0 or 1", () => {
+    const options = { ...ESSAY, columns: ESSAY_COLUMNS };
+    assert.equal(validateJournalFields({ published_draft: 1 }, options), null);
+    assert.equal(validateJournalFields({ published_draft: true }, options).field, "published_draft");
+    assert.equal(validateJournalFields({ published_draft: null }, options).field, "published_draft");
+  });
+
+  test("challenge_id takes an integer or null", () => {
+    const options = { ...RESPONSE, columns: RESPONSE_COLUMNS };
+    assert.equal(validateJournalFields({ challenge_id: null }, options), null);
+    assert.equal(validateJournalFields({ challenge_id: "4" }, options).errorDef, ERRORS.INVALID_NUMERIC_PARAM);
+  });
+
+  test("historiography_period takes a listed value or null", () => {
+    const options = { ...ESSAY, columns: HISTORIOGRAPHY_COLUMNS };
+    assert.equal(validateJournalFields({ historiography_period: "medieval" }, options), null);
+    assert.equal(validateJournalFields({ historiography_period: null, period_sort_order: null }, options), null);
+    assert.equal(validateJournalFields({ historiography_period: "other" }, options).field, "historiography_period");
+  });
+});
+
+describe("validateJournalFields: storedSlug", () => {
+  test("a slug equal to storedSlug passes even when it breaks the pattern", () => {
+    assert.equal(validateJournalFields({ slug: "Old_Slug" }, { ...ESSAY, storedSlug: "Old_Slug" }), null);
+  });
+
+  test("a different bad slug still fails", () => {
+    const problem = validateJournalFields({ slug: "New_Bad" }, { ...ESSAY, storedSlug: "Old_Slug" });
+    assert.equal(problem.errorDef, ERRORS.INVALID_SLUG);
+  });
+});

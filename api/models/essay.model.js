@@ -368,51 +368,62 @@ function updateComposite(id, data) {
     const essay = update(id, data);
     if (!essay) return undefined;
 
-    replaceChildren("essay_breakouts", "context_essay_id", id, breakouts, [
-      "title",
-      "content",
-    ]);
+    // Each child and link set is rewritten only when its key is present:
+    // omitted keeps the rows, [] clears them. replaceChildren/replaceLinks
+    // delete before they insert, so rewriting on omission would wipe the set.
+    // See setup/ARCHITECTURE/journal-article-fields.md.
+    if (breakouts !== undefined) {
+      replaceChildren("essay_breakouts", "context_essay_id", id, breakouts, [
+        "title",
+        "content",
+      ]);
+    }
 
-    // Footnotes are replaced only when the key is present (the admin editors
-    // always send it), so a save from another client
-    // cannot wipe them. See setup/ARCHITECTURE/journal-article-fields.md.
     if (data.footnotes !== undefined) {
       replaceChildren("essay_footnotes", "context_essay_id", id, data.footnotes, [
         "content",
       ]);
     }
-    replaceLinks(
-      "context_essay_mla_sources",
-      "context_essay_id",
-      "mla_source_id",
-      "citation_order",
-      id,
-      mlaSourceIds,
-    );
-    replaceLinks(
-      "context_essay_identifiers",
-      "context_essay_id",
-      "identifier_id",
-      "citation_order",
-      id,
-      identifierIds,
-    );
-    replaceLinks(
-      "context_essay_links_evidence",
-      "source_context_essay_id",
-      "target_evidence_id",
-      "sort_order",
-      id,
-      linkEvidenceIds,
-    );
-    replaceLinks(
-      "context_essay_links_context",
-      "source_context_essay_id",
-      "target_context_essay_id",
-      "sort_order",
-      id,
-      linkContextIds,
-    );
+    if (mlaSourceIds !== undefined) {
+      replaceLinks(
+        "context_essay_mla_sources",
+        "context_essay_id",
+        "mla_source_id",
+        "citation_order",
+        id,
+        mlaSourceIds,
+      );
+    }
+    if (identifierIds !== undefined) {
+      replaceLinks(
+        "context_essay_identifiers",
+        "context_essay_id",
+        "identifier_id",
+        "citation_order",
+        id,
+        identifierIds,
+      );
+    }
+    if (linkEvidenceIds !== undefined) {
+      replaceLinks(
+        "context_essay_links_evidence",
+        "source_context_essay_id",
+        "target_evidence_id",
+        "sort_order",
+        id,
+        linkEvidenceIds,
+      );
+    }
+    if (linkContextIds !== undefined) {
+      replaceLinks(
+        "context_essay_links_context",
+        "source_context_essay_id",
+        "target_context_essay_id",
+        "sort_order",
+        id,
+        linkContextIds,
+      );
+    }
 
     return getAdminById(id);
   });

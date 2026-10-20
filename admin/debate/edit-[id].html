@@ -374,14 +374,14 @@
                                 response_content:
                                     document
                                         .getElementById("response-content")
-                                        .value.trim() || undefined,
+                                        .value.trim() || null,
                                 challenge_id: challengeVal
                                     ? parseInt(challengeVal, 10)
-                                    : undefined,
+                                    : null,
                                 metadata_keywords:
                                     document
                                         .getElementById("response-keywords")
-                                        .value.trim() || undefined,
+                                        .value.trim() || null,
                                 two_column: document.getElementById(
                                     "response-two-column",
                                 ).checked
@@ -390,13 +390,13 @@
                                 doi:
                                     document
                                         .getElementById("response-doi")
-                                        .value.trim() || undefined,
+                                        .value.trim() || null,
                                 author_bio:
                                     document
                                         .getElementById(
                                             "response-author-bio",
                                         )
-                                        .value.trim() || undefined,
+                                        .value.trim() || null,
                                 abstract:
                                     document
                                         .getElementById("response-abstract")

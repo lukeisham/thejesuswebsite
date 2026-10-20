@@ -33,6 +33,12 @@ function clearTable() {
   testDb.exec("DELETE FROM historiography_links_context");
 }
 
+function seedIdentifier() {
+  return testDb
+    .prepare("INSERT INTO identifiers (isbn, published_draft) VALUES (?, 1)")
+    .run("978-3-16-148410-0").lastInsertRowid;
+}
+
 function seedMinimalHistoriography(overrides = {}) {
   return historiographyModel.create({
     slug: overrides.slug || "test-essay",
@@ -329,23 +335,35 @@ describe("historiography.model: updateComposite()", () => {
     assert.equal(updated.breakouts[1].title, "New 2");
   });
 
-  test("updateComposite clears relations when not specified in update data", () => {
+  test("updateComposite keeps breakouts and identifiers when their keys are absent, clears them on []", () => {
     const created = historiographyModel.createComposite({
-      slug: "clear-relations",
-      essay_title: "Clear Relations",
+      slug: "keep-relations",
+      essay_title: "Keep Relations",
       essay_content: "Content",
       published_draft: 1,
       period_sort_order: 1,
       breakouts: [{ title: "Original", content: "This" }],
+      identifier_ids: [seedIdentifier()],
     });
 
-    const updated = historiographyModel.updateComposite(created.id, {
+    const kept = historiographyModel.updateComposite(created.id, {
       essay_title: "Updated Title",
-      // No breakouts specified — implementation clears them
     });
+    assert.equal(kept.essay_title, "Updated Title");
+    assert.equal(kept.breakouts.length, 1);
+    assert.equal(kept.identifiers.length, 1);
 
-    assert.equal(updated.essay_title, "Updated Title");
-    assert.equal(updated.breakouts.length, 0, "breakouts should be cleared when not specified");
+    const cleared = historiographyModel.updateComposite(created.id, {
+      breakouts: [],
+      identifier_ids: [],
+    });
+    assert.equal(cleared.breakouts.length, 0);
+    assert.equal(cleared.identifiers.length, 0);
+  });
+
+  test("updateComposite with doi null clears the column", () => {
+    const created = seedMinimalHistoriography({ slug: "clear-doi", doi: "10.1000/xyz" });
+    assert.equal(historiographyModel.updateComposite(created.id, { doi: null }).doi, null);
   });
 });
 

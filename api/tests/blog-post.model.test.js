@@ -73,6 +73,30 @@ describe("blog-post model", () => {
     assert.equal(model.getById(id), undefined);
   });
 
+  test("updateComposite keeps breakouts and identifiers when their keys are absent, clears them on []", () => {
+    const identifierId = testDb
+      .prepare("INSERT INTO identifiers (isbn, published_draft) VALUES (?, 1)")
+      .run("978-3-16-148410-0").lastInsertRowid;
+    const created = model.createComposite({
+      slug: "keep-relations",
+      blog_title: "Before",
+      breakouts: [{ title: "Section", content: "Body" }],
+      identifier_ids: [identifierId],
+    });
+
+    const kept = model.updateComposite(created.id, { blog_title: "After" });
+    assert.equal(kept.blog_title, "After");
+    assert.equal(kept.breakouts.length, 1);
+    assert.equal(kept.identifiers.length, 1);
+
+    const cleared = model.updateComposite(created.id, {
+      breakouts: [],
+      identifier_ids: [],
+    });
+    assert.equal(cleared.breakouts.length, 0);
+    assert.equal(cleared.identifiers.length, 0);
+  });
+
   test("update and remove report a missing id instead of throwing", () => {
     assert.equal(model.update(99999, { blog_title: "x" }), undefined);
     assert.equal(model.remove(99999), false);

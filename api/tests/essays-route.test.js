@@ -160,6 +160,25 @@ describe("/essays journal article fields validation", () => {
     assert.equal(result.body.footnotes[0].content, "Note one.");
   });
 
+  test("PUT with doi null clears the stored doi", async () => {
+    const created = await request(createApp(), {
+      method: "POST",
+      path: "/essays",
+      body: { slug: "essay-null", doi: "10.1000/xyz" },
+      headers: { cookie: authCookie() },
+    });
+    assert.equal(created.body.doi, "10.1000/xyz");
+
+    const cleared = await request(createApp(), {
+      method: "PUT",
+      path: `/essays/${created.body.id}`,
+      body: { doi: null },
+      headers: { cookie: authCookie() },
+    });
+    assert.equal(cleared.status, 200);
+    assert.equal(cleared.body.doi, null);
+  });
+
   test("POST with the same bad body and no session cookie returns 401", async () => {
     const result = await request(createApp(), {
       method: "POST",
@@ -194,4 +213,62 @@ describe("/essays admin gates", () => {
       assert.equal(result.status, passStatus);
     });
   }
+});
+
+describe("/essays typed column validation", () => {
+  test("PUT with a numeric essay_title returns 400 E-INPUT-038 naming the field", async () => {
+    const result = await request(createApp(), {
+      method: "PUT",
+      path: "/essays/1",
+      body: { essay_title: 42 },
+      headers: { cookie: authCookie() },
+    });
+    assert.equal(result.status, 400);
+    assert.equal(result.body.error.code, "E-INPUT-038");
+    assert.equal(result.body.error.context.field, "essay_title");
+  });
+
+  test("PUT with published_draft 2 returns 400 naming the field", async () => {
+    const result = await request(createApp(), {
+      method: "PUT",
+      path: "/essays/1",
+      body: { published_draft: 2 },
+      headers: { cookie: authCookie() },
+    });
+    assert.equal(result.status, 400);
+    assert.equal(result.body.error.context.field, "published_draft");
+  });
+
+  test("PUT with a malformed slug returns 400 E-INPUT-006", async () => {
+    const result = await request(createApp(), {
+      method: "PUT",
+      path: "/essays/1",
+      body: { slug: "Bad Slug" },
+      headers: { cookie: authCookie() },
+    });
+    assert.equal(result.status, 400);
+    assert.equal(result.body.error.code, "E-INPUT-006");
+    assert.equal(result.body.error.context.field, "slug");
+  });
+
+  test("POST with a malformed slug returns 400 E-INPUT-006", async () => {
+    const result = await request(createApp(), {
+      method: "POST",
+      path: "/essays",
+      body: { slug: "../x" },
+      headers: { cookie: authCookie() },
+    });
+    assert.equal(result.status, 400);
+    assert.equal(result.body.error.code, "E-INPUT-006");
+  });
+
+  test("PUT with null optional text and a valid body passes validation (404 for a missing row)", async () => {
+    const result = await request(createApp(), {
+      method: "PUT",
+      path: "/essays/99999",
+      body: { essay_title: null, doi: null, author_bio: null, two_column: 1, slug: "valid-slug" },
+      headers: { cookie: authCookie() },
+    });
+    assert.equal(result.status, 404);
+  });
 });

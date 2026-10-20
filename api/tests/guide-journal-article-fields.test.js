@@ -93,6 +93,19 @@ describe(`${GUIDE} row 5: write routes validate the journal fields`, () => {
   }
 });
 
+describe(`${GUIDE} challenge fields: getDetailBySlug supplies what response-detail.js reads`, () => {
+  const aliases = ["challenge_title", "slug AS challenge_slug", "academic_popular AS challenge_type"];
+  for (const alias of aliases) {
+    test(`response.model.js selects ${alias}`, () => {
+      assert.ok(
+        read("api/models/response.model.js").includes(alias),
+        `Challenge fields row of ${GUIDE}: api/models/response.model.js must select "${alias}" in getDetailBySlug. ` +
+          `response-detail.js reads it to draw the challenge link.`,
+      );
+    });
+  }
+});
+
 describe(`${GUIDE} row 6: abstract and footnotes stay out of FTS`, () => {
   test("no fts5 table in schema.sql lists abstract or footnote columns", () => {
     const schema = read("database/schema.sql");

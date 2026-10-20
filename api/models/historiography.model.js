@@ -302,54 +302,65 @@ function updateComposite(id, data) {
     const item = update(id, data);
     if (!item) return undefined;
 
-    replaceChildren(
-      "historiography_breakouts",
-      "historiography_id",
-      id,
-      breakouts,
-      ["title", "content"],
-    );
+    // Each child and link set is rewritten only when its key is present:
+    // omitted keeps the rows, [] clears them. replaceChildren/replaceLinks
+    // delete before they insert, so rewriting on omission would wipe the set.
+    // See setup/ARCHITECTURE/journal-article-fields.md.
+    if (breakouts !== undefined) {
+      replaceChildren(
+        "historiography_breakouts",
+        "historiography_id",
+        id,
+        breakouts,
+        ["title", "content"],
+      );
+    }
 
-    // Footnotes are replaced only when the key is present (the admin editors
-    // always send it), so a save from another client
-    // cannot wipe them. See setup/ARCHITECTURE/journal-article-fields.md.
     if (data.footnotes !== undefined) {
       replaceChildren("historiography_footnotes", "historiography_id", id, data.footnotes, [
         "content",
       ]);
     }
-    replaceLinks(
-      "historiography_mla_sources",
-      "historiography_id",
-      "mla_source_id",
-      "citation_order",
-      id,
-      mlaSourceIds,
-    );
-    replaceLinks(
-      "historiography_identifiers",
-      "historiography_id",
-      "identifier_id",
-      "citation_order",
-      id,
-      identifierIds,
-    );
-    replaceLinks(
-      "historiography_links_evidence",
-      "source_historiography_id",
-      "target_evidence_id",
-      "sort_order",
-      id,
-      linkEvidenceIds,
-    );
-    replaceLinks(
-      "historiography_links_context",
-      "source_historiography_id",
-      "target_context_essay_id",
-      "sort_order",
-      id,
-      linkContextIds,
-    );
+    if (mlaSourceIds !== undefined) {
+      replaceLinks(
+        "historiography_mla_sources",
+        "historiography_id",
+        "mla_source_id",
+        "citation_order",
+        id,
+        mlaSourceIds,
+      );
+    }
+    if (identifierIds !== undefined) {
+      replaceLinks(
+        "historiography_identifiers",
+        "historiography_id",
+        "identifier_id",
+        "citation_order",
+        id,
+        identifierIds,
+      );
+    }
+    if (linkEvidenceIds !== undefined) {
+      replaceLinks(
+        "historiography_links_evidence",
+        "source_historiography_id",
+        "target_evidence_id",
+        "sort_order",
+        id,
+        linkEvidenceIds,
+      );
+    }
+    if (linkContextIds !== undefined) {
+      replaceLinks(
+        "historiography_links_context",
+        "source_historiography_id",
+        "target_context_essay_id",
+        "sort_order",
+        id,
+        linkContextIds,
+      );
+    }
 
     return getAdminById(id);
   });
