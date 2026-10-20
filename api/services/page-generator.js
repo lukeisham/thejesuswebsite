@@ -201,21 +201,14 @@ function generatePage(type, slug) {
     }
   }
 
-  // Write atomically: write to temp file, then rename (JS-2: never leave a
-  // half-written file if the process crashes mid-write).
-  const tmpPath = outputPath + ".tmp";
-  const writeResult = safeWriteFile(tmpPath, output);
+  // safeWriteFile writes a temp file and renames it (api/lib/io-guard.js), so a
+  // crash mid-write never leaves a half-written page.
+  const writeResult = safeWriteFile(outputPath, output);
   if (!writeResult.ok) {
     return {
       ok: false,
       error: `Failed to write page: ${outputPath} (${writeResult.code})`,
     };
-  }
-  try {
-    fs.renameSync(tmpPath, outputPath);
-  } catch (err) {
-    console.error(`Failed to rename "${tmpPath}" to "${outputPath}":`, err.message);
-    return { ok: false, error: `Failed to finalize page write: ${outputPath}` };
   }
 
   return { ok: true, path: outputPath };

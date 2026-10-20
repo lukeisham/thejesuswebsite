@@ -416,6 +416,12 @@ Every colour, space, size, font and duration is a custom property from the area'
 `variables.css` (`frontend/assets/css/base/variables.css`, `admin/assets/css/admin-base/variables.css`),
 including its dark-mode and print blocks. Component files reference `var(--…)` only.
 
+Exception: `admin/assets/css/admin-diagrams/timeline-tokens.css` and `maps-tokens.css` keep the
+literal values of the frontend-named tokens that only the timeline and maps editors use. The admin
+`variables.css` holds the `--admin-*` and `--era-*` tokens, and the diagram stylesheets reuse the
+public site's token names so that an editor draws what the public page draws. Component files in
+`admin-diagrams/` still reference `var(--…)` only.
+
 **CSS-3** — Mobile Inside Component Files
 Put all `@media (max-width)` rules in the same file as the component. Use breakpoints from `variables.css`. No separate mobile files.
 

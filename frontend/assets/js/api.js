@@ -364,9 +364,13 @@ function getOrCreateSessionId() {
 export async function recordPageView(page) {
   if (typeof page !== "string" || page.length === 0) return;
   try {
+    // 500 equals MAX_FIELD_LENGTHS.page and .referrer in api/routes/analytics.js.
+    // The route rejects a longer value with a 400, and the view is then lost
+    // silently, so raise both numbers together.
+    const ANALYTICS_MAX_FIELD_LENGTH = 500;
     const referrer =
       typeof document !== "undefined"
-        ? (document.referrer || "").slice(0, 500)
+        ? (document.referrer || "").slice(0, ANALYTICS_MAX_FIELD_LENGTH)
         : "";
     const sessionId = getOrCreateSessionId();
 
@@ -374,7 +378,7 @@ export async function recordPageView(page) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        page,
+        page: page.slice(0, ANALYTICS_MAX_FIELD_LENGTH),
         referrer: referrer || null,
         session_id: sessionId,
       }),
