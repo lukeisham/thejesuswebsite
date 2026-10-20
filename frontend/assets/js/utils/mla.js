@@ -5,15 +5,13 @@
  * guide §9. Detects source type by which field group is populated (journal
  * article → book → website). Returns "" when no group has enough data.
  *
- * Why frontend-only: the API keeps exposing raw mla_sources rows (data
- * layer); formatting is presentation and lives here. If the static page
- * generator ever needs server-rendered bibliographies, that's a separate
- * decision.
+ * Why frontend-only: the API exposes raw mla_sources rows; formatting is
+ * presentation and lives here. The output is HTML that essay-detail.js passes
+ * to raw(), so every interpolated field must go through `html` (JS-6).
  *
- * MLA type detection order (#15 notes): a row could populate multiple field
- * groups; pick journal article first (most specific), then book, then
- * website. This order is documented here so future readers understand why
- * a book+website hybrid row renders as a book.
+ * Type detection order: a row could populate multiple field groups, so the
+ * most specific wins: journal article, then book, then website. A
+ * book+website hybrid row therefore renders as a book.
  *
  * @module utils/mla
  */
@@ -65,10 +63,10 @@ export function formatMlaCitation(source) {
     }
 
     // (Date)
-    if (date) parts.push(`(${date})`);
+    if (date) parts.push(html`(${date})`.toString());
 
     // pp. X-Y
-    if (pages) parts.push(`, ${pages}`);
+    if (pages) parts.push(html`, ${pages}`.toString());
 
     parts.push(".");
 
@@ -98,13 +96,13 @@ export function formatMlaCitation(source) {
     parts.push(html`<em>${title}</em>`.toString());
 
     // Publisher
-    if (publisher) parts.push(`, ${publisher}`);
+    if (publisher) parts.push(html`, ${publisher}`.toString());
 
     // Date
-    if (date) parts.push(`, ${date}`);
+    if (date) parts.push(html`, ${date}`.toString());
 
     // Page reference
-    if (pageRef) parts.push(`, ${pageRef}`);
+    if (pageRef) parts.push(html`, ${pageRef}`.toString());
 
     parts.push(".");
 

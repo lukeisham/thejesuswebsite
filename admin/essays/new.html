@@ -11,6 +11,7 @@
         <script defer src="../assets/js/admin-http.js"></script>
         <script defer src="../assets/js/auth.js"></script>
         <script defer src="../assets/js/admin.js"></script>
+        <script defer src="../assets/js/admin-editor-utils.js"></script>
         <script defer src="../assets/js/admin-figure-shortcodes.js"></script>
         <script defer src="../assets/js/admin-figure-captions.js"></script>
         <script defer src="../assets/js/admin-insert-image.js"></script>
@@ -290,31 +291,6 @@
                             <div class="admin-form-card__title">Images</div>
                             <div id="essay-images-mount"></div>
                         </div>
-
-                        <div
-                            class="admin-form-card"
-                            style="margin-top: var(--space-md)"
-                        >
-                            <div class="admin-form-group">
-                                <div class="admin-checkbox-group">
-                                    <input
-                                        type="checkbox"
-                                        id="essay-publish"
-                                        name="published_draft"
-                                        value="1"
-                                    />
-                                    <label for="essay-publish"
-                                        >Publish immediately</label
-                                    >
-                                </div>
-                                <span
-                                    class="admin-form-hint"
-                                    style="margin-top: var(--space-xs)"
-                                    >When checked, the essay will be published
-                                    on save.</span
-                                >
-                            </div>
-                        </div>
                     </div>
                 </form>
 
@@ -350,7 +326,16 @@
         <script>
             document.addEventListener("DOMContentLoaded", async function () {
                 const ok = await AdminAuth.requireSession();
-                if (!ok) return;
+                if (!ok) {
+                    console.warn(
+                        "new essay: session check failed; form not initialised",
+                    );
+                    var sessionError = document.getElementById("form-error");
+                    sessionError.textContent =
+                        "Unable to verify session. Please check your connection and try again.";
+                    sessionError.style.display = "block";
+                    return;
+                }
 
                 
                 AdminInsertImage.wire("#insert-image-btn", "#essay-content");
@@ -442,18 +427,6 @@ const titleInput = document.getElementById("essay-title");
                     return valid;
                 }
 
-                function parseIdList(str) {
-                    if (!str || !str.trim()) return undefined;
-                    return str
-                        .split(",")
-                        .map(function (s) {
-                            return parseInt(s.trim(), 10);
-                        })
-                        .filter(function (n) {
-                            return !isNaN(n);
-                        });
-                }
-
                 function buildPayload(publish) {
                     return {
                         essay_title: titleInput.value.trim(),
@@ -464,7 +437,7 @@ const titleInput = document.getElementById("essay-title");
                                 .getElementById("essay-keywords")
                                 .value.trim() || undefined,
                         published_draft: publish ? 1 : 0,
-                        link_evidence_ids: parseIdList(
+                        link_evidence_ids: AdminEditorUtils.parseIdList(
                             document.getElementById("essay-evidence").value,
                         ),
                         mla_source_ids: mlaSourcesPanel.getSelectedIds(),

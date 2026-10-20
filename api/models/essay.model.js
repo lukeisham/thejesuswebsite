@@ -41,6 +41,20 @@ const ALL_COLUMNS = ["id", ...WRITABLE_COLUMNS, "created_at", "updated_at"].join
   ", ",
 );
 
+// SQL-1: fixed-SQL statements compile once, on first use. Lazy rather than at
+// require time because route and guard tests load this module against a
+// partial in-memory schema, where an eager prepare() would throw.
+const statements = new Map();
+
+function cachedStatement(name, sql) {
+  let stmt = statements.get(name);
+  if (!stmt) {
+    stmt = db.prepare(sql);
+    statements.set(name, stmt);
+  }
+  return stmt;
+}
+
 /**
  * Map DB-native column names to the names the frontend JS expects. Admin
  * reads (getAdminById) skip this so admin forms keep using the raw DB names.
@@ -76,9 +90,10 @@ function normalizeForPublic(item) {
  * @returns {object[]}
  */
 function getAllAdmin() {
-  return db
-    .prepare(`SELECT ${ALL_COLUMNS} FROM context_essays ORDER BY created_at DESC`)
-    .all();
+  return cachedStatement(
+    "selectAllAdmin",
+    `SELECT ${ALL_COLUMNS} FROM context_essays ORDER BY created_at DESC`,
+  ).all();
 }
 
 /**
@@ -108,11 +123,10 @@ function getAllPublished(filters = {}) {
  * @returns {object|undefined}
  */
 function getBySlug(slug) {
-  return db
-    .prepare(
-      `SELECT ${ALL_COLUMNS} FROM context_essays WHERE slug = ? AND published_draft = 1`,
-    )
-    .get(slug);
+  return cachedStatement(
+    "selectPublishedBySlug",
+    `SELECT ${ALL_COLUMNS} FROM context_essays WHERE slug = ? AND published_draft = 1`,
+  ).get(slug);
 }
 
 /**
@@ -122,7 +136,10 @@ function getBySlug(slug) {
  * @returns {object|undefined}
  */
 function getById(id) {
-  return db.prepare(`SELECT ${ALL_COLUMNS} FROM context_essays WHERE id = ?`).get(id);
+  return cachedStatement(
+    "selectById",
+    `SELECT ${ALL_COLUMNS} FROM context_essays WHERE id = ?`,
+  ).get(id);
 }
 
 /**
@@ -410,7 +427,10 @@ function updateComposite(id, data) {
  * @returns {boolean}
  */
 function remove(id) {
-  const result = db.prepare("DELETE FROM context_essays WHERE id = ?").run(id);
+  const result = cachedStatement(
+    "deleteById",
+    "DELETE FROM context_essays WHERE id = ?",
+  ).run(id);
   return result.changes > 0;
 }
 

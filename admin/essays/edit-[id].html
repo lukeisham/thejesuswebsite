@@ -255,21 +255,6 @@
                             "essay-slug-error",
                         );
 
-                        var slugAuto = true;
-                        titleInput.addEventListener("input", function () {
-                            if (slugAuto) {
-                                slugInput.value = titleInput.value
-                                    .toLowerCase()
-                                    .replace(/[^a-z0-9\s-]/g, "")
-                                    .replace(/\s+/g, "-")
-                                    .replace(/-+/g, "-")
-                                    .replace(/^-|-$/g, "");
-                            }
-                        });
-                        slugInput.addEventListener("input", function () {
-                            slugAuto = false;
-                        });
-
                         function validateForm() {
                             var valid = AdminEditorUtils.validate(formError, [
                                 {
@@ -283,6 +268,17 @@
                                     label: "Slug",
                                 },
                             ]);
+                            var slug = slugInput.value.trim();
+                            if (
+                                slug &&
+                                !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)
+                            ) {
+                                slugErr.textContent =
+                                    "Slug must be lowercase letters, numbers, and hyphens.";
+                                slugErr.style.display = "block";
+                                slugInput.classList.add("admin-input--error");
+                                valid = false;
+                            }
                             if (!valid) titleInput.focus();
                             return valid;
                         }

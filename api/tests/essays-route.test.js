@@ -1,6 +1,6 @@
 // Essays route tests (node:test + node:assert). Asserts the status and registry
-// error code for an unknown slug, missing or invalid create/update fields, and an
-// unauthenticated write, plus a successful create that saves footnotes.
+// error code for an unknown slug, missing or invalid create/update fields, the
+// 401/pass-through gate on every admin route, and a successful create that saves footnotes.
 
 const { test, describe, afterEach } = require("node:test");
 const assert = require("node:assert/strict");
@@ -168,4 +168,30 @@ describe("/essays journal article fields validation", () => {
     });
     assert.equal(result.status, 401);
   });
+});
+
+describe("/essays admin gates", () => {
+  const gated = [
+    { method: "PUT", path: "/essays/99999", body: { slug: "x" }, passStatus: 404 },
+    { method: "DELETE", path: "/essays/99999", passStatus: 404 },
+    { method: "GET", path: "/essays/admin", passStatus: 200 },
+    { method: "GET", path: "/essays/admin/99999", passStatus: 404 },
+  ];
+
+  for (const { method, path: reqPath, body, passStatus } of gated) {
+    test(`${method} ${reqPath} returns 401 without a session cookie`, async () => {
+      const result = await request(createApp(), { method, path: reqPath, body });
+      assert.equal(result.status, 401);
+    });
+
+    test(`${method} ${reqPath} passes the gate with a valid session`, async () => {
+      const result = await request(createApp(), {
+        method,
+        path: reqPath,
+        body,
+        headers: { cookie: authCookie() },
+      });
+      assert.equal(result.status, passStatus);
+    });
+  }
 });

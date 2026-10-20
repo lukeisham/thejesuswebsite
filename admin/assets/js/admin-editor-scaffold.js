@@ -1,11 +1,12 @@
-// Shared editor scaffold — encapsulates the session-check / id-param /
-// data-load / loading-error boundary duplicated in every editor's
-// DOMContentLoaded handler, plus the save/publish/delete/Ctrl+Enter button
-// wiring duplicated in every editor's event-handler section. Per-type form
-// assembly and payload building stay in each editor file via callbacks
-// (JS-5: only goes through Admin.api.* / AdminHttp, never fetch() directly).
+// Shared editor scaffold for the admin edit pages: the session-check / id-param /
+// data-load / loading-error boundary and the save/publish/delete/Ctrl+Enter
+// button wiring. Per-type form assembly and payload building stay in each
+// editor file via callbacks (JS-5: only goes through Admin.api.* / AdminHttp,
+// never fetch() directly).
 //
-// Used by: admin/{evidence,essays,blog,debate,historiography}/edit-[id].html
+// Called by: admin/{evidence,essays,blog,debate,historiography}/edit-[id].html,
+// which must load admin.js (Admin.api, Admin.publishItem) and the auth script
+// (AdminAuth.requireSession) before this file.
 
 window.AdminEditorScaffold = {};
 
@@ -13,6 +14,22 @@ var AdminEditorScaffold = window.AdminEditorScaffold;
 
 function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+// JS-6: message text (which may carry err.message) goes in via textContent,
+// never innerHTML. The optional back link is appended after the message.
+function renderBoundaryError(main, message, backHref) {
+  var box = document.createElement("div");
+  box.className = "admin-error";
+  box.setAttribute("role", "alert");
+  box.append(message);
+  if (backHref) {
+    var link = document.createElement("a");
+    link.href = backHref;
+    link.textContent = "Go back";
+    box.append(" ", link, ".");
+  }
+  main.replaceChildren(box);
 }
 
 /**
@@ -44,8 +61,7 @@ AdminEditorScaffold.initializeEditor = async function (config) {
 
   var ok = await AdminAuth.requireSession();
   if (!ok) {
-    main.innerHTML =
-      '<div class="admin-error" role="alert">Unable to verify session.</div>';
+    renderBoundaryError(main, "Unable to verify session.");
     return;
   }
 
@@ -53,12 +69,7 @@ AdminEditorScaffold.initializeEditor = async function (config) {
   var id = params.get(idParamName);
 
   if (!id) {
-    main.innerHTML =
-      '<div class="admin-error" role="alert">No ' +
-      entityLabel +
-      ' ID specified. <a href="' +
-      backHref +
-      '">Go back</a>.</div>';
+    renderBoundaryError(main, "No " + entityLabel + " ID specified.", backHref);
     return;
   }
 
@@ -66,22 +77,12 @@ AdminEditorScaffold.initializeEditor = async function (config) {
   try {
     data = await Admin.api.get(config.apiPath + id);
   } catch (err) {
-    main.innerHTML =
-      '<div class="admin-error" role="alert">Failed to load ' +
-      entityLabel +
-      ": " +
-      err.message +
-      "</div>";
+    renderBoundaryError(main, "Failed to load " + entityLabel + ": " + err.message);
     return;
   }
 
   if (!data) {
-    main.innerHTML =
-      '<div class="admin-error" role="alert">' +
-      capitalize(entityLabel) +
-      ' not found. <a href="' +
-      backHref +
-      '">Go back</a>.</div>';
+    renderBoundaryError(main, capitalize(entityLabel) + " not found.", backHref);
     return;
   }
 
@@ -100,8 +101,7 @@ AdminEditorScaffold.initializeEditor = async function (config) {
  * Wire the save button, publish/unpublish toggle, delete button (optional),
  * and the Ctrl+Enter shortcut. Per-type validation and payload assembly
  * stay in the caller via the `validateForm`/`buildPayload` callbacks so this
- * stays a scaffold, not a generic config-driven editor (Phase 3 is out of
- * scope for this plan).
+ * stays a scaffold, not a generic config-driven editor.
  *
  * @param {{
  *   formError: HTMLElement,

@@ -63,7 +63,11 @@ async function loadPage() {
   isLoading = true;
   showState("loading");
 
-  const { data, error } = await getEssays();
+  // The API answers { items, total, page, limit, totalPages } when page/limit are sent.
+  const { data, error } = await getEssays({
+    page: currentPage,
+    limit: PAGE_SIZE,
+  });
 
   isLoading = false;
 
@@ -73,7 +77,9 @@ async function loadPage() {
     return;
   }
 
-  if (!data || data.length === 0) {
+  const pageItems = data?.items ?? [];
+
+  if (pageItems.length === 0) {
     if (allItems.length === 0) {
       showState("empty");
     } else {
@@ -84,21 +90,11 @@ async function loadPage() {
     return;
   }
 
-  const start = (currentPage - 1) * PAGE_SIZE;
-  const pageItems = data.slice(start, start + PAGE_SIZE);
-
-  if (pageItems.length === 0) {
-    hasMore = false;
-    $sentinel && ($sentinel.hidden = true);
-    showState("end");
-    return;
-  }
-
   allItems = [...allItems, ...pageItems];
   renderCards(pageItems);
   cacheItems();
 
-  if (pageItems.length < PAGE_SIZE || start + pageItems.length >= data.length) {
+  if (currentPage >= data.totalPages) {
     hasMore = false;
     $sentinel && ($sentinel.hidden = true);
     showState("end");
@@ -202,8 +198,12 @@ function restoreFromCache() {
       showState("end");
       return true;
     }
-  } catch {
-    /* ignore */
+  } catch (err) {
+    console.warn(
+      `essays-list: cached list in sessionStorage "${STORAGE_KEY_ITEMS}" is unreadable; reloading from the API.`,
+      err,
+    );
+    clearCachedItems();
   }
   return false;
 }

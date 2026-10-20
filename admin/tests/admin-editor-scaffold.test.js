@@ -28,6 +28,18 @@ function makeElement() {
     textContent: "",
     disabled: false,
     _handlers: handlers,
+    _parts: [],
+    setAttribute: function () {},
+    append: function () {
+      for (var i = 0; i < arguments.length; i++) {
+        var part = arguments[i];
+        this._parts.push(typeof part === "string" ? part : part.textContent);
+      }
+      this.textContent = this._parts.join("");
+    },
+    replaceChildren: function (child) {
+      this.innerHTML = child.textContent;
+    },
     addEventListener: function (type, fn) {
       handlers[type] = handlers[type] || [];
       handlers[type].push(fn);
@@ -43,6 +55,11 @@ function makeElement() {
 function makeDocument() {
   var handlers = {};
   return {
+    createElement: function () {
+      var el = makeElement();
+      el._parts = [];
+      return el;
+    },
     addEventListener: function (type, fn) {
       handlers[type] = handlers[type] || [];
       handlers[type].push(fn);

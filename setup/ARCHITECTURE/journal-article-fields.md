@@ -24,6 +24,7 @@ Rows 1, 4 and 5 and the table checks in "Shape" are enforced by `api/tests/guide
 - `abstract` (a text column) is on `context_essays`, `responses` and `historiography`. `strength` (1 to 5, or empty) is on `responses` only.
 - Footnotes are rows in `essay_footnotes`, `response_footnotes` and `historiography_footnotes`. The tables are in `CHILD_TABLES` in `child-rows.js`. The models attach them to the detail read as `footnotes`.
 - `content-markers.js` turns `[fn:N]` into a superscript link. The detail pages call `footnoteListHTML()` in `footnotes.js` after the body renders.
+- `essay-detail.js` also renders the essay-only columns `author_bio`, `doi`, `metadata_keywords` (sent to the page as `keywords`) and `two_column` (a body layout class), plus a created and edited line from `created_at` and `updated_at`. Each optional block is hidden when its field is empty.
 - The admin editors show an Abstract box, a Footnotes panel (`admin-footnotes-panel.js`) and, for responses, a Strength select. They send `abstract`, `footnotes` and `strength` with `null` or an empty list to clear a value.
 
 ## Extending it
