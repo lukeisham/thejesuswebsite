@@ -1,6 +1,6 @@
 /**
- * Centralised API fetch helpers. All raw `fetch()` calls live here (SR-3, JS-5).
- * Every helper returns `{ data, error }` — never throws.
+ * Every frontend page script imports its data fetches from here; all raw `fetch()` calls live here (JS-5).
+ * Helpers return an ApiResult and never throw.
  *
  * @module api
  */
@@ -8,11 +8,19 @@
 const BASE = "/api";
 
 /**
+ * Result of every helper in this file. `data` is the parsed JSON body, or null on error and on 204.
+ * `error` is null on success, a message string, or the structured `{ code, message, detail }` object
+ * the API returns for registry errors (API-3).
+ *
+ * @typedef {{ data: *, error: string | { code: string, message: string, detail?: * } | null }} ApiResult
+ */
+
+/**
  * Internal fetch wrapper with JSON parsing and error normalisation.
  *
  * @param {string} url
  * @param {RequestInit} [options]
- * @returns {Promise<{data: *, error: string|null}>}
+ * @returns {Promise<ApiResult>}
  */
 async function request(url, options = {}) {
   try {
@@ -26,16 +34,12 @@ async function request(url, options = {}) {
     const data = await res.json();
 
     if (!res.ok) {
-      // Server errors may be a plain string (`{ error: "..." }`) or the
-      // structured error-codes shape (`{ error: { code, message, detail } }`).
-      // Prefer the structured message/code when present so callers get
-      // richer context instead of a generic fallback.
+      // The structured object is passed through whole so callers can branch on `code`.
       const errPayload = data.error;
       let error = `Request failed (${res.status})`;
       if (typeof errPayload === "string" && errPayload) {
         error = errPayload;
       } else if (errPayload && typeof errPayload === "object") {
-        // Return full structured error object so caller can access code field
         error = errPayload;
       }
       return { data: null, error };
@@ -49,13 +53,19 @@ async function request(url, options = {}) {
 
 // ─── Evidence ────────────────────────────────────────────────────────────────
 
-/** @param {Object} [params] - Query filter params (e.g. { timeline_era, map_location }). */
+/**
+ * @param {Object} [params] - Query filter params (e.g. { timeline_era, map_location }).
+ * @returns {Promise<ApiResult>}
+ */
 export async function getEvidence(params) {
   const qs = params ? "?" + new URLSearchParams(params).toString() : "";
   return request(`/evidence${qs}`);
 }
 
-/** @param {string} slug */
+/**
+ * @param {string} slug
+ * @returns {Promise<ApiResult>}
+ */
 export async function getEvidenceBySlug(slug) {
   if (!slug) return { data: null, error: "Slug is required" };
   return request(`/evidence/${encodeURIComponent(slug)}`);
@@ -63,13 +73,19 @@ export async function getEvidenceBySlug(slug) {
 
 // ─── Essays / Contextual ─────────────────────────────────────────────────────
 
-/** @param {Object} [params] */
+/**
+ * @param {Object} [params]
+ * @returns {Promise<ApiResult>}
+ */
 export async function getEssays(params) {
   const qs = params ? "?" + new URLSearchParams(params).toString() : "";
   return request(`/essays${qs}`);
 }
 
-/** @param {string} slug */
+/**
+ * @param {string} slug
+ * @returns {Promise<ApiResult>}
+ */
 export async function getEssayBySlug(slug) {
   if (!slug) return { data: null, error: "Slug is required" };
   return request(`/essays/${encodeURIComponent(slug)}`);
@@ -77,7 +93,10 @@ export async function getEssayBySlug(slug) {
 
 // ─── Timeline ─────────────────────────────────────────────────────────────────
 
-/** @param {Object} [params] */
+/**
+ * @param {Object} [params]
+ * @returns {Promise<ApiResult>}
+ */
 export async function getTimeline(params) {
   const qs = params ? "?" + new URLSearchParams(params).toString() : "";
   return request(`/timeline${qs}`);
@@ -85,13 +104,19 @@ export async function getTimeline(params) {
 
 // ─── Maps ─────────────────────────────────────────────────────────────────────
 
-/** @param {Object} [params] */
+/**
+ * @param {Object} [params]
+ * @returns {Promise<ApiResult>}
+ */
 export async function getMaps(params) {
   const qs = params ? "?" + new URLSearchParams(params).toString() : "";
   return request(`/maps${qs}`);
 }
 
-/** @param {string} mapKey */
+/**
+ * @param {string} mapKey
+ * @returns {Promise<ApiResult>}
+ */
 export async function getMapByKey(mapKey) {
   if (!mapKey) return { data: null, error: "Map key is required" };
   return request(`/maps/${encodeURIComponent(mapKey)}`);
@@ -99,7 +124,10 @@ export async function getMapByKey(mapKey) {
 
 // ─── Arbor ────────────────────────────────────────────────────────────────────
 
-/** @param {Object} [params] */
+/**
+ * @param {Object} [params]
+ * @returns {Promise<ApiResult>}
+ */
 export async function getArbor(params) {
   const qs = params ? "?" + new URLSearchParams(params).toString() : "";
   return request(`/arbor${qs}`);
@@ -107,8 +135,11 @@ export async function getArbor(params) {
 
 // ─── Search ───────────────────────────────────────────────────────────────────
 
-/** @param {string} query
- * @param {string} [type] - Optional type filter (evidence, essays, responses, blog) */
+/**
+ * @param {string} query
+ * @param {string} [type] - Optional type filter (evidence, essays, responses, blog).
+ * @returns {Promise<ApiResult>}
+ */
 export async function search(query, type) {
   if (!query) return { data: [], error: null };
   let url = `/search?q=${encodeURIComponent(query)}`;
@@ -118,49 +149,73 @@ export async function search(query, type) {
 
 // ─── Debate ───────────────────────────────────────────────────────────────────
 
-/** @param {Object} [params] */
+/**
+ * @param {Object} [params]
+ * @returns {Promise<ApiResult>}
+ */
 export async function getPopularChallenges(params) {
   const qs = params ? "?" + new URLSearchParams(params).toString() : "";
   return request(`/popular-challenges${qs}`);
 }
 
-/** @param {Object} [params] */
+/**
+ * @param {Object} [params]
+ * @returns {Promise<ApiResult>}
+ */
 export async function getAcademicChallenges(params) {
   const qs = params ? "?" + new URLSearchParams(params).toString() : "";
   return request(`/academic-challenges${qs}`);
 }
 
-/** @param {string} slug */
+/**
+ * @param {string} slug
+ * @returns {Promise<ApiResult>}
+ */
 export async function getChallengeBySlug(slug) {
   if (!slug) return { data: null, error: "Slug is required" };
   return request(`/popular-challenges/${encodeURIComponent(slug)}`);
 }
 
-/** @param {string} slug */
+/**
+ * @param {string} slug
+ * @returns {Promise<ApiResult>}
+ */
 export async function getAcademicChallengeBySlug(slug) {
   if (!slug) return { data: null, error: "Slug is required" };
   return request(`/academic-challenges/${encodeURIComponent(slug)}`);
 }
 
-/** @param {string} slug */
+/**
+ * @param {string} slug
+ * @returns {Promise<ApiResult>}
+ */
 export async function getResponseBySlug(slug) {
   if (!slug) return { data: null, error: "Slug is required" };
   return request(`/responses/${encodeURIComponent(slug)}`);
 }
 
-/** @param {Object} [params] */
+/**
+ * @param {Object} [params]
+ * @returns {Promise<ApiResult>}
+ */
 export async function getResponses(params) {
   const qs = params ? "?" + new URLSearchParams(params).toString() : "";
   return request(`/responses${qs}`);
 }
 
-/** @param {Object} [params] */
+/**
+ * @param {Object} [params]
+ * @returns {Promise<ApiResult>}
+ */
 export async function getHistoriography(params) {
   const qs = params ? "?" + new URLSearchParams(params).toString() : "";
   return request(`/historiography${qs}`);
 }
 
-/** @param {string} slug */
+/**
+ * @param {string} slug
+ * @returns {Promise<ApiResult>}
+ */
 export async function getHistoriographyBySlug(slug) {
   if (!slug) return { data: null, error: "Slug is required" };
   return request(`/historiography/${encodeURIComponent(slug)}`);
@@ -168,25 +223,37 @@ export async function getHistoriographyBySlug(slug) {
 
 // ─── Blog & News ──────────────────────────────────────────────────────────────
 
-/** @param {Object} [params] */
+/**
+ * @param {Object} [params]
+ * @returns {Promise<ApiResult>}
+ */
 export async function getBlogPosts(params) {
   const qs = params ? "?" + new URLSearchParams(params).toString() : "";
   return request(`/blog-posts${qs}`);
 }
 
-/** @param {string} slug */
+/**
+ * @param {string} slug
+ * @returns {Promise<ApiResult>}
+ */
 export async function getBlogPostBySlug(slug) {
   if (!slug) return { data: null, error: "Slug is required" };
   return request(`/blog-posts/${encodeURIComponent(slug)}`);
 }
 
-/** @param {Object} [params] */
+/**
+ * @param {Object} [params]
+ * @returns {Promise<ApiResult>}
+ */
 export async function getNewsArticles(params) {
   const qs = params ? "?" + new URLSearchParams(params).toString() : "";
   return request(`/news-articles${qs}`);
 }
 
-/** @param {string} slug */
+/**
+ * @param {string} slug
+ * @returns {Promise<ApiResult>}
+ */
 export async function getNewsArticleBySlug(slug) {
   if (!slug) return { data: null, error: "Slug is required" };
   return request(`/news-articles/${encodeURIComponent(slug)}`);
@@ -194,7 +261,10 @@ export async function getNewsArticleBySlug(slug) {
 
 // ─── Resources ────────────────────────────────────────────────────────────────
 
-/** @param {Object} [params] */
+/**
+ * @param {Object} [params]
+ * @returns {Promise<ApiResult>}
+ */
 export async function getResources(params) {
   const qs = params ? "?" + new URLSearchParams(params).toString() : "";
   return request(`/resources${qs}`);
@@ -202,7 +272,11 @@ export async function getResources(params) {
 
 // ─── Site Settings ────────────────────────────────────────────────────────────
 
-/** Global site-branding metadata: title, description, og_image. */
+/**
+ * Global site-branding metadata: title, description, og_image.
+ *
+ * @returns {Promise<ApiResult>}
+ */
 export async function getSiteSettings() {
   return request("/site-settings");
 }
@@ -230,7 +304,10 @@ export function readEmbeddedData(scriptId) {
 
 // ─── Wikipedia ────────────────────────────────────────────────────────────────
 
-/** @param {Object} [params] */
+/**
+ * @param {Object} [params]
+ * @returns {Promise<ApiResult>}
+ */
 export async function getWikipediaArticles(params) {
   const qs = params ? "?" + new URLSearchParams(params).toString() : "";
   return request(`/wikipedia${qs}`);
@@ -238,7 +315,10 @@ export async function getWikipediaArticles(params) {
 
 // ─── ESV passages ─────────────────────────────────────────────────────────────
 
-/** @param {string} reference - Bible reference, e.g. "Luke 1:1-3". */
+/**
+ * @param {string} reference - Bible reference, e.g. "Luke 1:1-3".
+ * @returns {Promise<ApiResult>}
+ */
 export async function getEsvPassage(reference) {
   if (!reference) return { data: null, error: "Reference is required" };
   return request(`/esv/passage?q=${encodeURIComponent(reference)}`);
@@ -276,6 +356,7 @@ function getOrCreateSessionId() {
  * the request headers — the client never sends its own location or user-agent.
  *
  * @param {string} page - The URL path.
+ * @returns {Promise<void>} Resolves once the request settles; the result is not read.
  */
 export async function recordPageView(page) {
   if (typeof page !== "string" || page.length === 0) return;

@@ -707,6 +707,16 @@ const CATEGORY_3 = {
     severity: "error",
   },
 
+  EXTERNAL_PASSAGE_NOT_FOUND: {
+    code: "E-PERSIST-029",
+    category: 3,
+    httpStatus: 404,
+    message: "No passage text was found for that reference.",
+    detail:
+      "The ESV API answered successfully but returned no passage text for the requested reference.",
+    severity: "error",
+  },
+
   // ── Server lifecycle ────────────────────────────────────────────────────
 
   PORT_BIND_FAILURE: {

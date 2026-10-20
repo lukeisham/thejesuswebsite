@@ -1,11 +1,13 @@
 // Public rate-limit tests — uses node:test + node:assert.
 // Tests that the public-read limiter and search-specific limiter return 429
-// after their thresholds, and that /health is never limited.
+// after their thresholds, and that /health is never limited. The /esv case
+// mounts the real router so the gate is proven on the route server.js mounts.
 
-const { test, describe } = require("node:test");
+const { test, describe, beforeEach, afterEach } = require("node:test");
 const assert = require("node:assert/strict");
 const express = require("express");
 const rateLimit = require("../middleware/rate-limit");
+const esvRouter = require("../routes/esv");
 const http = require("http");
 const { createTestServer, closeTestServer } = require("./helpers/test-server");
 
@@ -36,6 +38,9 @@ function createApp({ readMax = 5, searchMax = 3 } = {}) {
   app.get("/search", publicReadLimit, searchLimit, (req, res) => {
     res.json({ results: [] });
   });
+
+  // Mounted the same way api/server.js mounts it, so this test covers the gate.
+  app.use("/esv", publicReadLimit, esvRouter);
 
   // Health — never limited (uptime monitor).
   app.get("/health", (req, res) => {
@@ -145,6 +150,52 @@ describe("search rate limiter", () => {
     // Evidence (shared read budget, not search) should still work.
     const evidence = await get(app, "/evidence");
     assert.equal(evidence.status, 200);
+  });
+});
+
+// ── ESV passage route behind the shared read limiter ────────────────────────
+
+describe("/esv passage is behind the public read limiter", () => {
+  const originalFetch = globalThis.fetch;
+  const originalKey = process.env.ESV_API_KEY;
+
+  beforeEach(() => {
+    // Fake upstream: no network. Only the fields the route reads are present.
+    globalThis.fetch = async () => ({
+      ok: true,
+      json: async () => ({ canonical: "Luke 1:1", passages: ["text"] }),
+    });
+    process.env.ESV_API_KEY = "test-esv-key";
+  });
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+    if (originalKey === undefined) {
+      delete process.env.ESV_API_KEY;
+    } else {
+      process.env.ESV_API_KEY = originalKey;
+    }
+  });
+
+  test("passes the limiter under the read budget", async () => {
+    const app = createApp({ readMax: 5 });
+
+    const res = await get(app, "/esv/passage?q=Luke+1:1");
+    assert.equal(res.status, 200);
+    assert.deepEqual(res.body, { reference: "Luke 1:1", text: "text" });
+  });
+
+  test("returns 429 after exceeding the read budget", async () => {
+    const app = createApp({ readMax: 2 });
+
+    for (let i = 0; i < 2; i++) {
+      const res = await get(app, "/esv/passage?q=Luke+1:1");
+      assert.equal(res.status, 200, `request ${i + 1} should be 200`);
+    }
+
+    const over = await get(app, "/esv/passage?q=Luke+1:1");
+    assert.equal(over.status, 429);
+    assert.ok(over.body.error);
   });
 });
 

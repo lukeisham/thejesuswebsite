@@ -188,7 +188,20 @@ describe('GET /esv/passage', () => {
 
     const res = await makeRequest(app, 'GET', '/esv/passage?q=Luke+1:1');
     assert.equal(res.status, 404);
-    assert.equal(res.body.error.code, 'E-PERSIST-004');
+    assert.equal(res.body.error.code, 'E-PERSIST-029');
+  });
+
+  test('GET /passage with fetch timeout returns 502 network error and passes a signal', async () => {
+    let fetchOptions;
+    globalThis.fetch = async (_url, options) => {
+      fetchOptions = options;
+      throw new DOMException('timed out', 'TimeoutError');
+    };
+
+    const res = await makeRequest(app, 'GET', '/esv/passage?q=Luke+1:1');
+    assert.equal(res.status, 502);
+    assert.equal(res.body.error.code, 'E-PERSIST-013');
+    assert.ok(fetchOptions.signal instanceof AbortSignal);
   });
 
   // ── Caching ───────────────────────────────────────────────────────────────
@@ -214,6 +227,24 @@ describe('GET /esv/passage', () => {
     const res2 = await makeRequest(app, 'GET', '/esv/passage?q=Luke+1:1-3');
     assert.equal(res2.status, 200);
     assert.equal(fetchCallCount, 1, 'fetch should not be called again on cache hit');
+    assert.deepEqual(res2.body, res1.body);
+  });
+
+  test('GET /passage spelling variants of one reference share one cache entry', async () => {
+    let fetchCallCount = 0;
+    globalThis.fetch = async () => {
+      fetchCallCount++;
+      return {
+        ok: true,
+        json: async () => ({ canonical: 'Luke 1:1', passages: ['Inasmuch as many...'] }),
+      };
+    };
+
+    const res1 = await makeRequest(app, 'GET', '/esv/passage?q=Luke+1:1');
+    const res2 = await makeRequest(app, 'GET', '/esv/passage?q=luke++1:1');
+    assert.equal(res1.status, 200);
+    assert.equal(res2.status, 200);
+    assert.equal(fetchCallCount, 1);
     assert.deepEqual(res2.body, res1.body);
   });
 
