@@ -113,7 +113,7 @@ function getTopPagesWithTrend(days, limit = 5) {
 
   const trendStmt = db.prepare(`
         WITH RECURSIVE dates(d) AS (
-            SELECT date('now', '-${days} days')
+            SELECT date('now', '-${days - 1} days')
             UNION ALL
             SELECT date(d, '+1 day') FROM dates WHERE d < date('now')
         )

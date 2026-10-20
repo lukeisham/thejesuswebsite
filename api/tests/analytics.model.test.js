@@ -119,8 +119,8 @@ describe("model: getTopPagesWithTrend()", () => {
     seedPageView({ page: "/test", session_id: "s1" });
 
     const result = analyticsModel.getTopPagesWithTrend(7, 1);
-    // The window runs from `days` days ago through today inclusive.
-    assert.deepStrictEqual(result[0].trend, [0, 0, 0, 0, 0, 0, 0, 1]);
+    // One point per day: today plus the `days - 1` days before it.
+    assert.deepStrictEqual(result[0].trend, [0, 0, 0, 0, 0, 0, 1]);
   });
 
   test("respects the limit parameter", () => {

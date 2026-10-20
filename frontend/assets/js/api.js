@@ -23,10 +23,13 @@ const BASE = "/api";
  * @returns {Promise<ApiResult>}
  */
 async function request(url, options = {}) {
+  // `headers` is split out so `...rest` cannot overwrite the merged headers
+  // and drop the default Content-Type.
+  const { headers, ...rest } = options;
   try {
     const res = await fetch(BASE + url, {
-      headers: { "Content-Type": "application/json", ...options.headers },
-      ...options,
+      ...rest,
+      headers: { "Content-Type": "application/json", ...headers },
     });
 
     if (res.status === 204) return { data: null, error: null };
