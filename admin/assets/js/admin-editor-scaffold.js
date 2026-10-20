@@ -191,6 +191,9 @@ AdminEditorScaffold.wireFormHandlers = function (config) {
   publishBtn.addEventListener("click", async function () {
     clearFormError();
     submitStatus.textContent = "";
+    if (!config.validateForm()) {
+      return;
+    }
     publishBtn.disabled = true;
     saveBtn.disabled = true;
 

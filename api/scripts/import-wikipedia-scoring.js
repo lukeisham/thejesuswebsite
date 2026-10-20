@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
  * Wikipedia scoring import — loads database/scoring-export.json (255 articles ×
- * 25 signal contributions, per Wikipedia_alogrithm_refractor.md §9) into
+ * 25 signal contributions; the signal set is the weights table in
+ * "Wikipedia algorithm/ALGORITHM_GUIDE_the_what.md") into
  * wikipedia_articles + wikipedia_article_signals.
  *
  * Usage:
@@ -11,7 +12,7 @@
  * Options:
  *   --export <path>   Override the default path to the scoring export JSON.
  *   --publish         Create new articles with published_draft = 1 (default: 0).
- *                     Intended for the local smoke-test; deploy.sh calls without it.
+ *                     deploy.sh passes it together with --purge-missing.
  *   --purge-missing   DELETE articles from the DB whose URLs are absent from the
  *                     export (default: warn only). Signals cascade via FK.
  *
@@ -36,15 +37,10 @@ const fs = require("fs");
 const path = require("path");
 const db = require("../config");
 
-// ── 25 known signal keys (§9 of Wikipedia_alogrithm_refractor.md) ───────────
+// ── 25 known signal keys ────────────────────────────────────────────────────
 //
-// Migrated from the 28-key v1 set: historical_context and passion_criticism
-// were dropped outright (weight left the rubric); location_bonus folded into
-// arch_site; miracle_criticism folded into supernatural_criticism;
-// no_references/poor_referencing/niche_bonus merged into referencing_quality;
-// journals/books merged into journal_or_book; gnostic_quoted renamed
-// gnostic_over_emphasis; literary_analysis/maps_diagrams/religious_art/
-// secular_materialist are new (vector or plain-lookup) signals.
+// Must match the weights table in "Wikipedia algorithm/ALGORITHM_GUIDE_the_what.md";
+// a key missing here aborts the import before any write.
 
 const KNOWN_SIGNAL_KEYS = new Set([
   "bible_verses",

@@ -8,7 +8,7 @@ const { test, describe } = require("node:test");
 const assert = require("node:assert/strict");
 const path = require("path");
 
-// §9 row order (Wikipedia algorithm/Wikipedia_alogrithm_refractor.md) —
+// Weights-table row order (Wikipedia algorithm/ALGORITHM_GUIDE_the_what.md) —
 // strongest positive signal first, strongest negative signal last. Grid
 // gradient reading depends on this exact order; never re-sort.
 const EXPECTED_KEY_ORDER = [

@@ -312,6 +312,23 @@ describe("AdminEditorScaffold.wireFormHandlers", () => {
     assert.equal(calls.put.length, 0);
   });
 
+  test("publish: aborts before PUT/publish when validateForm returns false", async () => {
+    var { AdminEditorScaffold, calls } = makeSandbox();
+    var config = baseConfig({
+      validateForm: function () {
+        return false;
+      },
+    });
+    AdminEditorScaffold.wireFormHandlers(config);
+
+    config.publishBtn.click();
+    await new Promise((r) => setTimeout(r, 0));
+
+    assert.equal(calls.put.length, 0);
+    assert.equal(calls.publish.length, 0);
+    assert.equal(config.publishBtn.disabled, false);
+  });
+
   test("save: shows a form error on failure and re-enables buttons", async () => {
     var { AdminEditorScaffold } = makeSandbox({
       put: async function () {
@@ -330,7 +347,7 @@ describe("AdminEditorScaffold.wireFormHandlers", () => {
     assert.equal(config.publishBtn.disabled, false);
   });
 
-  test("publish: does NOT call validateForm, saves then toggles publish state", async () => {
+  test("publish: validates, saves, then toggles publish state", async () => {
     var { AdminEditorScaffold, calls } = makeSandbox();
     var validateFormCalled = false;
     var config = baseConfig({
@@ -344,7 +361,7 @@ describe("AdminEditorScaffold.wireFormHandlers", () => {
     config.publishBtn.click();
     await new Promise((r) => setTimeout(r, 0));
 
-    assert.equal(validateFormCalled, false);
+    assert.equal(validateFormCalled, true);
     assert.equal(calls.put.length, 1);
     assert.equal(calls.publish.length, 1);
     assert.deepEqual(calls.publish[0], { type: "evidence", id: 5 });

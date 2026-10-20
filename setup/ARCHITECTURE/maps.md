@@ -3,7 +3,7 @@
 Places in the story of Jesus are pinned on maps, so a reader sees where events happened. An admin places each pin. The editor and the public page then draw the same pins, kept clear of each other.
 
 **Source of truth:** `frontend/assets/js/cluster-logic/cluster-map-pins.js` — wins any disagreement with this doc.
-**Spans:** `api/scripts/check-maps/index.js`, `api/scripts/generate-maps/geo-overlay.js`, `frontend/assets/js/cluster-logic/cluster-map-pins.js`, `frontend/assets/js/maps/maps-render.js`, `admin/assets/js/admin-maps/maps-pins.js`, `admin/assets/js/cluster-logic-bridge/cluster-map-pins-bridge.js`, `admin/diagrams/maps.html`.
+**Spans:** `api/scripts/check-maps/index.js`, `api/scripts/generate-maps/geo-overlay.js`, `frontend/assets/js/cluster-logic/cluster-map-pins.js`, `frontend/assets/js/cluster-logic/cluster-labels.js`, `frontend/assets/js/cluster-logic/cluster-density.js`, `frontend/assets/js/maps/maps-render.js`, `admin/assets/js/admin-maps/maps-pins.js`, `admin/assets/js/cluster-logic-bridge/cluster-map-pins-bridge.js`, `admin/diagrams/maps.html`.
 
 ## Invariants
 
@@ -18,6 +18,7 @@ The rules for how the admin editor reuses the public modules (bridges, pure modu
 ## Shape
 
 - **Pin clustering:** pins within `PROXIMITY_THRESHOLD` of each other form a cluster. `computePinOffsets` fans each cluster outward from its shared point, so every pin stays visible and clickable. The spacing scales with the public zoom.
+- **Shared with the timeline:** `cluster-map-pins.js` imports `cluster-labels.js`, which imports `cluster-density.js`. Both are also the timeline's label logic (`timeline.md`), so a change to either moves the map pin labels as well as the timeline labels.
 - **Public:** `maps-render.js` imports `computePinOffsets` directly and passes the live zoom.
 - **Admin:** `maps-pins.js` reads the module through `cluster-map-pins-bridge.js` as `window.AdminMapsClusterPins`. If the bridge is missing it shows pins without a fan and does not warn, so the load order in `maps.html` matters.
 

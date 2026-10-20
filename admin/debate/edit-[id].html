@@ -329,7 +329,9 @@
                             "response-slug-error",
                         );
 
-                        var slugAuto = true;
+                        // Auto-slug only while the slug is empty, so retitling a saved record
+                        // never rewrites its public URL.
+                        var slugAuto = !slugInput.value.trim();
                         titleInput.addEventListener("input", function () {
                             if (slugAuto) {
                                 slugInput.value = titleInput.value

@@ -4,8 +4,8 @@
 // net_score), and slugFromTitle.
 //
 // Uses Node built-in test runner (node:test + node:assert/strict), matching the
-// existing suite convention. Migrated to the 25-key rubric (§9 of
-// Wikipedia_alogrithm_refractor.md) from the prior 28-key set.
+// existing suite convention. The 25-key rubric is the weights table in
+// "Wikipedia algorithm/ALGORITHM_GUIDE_the_what.md".
 
 const { test, describe } = require("node:test");
 const assert = require("node:assert/strict");

@@ -9,8 +9,9 @@
 # the Python venv + pm2 process, which `git reset --hard` never touches
 # (untracked directories survive a reset — only tracked files are reverted).
 #
-# The vector-stores DATA + ONNX model are NOT in git (setup/ is gitignored)
-# and are handled by the separate scripts/sync-vector-stores.sh, which rsyncs
+# The vector-stores DATA (.index/.jsonl) is tracked in git, but the ONNX model
+# (Wikipedia algorithm/classifier/model/model.onnx) is gitignored. Both are
+# handled by the separate scripts/sync-vector-stores.sh, which rsyncs
 # them to a sibling path (/var/www/thejesuswebsite-vector-store/) outside the
 # git working tree, matching wikipedia-v2-09-vps-vector-store-serving.md's
 # safety rationale (they must never live somewhere `git reset --hard` reaches).
