@@ -176,3 +176,37 @@ describe(`${GUIDE} row 10: claude branch promotion`, () => {
     );
   });
 });
+
+// ── Row 11: the sync-to-home skill leads the manual pull ──────────────────────
+
+const SYNC_SKILL = "setup/SKILLS/!SyncToHome/SKILL.md";
+const SYNC_SKILL_LINK = ".claude/skills/sync-to-home";
+
+describe(`${GUIDE} row 11: sync-to-home skill`, () => {
+  test(`${SYNC_SKILL} names both scripts and the project folder`, () => {
+    const text = read(SYNC_SKILL);
+    for (const needle of [
+      "scripts/send-to-main.sh",
+      "scripts/pull-from-github.sh",
+      "cd /Users/lukeishammacbookair/Developer/thejesuswebsite",
+    ]) {
+      assert.ok(
+        text.includes(needle),
+        `${SYNC_SKILL} must contain "${needle}". Luke copies these steps into Terminal. Rule: ${GUIDE}, Invariants row 11.`
+      );
+    }
+  });
+
+  test(`${SYNC_SKILL_LINK} points at the skill folder`, () => {
+    assert.ok(
+      fs.existsSync(path.join(REPO, SYNC_SKILL_LINK, "SKILL.md")),
+      `${SYNC_SKILL_LINK} does not lead to a SKILL.md. The cloud session cannot find the skill. Rule: ${GUIDE}, Invariants row 11.`
+    );
+  });
+
+  test("the scripts that the skill names exist", () => {
+    for (const script of ["scripts/send-to-main.sh", "scripts/pull-from-github.sh"]) {
+      assert.ok(fs.existsSync(path.join(REPO, script)), `${script} is missing. ${SYNC_SKILL} tells Luke to run it. Rule: ${GUIDE}, Invariants row 11.`);
+    }
+  });
+});

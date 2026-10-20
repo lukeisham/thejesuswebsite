@@ -4,7 +4,7 @@ Work that reaches the shared repository becomes the live site, and every working
 deploy turns committed code into a running, current site and never serves stale content.
 
 **Source of truth:** `.github/workflows/deploy.yml` and `deploy.sh` — win any disagreement with this doc.
-**Spans:** `.github/workflows/deploy.yml`, `.github/workflows/promote-claude-branch.yml`, `scripts/send-to-main.sh`, `scripts/pull-from-github.sh`, `api/routes/deploy-webhook.js`, `api/routes/deploy-status.js`, `deploy.sh`, `scripts/pm2-apply.js`, `ecosystem.config.js`, `deploy/nginx.conf`, `api/scripts/version-assets.js`, `api/scripts/deploy-step-cache.js`.
+**Spans:** `.github/workflows/deploy.yml`, `.github/workflows/promote-claude-branch.yml`, `scripts/send-to-main.sh`, `scripts/pull-from-github.sh`, `setup/SKILLS/!SyncToHome/SKILL.md`, `api/routes/deploy-webhook.js`, `api/routes/deploy-status.js`, `deploy.sh`, `scripts/pm2-apply.js`, `ecosystem.config.js`, `deploy/nginx.conf`, `api/scripts/version-assets.js`, `api/scripts/deploy-step-cache.js`.
 
 ## Invariants
 
@@ -20,9 +20,9 @@ deploy turns committed code into a running, current site and never serves stale 
 | Only one deploy runs at a time: the workflow has a `concurrency` group, and the webhook returns 409 while a deploy runs | Two deploys would reset and restart over each other | Two resets and restarts overlap, and the site can end in a half-updated state |
 | Files ignored by git (most of `setup/`, `.env`, `*.db`) never reach GitHub or the VPS. `.gitignore` lists the `setup/` files that are tracked | The VPS gets the repository only | A rule or script that lives in an ignored file does not exist in production |
 | A push to a `claude/**` branch is merged into `main` by `promote-claude-branch.yml`, after `npm test` passes, and then starts `deploy.yml` with `workflow_dispatch` | A push made with the workflow token never triggers the `push` trigger of `deploy.yml` | The merge lands on `main` and no deploy runs |
-| `scripts/pull-from-github.sh` only fast-forwards local `main`. A person runs it by hand when cloud work should reach the dev machine | A merge or a reset would overwrite local commits and edits | Local work is lost |
+| `scripts/pull-from-github.sh` only fast-forwards local `main`. A person runs it by hand, led by the `sync-to-home` skill (`setup/SKILLS/!SyncToHome/SKILL.md`) | A merge or a reset would overwrite local commits and edits | Local work is lost |
 
-Rows 3, 4 (order inside `deploy.sh` and the step order in the workflow), 5 and 8 are enforced by `api/tests/guide-deployment.test.js` (TEST-10). Row 10 (the `claude/**` promotion) is enforced by the same file. The other rows are not.
+Rows 3, 4 (order inside `deploy.sh` and the step order in the workflow), 5 and 8 are enforced by `api/tests/guide-deployment.test.js` (TEST-10). Rows 10 (the `claude/**` promotion) and 11 (the skill names both scripts and the folder) are enforced by the same file. The other rows are not.
 
 ## Shape
 
@@ -32,7 +32,7 @@ Rows 3, 4 (order inside `deploy.sh` and the step order in the workflow), 5 and 8
 3. `deploy.sh` runs migrations, `npm run pages`, `npm run sitemap`, the about-page date stamps, data embedding, the asset stamp and the nginx reload.
 4. `scripts/pm2-apply.js` restarts the pm2 processes and runs the health check.
 5. The workflow polls `/api/deploy-status` until the restart and health checks pass, then purges the Cloudflare cache.
-6. On the dev machine, `scripts/pull-from-github.sh` fast-forwards local `main` to `origin/main` when a person runs it.
+6. When Luke asks the cloud session to sync to the home computer, it runs `scripts/send-to-main.sh` and shows the `sync-to-home` skill steps. Luke opens Terminal on the dev machine, goes to the project folder, and runs `scripts/pull-from-github.sh`, which fast-forwards local `main` to `origin/main`. The skill ends with a check that local `HEAD` equals `origin/main`.
 
 `deploy.sh` skips its slow steps (`npm install` for `api/` and `mcp-server/`, the GeoIP import, the Wikipedia scoring import) when their input files are unchanged since the step last succeeded. `FORCE_FULL_DEPLOY=1` runs every step. The sitemap, static pages, date stamps, data embedding and asset stamping always run, because they read the production database and the reset restores their tracked outputs.
 
