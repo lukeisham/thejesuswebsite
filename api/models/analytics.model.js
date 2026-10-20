@@ -12,7 +12,6 @@ const WRITABLE_COLUMNS = [
   "page",
   "referrer",
   "user_agent",
-  "ip_hash",
   "session_id",
   "device_type",
   "browser",

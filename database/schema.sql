@@ -354,7 +354,6 @@ CREATE TABLE analytics (
     page       TEXT NOT NULL,
     referrer   TEXT,
     user_agent TEXT,
-    ip_hash    TEXT,
     session_id TEXT,
     visited_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     device_type TEXT,

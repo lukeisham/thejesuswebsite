@@ -2,7 +2,6 @@
 // page views); the dashboard reads are admin-only. All SQL lives in the model.
 
 const express = require("express");
-const crypto = require("crypto");
 const analyticsModel = require("../models/analytics.model");
 const requireAuth = require("../middleware/auth");
 const rateLimit = require("../middleware/rate-limit");
@@ -74,8 +73,6 @@ router.post("/", analyticsPostLimit, (req, res) => {
       page: req.body.page,
       referrer: req.body.referrer || null,
       user_agent: ua,
-      // JS-2: hash the IP server-side — never trust a client-supplied ip_hash.
-      ip_hash: crypto.createHash("sha256").update(req.ip).digest("hex"),
       session_id: req.body.session_id || null,
       device_type: device.device_type,
       browser: device.browser,

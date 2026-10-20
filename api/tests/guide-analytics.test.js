@@ -157,6 +157,22 @@ const ROUTE = "api/routes/analytics.js";
 // A route declaration, up to the arrow function that starts its handler.
 const ROUTE_DECL = /router\.(get|post|put|patch|delete)\(\s*"([^"]*)"([^]*?)=>/g;
 
+describe(`${GUIDE} row 5: no IP value is stored`, () => {
+  test("the model and the route name no ip_hash and create no hash", () => {
+    for (const file of ["api/models/analytics.model.js", "api/routes/analytics.js"]) {
+      const text = read(file);
+      for (const banned of ["ip_hash", "createHash"]) {
+        const index = text.indexOf(banned);
+        assert.equal(
+          index,
+          -1,
+          `${file}:${lineOf(text, index)} names "${banned}". ${GUIDE} row 5: no IP address, raw or hashed, reaches the database.`,
+        );
+      }
+    }
+  });
+});
+
 describe(`${GUIDE} row 4: analytics route gates`, () => {
   const text = read(ROUTE);
   const routes = [...text.matchAll(ROUTE_DECL)].map((m) => ({

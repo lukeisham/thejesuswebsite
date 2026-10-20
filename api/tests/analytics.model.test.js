@@ -32,7 +32,6 @@ function seedPageView(overrides = {}) {
     page: overrides.page || "/test",
     referrer: overrides.referrer || null,
     user_agent: overrides.user_agent || "test-agent",
-    ip_hash: overrides.ip_hash || "hash1",
     session_id: overrides.session_id || "sess-1",
   });
 }
@@ -137,8 +136,8 @@ describe("model: getTopPagesWithTrend()", () => {
     testDb
       .prepare(
         `
-      INSERT INTO analytics (page, referrer, user_agent, ip_hash, session_id, visited_at)
-      VALUES ('/old', NULL, 'agent', 'hash', 'sess-old', datetime('now', '-100 days'))
+      INSERT INTO analytics (page, referrer, user_agent, session_id, visited_at)
+      VALUES ('/old', NULL, 'agent', 'sess-old', datetime('now', '-100 days'))
     `,
       )
       .run();
@@ -203,21 +202,18 @@ describe("model: getSearchTerms()", () => {
       page: "/test",
       search_terms: "historical jesus",
       user_agent: "test",
-      ip_hash: "h1",
       session_id: "s1",
     });
     analyticsModel.record({
       page: "/test",
       search_terms: "historical jesus",
       user_agent: "test",
-      ip_hash: "h2",
       session_id: "s2",
     });
     analyticsModel.record({
       page: "/test",
       search_terms: "roman empire",
       user_agent: "test",
-      ip_hash: "h3",
       session_id: "s3",
     });
 
@@ -240,7 +236,6 @@ describe("model: getSearchTerms()", () => {
         page: "/test",
         search_terms: "term-" + i,
         user_agent: "test",
-        ip_hash: "h",
         session_id: "s-" + i,
       });
     }
@@ -258,14 +253,12 @@ describe("model: getBotStats()", () => {
     analyticsModel.record({
       page: "/test",
       user_agent: "Chrome",
-      ip_hash: "h1",
       session_id: "s1",
       is_bot: 0,
     });
     analyticsModel.record({
       page: "/test",
       user_agent: "Googlebot",
-      ip_hash: "h2",
       session_id: "s2",
       is_bot: 1,
     });
@@ -280,21 +273,18 @@ describe("model: getBotStats()", () => {
     analyticsModel.record({
       page: "/test",
       user_agent: "Googlebot/2.1",
-      ip_hash: "h1",
       session_id: "s1",
       is_bot: 1,
     });
     analyticsModel.record({
       page: "/test",
       user_agent: "Googlebot/2.1",
-      ip_hash: "h2",
       session_id: "s2",
       is_bot: 1,
     });
     analyticsModel.record({
       page: "/test",
       user_agent: "Bingbot/2.0",
-      ip_hash: "h3",
       session_id: "s3",
       is_bot: 1,
     });
@@ -308,7 +298,6 @@ describe("model: getBotStats()", () => {
     analyticsModel.record({
       page: "/test",
       user_agent: "Chrome",
-      ip_hash: "h1",
       session_id: "s1",
       is_bot: 0,
     });
@@ -322,20 +311,17 @@ describe("model: getBotStats()", () => {
     analyticsModel.record({
       page: "/test",
       user_agent: null,
-      ip_hash: "h1",
       session_id: "s1",
     });
     analyticsModel.record({
       page: "/test",
       user_agent: "Chrome",
-      ip_hash: "h2",
       session_id: "s2",
       is_bot: 0,
     });
     analyticsModel.record({
       page: "/test",
       user_agent: "Googlebot",
-      ip_hash: "h3",
       session_id: "s3",
       is_bot: 1,
     });
@@ -361,14 +347,12 @@ describe("model: bots are excluded from visitor statistics", () => {
     analyticsModel.record({
       page: "/human",
       user_agent: "Chrome",
-      ip_hash: "h1",
       session_id: "s1",
       is_bot: 0,
     });
     analyticsModel.record({
       page: "/bot",
       user_agent: "Googlebot",
-      ip_hash: "h2",
       session_id: "s2",
       is_bot: 1,
     });
@@ -507,18 +491,17 @@ describe("route: POST /analytics field validation", () => {
     assert.equal(res.status, 400);
   });
 
-  test("stores server-computed ip_hash, not client-supplied", async () => {
+  test("stores no IP value, not even a client-supplied one", async () => {
     await analyticsReq("POST", "/analytics", {
       port,
       body: { page: "/test-ip", ip_hash: "evil-hash" },
     });
     const row = testDb
-      .prepare("SELECT ip_hash FROM analytics WHERE page = ?")
+      .prepare("SELECT * FROM analytics WHERE page = ?")
       .get("/test-ip");
     assert.ok(row, "row should exist");
-    assert.equal(row.ip_hash.length, 64);
-    assert.ok(/^[a-f0-9]{64}$/.test(row.ip_hash));
-    assert.notEqual(row.ip_hash, "evil-hash");
+    assert.ok(!("ip_hash" in row), "analytics has no ip_hash column");
+    assert.ok(!Object.values(row).includes("evil-hash"));
   });
 });
 

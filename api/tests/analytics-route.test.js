@@ -447,21 +447,18 @@ describe("GET /analytics — aggregate stats", () => {
       page: "/test",
       referrer: "https://thejesuswebsite.org/evidence/",
       user_agent: "test",
-      ip_hash: "h1",
       session_id: "s1",
     });
     analyticsModel.record({
       page: "/test",
       referrer: "https://thejesuswebsite.org/evidence/",
       user_agent: "test",
-      ip_hash: "h2",
       session_id: "s2",
     });
     analyticsModel.record({
       page: "/test",
       referrer: "https://google.com",
       user_agent: "test",
-      ip_hash: "h3",
       session_id: "s3",
     });
 

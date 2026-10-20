@@ -68,7 +68,6 @@ describe("analytics full column list", () => {
       { name: "page",        type: "TEXT"    },
       { name: "referrer",    type: "TEXT"    },
       { name: "user_agent",  type: "TEXT"    },
-      { name: "ip_hash",     type: "TEXT"    },
       { name: "session_id",  type: "TEXT"    },
       { name: "visited_at",  type: "DATETIME"},
       { name: "device_type", type: "TEXT"    },
