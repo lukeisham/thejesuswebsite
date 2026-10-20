@@ -1,0 +1,695 @@
+{
+ "capturedAt": "2026-10-18T08:47Z",
+ "liveCommit": "bc0f5aa (old bridges still live)",
+ "note": "Baseline before the pure-bridges change. Compare after deploy at the same viewport width. Admin dots and public desktop dots share left/top by design.",
+ "admin": {
+  "page": "https://thejesuswebsite.org/admin/diagrams/timeline.html",
+  "viewportWidth": 752,
+  "scale": 1,
+  "fields": "dots/labels: [eventId, style.left, style.top, tierIndex, text, [x,y,w,h in axis px]]; headings: [class, left, top, text, [x,y,w,h]]",
+  "dots": [
+   [
+    "5",
+    "67.5938px",
+    "50.8242%",
+    "",
+    "",
+    [
+     62.59,
+     55.98,
+     10,
+     10
+    ]
+   ],
+   [
+    "2",
+    "191.668px",
+    "32.1074%",
+    "",
+    "",
+    [
+     186.66,
+     33.52,
+     10,
+     10
+    ]
+   ],
+   [
+    "3",
+    "194.086px",
+    "49.8262%",
+    "",
+    "",
+    [
+     189.09,
+     54.79,
+     10,
+     10
+    ]
+   ],
+   [
+    "4",
+    "194.332px",
+    "78.0234%",
+    "",
+    "",
+    [
+     189.33,
+     88.63,
+     10,
+     10
+    ]
+   ],
+   [
+    "6",
+    "159.957px",
+    "50.0742%",
+    "",
+    "",
+    [
+     154.95,
+     55.09,
+     10,
+     10
+    ]
+   ]
+  ],
+  "labels": [
+   [
+    "5",
+    "67.5938px",
+    "30.8242%",
+    "0",
+    "The Logos",
+    [
+     44.64,
+     36.98,
+     45.9,
+     13.5
+    ]
+   ],
+   [
+    "2",
+    "191.668px",
+    "12.1074%",
+    "0",
+    "For to us a child is born",
+    [
+     141.66,
+     14.52,
+     100,
+     13.5
+    ]
+   ],
+   [
+    "3",
+    "194.086px",
+    "41.8262%",
+    "2",
+    "Bethlehem Ephrathah",
+    [
+     146.89,
+     50.19,
+     94.38,
+     13.5
+    ]
+   ],
+   [
+    "4",
+    "194.332px",
+    "98.0234%",
+    "0",
+    "He was pierced for our transgressions",
+    [
+     144.33,
+     117.63,
+     100,
+     13.5
+    ]
+   ],
+   [
+    "6",
+    "159.957px",
+    "118.074%",
+    "8",
+    "Protoevangelium",
+    [
+     123.18,
+     141.69,
+     73.54,
+     13.5
+    ]
+   ]
+  ],
+  "headings": [
+   [
+    "admin-timeline-era-heading era--pre-incarnation tier-10",
+    "8px",
+    "67.6975px",
+    "Pre-Incarnation",
+    [
+     8,
+     85.7,
+     209.28,
+     31.4
+    ]
+   ],
+   [
+    "admin-timeline-era-heading era--old-testament tier-10",
+    "108px",
+    "159.197px",
+    "Old Testament",
+    [
+     108,
+     177.2,
+     189.62,
+     31.4
+    ]
+   ],
+   [
+    "admin-timeline-era-heading era--early-life tier-6",
+    "358px",
+    "8px",
+    "Early Life",
+    [
+     358,
+     26,
+     137.61,
+     31.4
+    ]
+   ],
+   [
+    "admin-timeline-era-heading era--life tier-0",
+    "608px",
+    "8px",
+    "Life",
+    [
+     608,
+     26,
+     63.77,
+     31.4
+    ]
+   ],
+   [
+    "admin-timeline-era-heading era--galilee-ministry tier-0",
+    "908px",
+    "8px",
+    "Galilee Ministry",
+    [
+     908,
+     26,
+     216.96,
+     31.4
+    ]
+   ],
+   [
+    "admin-timeline-era-heading era--judean-ministry tier-0",
+    "1308px",
+    "8px",
+    "Judean Ministry",
+    [
+     1308,
+     26,
+     206.49,
+     31.4
+    ]
+   ],
+   [
+    "admin-timeline-era-heading era--passion-week tier-0",
+    "1808px",
+    "8px",
+    "Passion Week",
+    [
+     1808,
+     26,
+     170.17,
+     31.4
+    ]
+   ],
+   [
+    "admin-timeline-era-heading era--post-passion tier-0",
+    "3408px",
+    "8px",
+    "Post-Passion",
+    [
+     3408,
+     26,
+     161.33,
+     31.4
+    ]
+   ]
+  ]
+ },
+ "publicMobileLayout": {
+  "page": "https://thejesuswebsite.org/evidence/timeline/ (real mobile layout, viewport 752 px)",
+  "scale": 1,
+  "dots": [
+   [
+    "5",
+    "calc(50% + 24.6312px)",
+    "50.5887px",
+    "",
+    [
+     19.63,
+     45.59,
+     10,
+     10
+    ]
+   ],
+   [
+    "2",
+    "calc(50% + 58.3352px)",
+    "137.22px",
+    "",
+    [
+     53.33,
+     132.22,
+     10,
+     10
+    ]
+   ],
+   [
+    "3",
+    "calc(50% + 61.7203px)",
+    "149.876px",
+    "",
+    [
+     56.72,
+     144.88,
+     10,
+     10
+    ]
+   ],
+   [
+    "4",
+    "calc(50% + 62.0648px)",
+    "170.017px",
+    "",
+    [
+     57.06,
+     165.02,
+     10,
+     10
+    ]
+   ],
+   [
+    "6",
+    "calc(50% + 13.9398px)",
+    "150.053px",
+    "",
+    [
+     8.94,
+     145.05,
+     10,
+     10
+    ]
+   ]
+  ],
+  "labels": [
+   [
+    "5",
+    "calc(50% + 97.2625px)",
+    "50.5887px",
+    "The Logos",
+    [
+     97.26,
+     35.59,
+     8,
+     30
+    ]
+   ],
+   [
+    "2",
+    "calc(50% + 164.67px)",
+    "137.22px",
+    "For to us a child is born",
+    [
+     164.66,
+     122.22,
+     8,
+     30
+    ]
+   ],
+   [
+    "3",
+    "calc(50% + 131.441px)",
+    "149.876px",
+    "Bethlehem Ephrathah",
+    [
+     131.44,
+     134.88,
+     8,
+     30
+    ]
+   ],
+   [
+    "4",
+    "calc(50% + 212.13px)",
+    "170.017px",
+    "He was pierced for our transgressions",
+    [
+     212.13,
+     155.02,
+     8,
+     30
+    ]
+   ],
+   [
+    "6",
+    "calc(50% - 4.1203px)",
+    "150.053px",
+    "Protoevangelium",
+    [
+     -4.12,
+     142.55,
+     8,
+     15
+    ]
+   ]
+  ],
+  "headings": [
+   [
+    "timeline-era-heading era--pre-incarnation tier-0",
+    "8px",
+    "8px",
+    "Pre-Incarnation",
+    [
+     8,
+     8,
+     227.35,
+     31.4
+    ]
+   ],
+   [
+    "timeline-era-heading era--old-testament tier-0",
+    "8px",
+    "108px",
+    "Old Testament",
+    [
+     8,
+     108,
+     203.16,
+     31.4
+    ]
+   ],
+   [
+    "timeline-era-heading era--early-life tier-0",
+    "8px",
+    "208px",
+    "Early Life",
+    [
+     8,
+     208,
+     146.91,
+     31.4
+    ]
+   ],
+   [
+    "timeline-era-heading era--life tier-0",
+    "8px",
+    "608px",
+    "Life",
+    [
+     8,
+     608,
+     67.2,
+     31.4
+    ]
+   ],
+   [
+    "timeline-era-heading era--galilee-ministry tier-0",
+    "8px",
+    "908px",
+    "Galilee Ministry",
+    [
+     8,
+     908,
+     231.56,
+     31.4
+    ]
+   ],
+   [
+    "timeline-era-heading era--judean-ministry tier-0",
+    "8px",
+    "1308px",
+    "Judean Ministry",
+    [
+     8,
+     1308,
+     225.74,
+     31.4
+    ]
+   ],
+   [
+    "timeline-era-heading era--passion-week tier-0",
+    "8px",
+    "1808px",
+    "Passion Week",
+    [
+     8,
+     1808,
+     186.32,
+     31.4
+    ]
+   ],
+   [
+    "timeline-era-heading era--post-passion tier-0",
+    "8px",
+    "3408px",
+    "Post-Passion",
+    [
+     8,
+     3408,
+     179,
+     31.4
+    ]
+   ]
+  ]
+ },
+ "publicDesktopLayout": {
+  "page": "https://thejesuswebsite.org/evidence/timeline/ (desktop layout forced in a 752 px window: matchMedia('(max-width: 767px)') returned false, then renderTimeline(groupEventsByPeriod(events), 'all'))",
+  "scale": 1,
+  "dots": [
+   [
+    "5",
+    "67.5938px",
+    "50.8242%",
+    "",
+    [
+     62.59,
+     137.3,
+     10,
+     10
+    ]
+   ],
+   [
+    "2",
+    "191.668px",
+    "32.1074%",
+    "",
+    [
+     186.66,
+     84.9,
+     10,
+     10
+    ]
+   ],
+   [
+    "3",
+    "194.086px",
+    "49.8262%",
+    "",
+    [
+     189.09,
+     134.51,
+     10,
+     10
+    ]
+   ],
+   [
+    "4",
+    "194.332px",
+    "78.0234%",
+    "",
+    [
+     189.33,
+     213.46,
+     10,
+     10
+    ]
+   ],
+   [
+    "6",
+    "159.957px",
+    "50.0742%",
+    "",
+    [
+     154.95,
+     135.2,
+     10,
+     10
+    ]
+   ]
+  ],
+  "labels": [
+   [
+    "5",
+    "67.5938px",
+    "60.8242%",
+    "The Logos",
+    [
+     42,
+     170.3,
+     51.19,
+     15
+    ]
+   ],
+   [
+    "2",
+    "191.668px",
+    "22.1074%",
+    "For to us a child is born",
+    [
+     155.66,
+     61.9,
+     72,
+     30
+    ]
+   ],
+   [
+    "3",
+    "194.086px",
+    "51.8262%",
+    "Bethlehem Ephrathah",
+    [
+     158.09,
+     145.11,
+     72,
+     30
+    ]
+   ],
+   [
+    "4",
+    "194.332px",
+    "100.023%",
+    "He was pierced for our transgressions",
+    [
+     158.33,
+     280.06,
+     72,
+     30
+    ]
+   ],
+   [
+    "6",
+    "159.957px",
+    "36.0742%",
+    "Protoevangelium",
+    [
+     123.95,
+     101,
+     72,
+     15
+    ]
+   ]
+  ],
+  "headings": [
+   [
+    "timeline-era-heading era--pre-incarnation",
+    "8px",
+    "8px",
+    "Pre-Incarnation",
+    [
+     8,
+     8,
+     227.35,
+     31.4
+    ]
+   ],
+   [
+    "timeline-era-heading era--old-testament",
+    "108px",
+    "179.119px",
+    "Old Testament",
+    [
+     108,
+     179.12,
+     203.16,
+     31.4
+    ]
+   ],
+   [
+    "timeline-era-heading era--early-life",
+    "358px",
+    "8px",
+    "Early Life",
+    [
+     358,
+     8,
+     146.91,
+     31.4
+    ]
+   ],
+   [
+    "timeline-era-heading era--life",
+    "608px",
+    "8px",
+    "Life",
+    [
+     608,
+     8,
+     67.2,
+     31.4
+    ]
+   ],
+   [
+    "timeline-era-heading era--galilee-ministry",
+    "908px",
+    "8px",
+    "Galilee Ministry",
+    [
+     908,
+     8,
+     231.56,
+     31.4
+    ]
+   ],
+   [
+    "timeline-era-heading era--judean-ministry",
+    "1308px",
+    "8px",
+    "Judean Ministry",
+    [
+     1308,
+     8,
+     225.74,
+     31.4
+    ]
+   ],
+   [
+    "timeline-era-heading era--passion-week",
+    "1808px",
+    "8px",
+    "Passion Week",
+    [
+     1808,
+     8,
+     186.32,
+     31.4
+    ]
+   ],
+   [
+    "timeline-era-heading era--post-passion",
+    "3408px",
+    "8px",
+    "Post-Passion",
+    [
+     3408,
+     8,
+     179,
+     31.4
+    ]
+   ]
+  ]
+ }
+}

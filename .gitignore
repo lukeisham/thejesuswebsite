@@ -13,6 +13,8 @@ node_modules/
 !/setup/STYLE_GUIDE/**
 !/setup/ARCHITECTURE
 !/setup/ARCHITECTURE/**
+!/setup/TESTS
+!/setup/TESTS/**
 !/setup/scripts
 /setup/scripts/*
 !/setup/scripts/check-architecture-docs.js
