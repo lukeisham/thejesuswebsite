@@ -28,11 +28,30 @@ Terminal. This skill sends the work to GitHub and then gives Luke the steps.
 2. Run `./scripts/send-to-main.sh`.
 3. If the script prints an error, show Luke the error and stop. Do not go to Part 2.
 4. Read the commit that the script prints on the line `On GitHub main now:`. Call it `<SHA>`.
-5. Show Luke Part 2 in full, with `<SHA>` filled in. Do not shorten it.
+5. Collect the local-only additions (see "Local-only additions" below). Write them as the bundle for Step 5.
+6. Show Luke Part 2 in full, with `<SHA>` filled in. Do not shorten it. Leave out Step 5 if there are no additions.
 
 The script pushes the work to a `claude/send-…` branch. The workflow
 `.github/workflows/promote-claude-branch.yml` tests the work and merges it into
 `main`. The script waits up to 10 minutes. Then the site deploys by itself.
+
+## Local-only additions
+
+Git does not carry gitignored files to GitHub or to the home computer. Examples
+are `setup/ISSUES/Issues.md`, `setup/PLANS/`, `setup/TESTS/`, `scratchpad.md` and
+`CLAUDE.local.md`. If the cloud session wrote text that belongs in one of these
+files, or would have, put that text in the bundle. Luke pastes it into Terminal.
+
+Build the bundle with these rules:
+
+1. Run `git check-ignore -v <path>` for each target path. If git does not ignore the path, commit the text as a normal file instead. Do not put it in the bundle.
+2. Add to an existing file with `cat >> <path> <<'EOF'`. Never overwrite a file.
+3. Create a new file with `cat > <path> <<'EOF'`, after `set -o noclobber`. The shell then refuses to replace a file that exists.
+4. Never delete, move or overwrite anything under `setup/`. `CLAUDE.local.md` forbids it.
+5. Use one `cat` command for each target file. Quote the heredoc word `'EOF'` with single quotes, so the shell does not change the text. If the text contains a line that is only `EOF`, use `EOF_BUNDLE` for that block.
+6. Put all commands in one block. Start the block with `cd` to the project folder, so the block works from any folder.
+7. End the block with a `tail -n 3` command for each file, so Luke can see the text arrived.
+8. Write the text itself in simple English, as `CLAUDE.local.md` requires.
 
 ## Part 2 — What Luke does on the home computer
 
@@ -99,7 +118,22 @@ All three results must be true:
 2. Both codes equal `<SHA>`, the code that the cloud session gave you.
 3. The status line is `## main...origin/main` with no file lines.
 
-If all three are true, the home computer matches GitHub `main`. The sync is complete.
+If all three are true, the home computer matches GitHub `main`. The git sync is complete.
+
+### Step 5. Paste the local-only additions
+
+Do this step only if the cloud session gave you a bundle. Run it after Step 4, so that the pulled files are in place first. Paste the whole bundle into Terminal at once. The bundle looks like this:
+
+```bash
+cd /Users/lukeishammacbookair/Developer/thejesuswebsite
+set -o noclobber
+cat >> setup/ISSUES/Issues.md <<'EOF'
+(the text for the issue log)
+EOF
+tail -n 3 setup/ISSUES/Issues.md
+```
+
+Make sure that the `tail` output shows the new text at the end of each file. If a command prints `cannot overwrite existing file`, the file already exists. Nothing was changed. Ask Claude for an append command instead.
 
 ## Problems
 
