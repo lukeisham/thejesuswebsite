@@ -19,6 +19,8 @@ The target is WCAG ([WAI overview](https://www.w3.org/WAI/standards-guidelines/w
 | Arbor, timeline and maps interactions have keyboard equivalents. The `*-interactions.js` files handle the keys, and the `*-keyboard.test.js` files cover them | A pointer-only control locks out keyboard users | A new interaction works only with a mouse |
 | Toast auto-dismiss durations are in `frontend/assets/js/utils/toasts.js`. `{ duration: 0 }` disables auto-dismiss | A message must stay long enough to read | A message disappears too fast to read |
 
+Rows 2, 3, 4 and 5 are enforced by `api/tests/guide-accessibility.test.js` (TEST-10). Rows 1 and 6 are not.
+
 ## Shape
 
 - **Page structure:** the page templates and `frontend/assets/css/base/`.

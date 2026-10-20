@@ -1,4 +1,4 @@
-# Technical Summary
+# Website guide
 
 The site turns historical evidence about Jesus, entered by an admin, into public pages and interactive timelines, arbor diagrams and maps. Two functions make this work: passkey-gated editing with a draft-to-publish step, and read-only access for visitors and AI agents to published content only.
 

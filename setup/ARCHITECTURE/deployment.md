@@ -20,6 +20,8 @@ generated files, restarts the services and clears the edge cache, in an order th
 | Only one deploy runs at a time: the workflow has a `concurrency` group, and the webhook returns 409 while a deploy runs | Two deploys would reset and restart over each other | Two resets and restarts overlap, and the site can end in a half-updated state |
 | Files ignored by git (most of `setup/`, `.env`, `*.db`) never reach GitHub or the VPS. `.gitignore` lists the `setup/` files that are tracked | The VPS gets the repository only | A rule or script that lives in an ignored file does not exist in production |
 
+Rows 3, 4 (order inside `deploy.sh` and the step order in the workflow), 5 and 8 are enforced by `api/tests/guide-deployment.test.js` (TEST-10). The other rows are not.
+
 ## Shape
 
 1. A push to `main` triggers `.github/workflows/deploy.yml`.
