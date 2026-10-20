@@ -16,6 +16,10 @@ node_modules/
 !/setup/scripts
 /setup/scripts/*
 !/setup/scripts/check-architecture-docs.js
+!/setup/ISSUES
+/setup/ISSUES/*
+!/setup/ISSUES/*.md
+/setup/ISSUES/*.bak*
 !/setup/plan_template.md
 /scratchpad.md
 /CLAUDE.local.md
