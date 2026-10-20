@@ -55,7 +55,7 @@ Each kind of information has exactly one home:
 | **`setup/ARCHITECTURE/` guides** (`Website_guide.md` first) | Purpose, navigation, and every behaviour that crosses a module, process or file boundary (CORE-3). Present tense, edited in place. | History, status, or anything the code already says. |
 | **`setup/STYLE_GUIDE/`** | Visual conventions that apply across the site, and navigation to them. | History, status, or decisions. |
 | **This file** | Each rule exception, named under its rule (CORE-4). | Exceptions that nobody granted. |
-| **`setup/Decisions_log.md`** | The dated record of each important decision and standing permission: who, when, why, and what was rejected (CORE-4). Append only. | Routine edits, how the code works, secrets. |
+| **`setup/Decisions_log.md`** | The dated record of each important decision and standing permission: who, when, why, and what was rejected (CORE-4). One table row per entry. Append only. | Routine edits, how the code works, secrets. |
 | **`setup/ISSUES/Issues.md`, `setup/PLANS/`** | Open problems and planned work. | How the current code works. |
 | **Commit message** | What changed and why, for this change. Issue numbers go here. | — |
 
@@ -110,6 +110,11 @@ definition of a standing permission.
 
 - Every important decision and every standing permission gets an entry in
   `setup/Decisions_log.md`.
+- An entry is one row in a table, as in `setup/ISSUES/Issues.md`, never a prose block. One
+  column per field: ID, title, type, date, by, applies to, rule, status, decision, why,
+  rejected, where it lives. A cell holds a short phrase. Escape a literal `|` as `\|`.
+  Convert the existing prose entries to rows when you next edit the log. Do not open the log
+  only to convert it (Touch rule).
 - A rule exception is also named in this file, under its rule, with where it applies and why.
   See PY-1, CSS-1, CSS-3 and SVG-1 for the pattern.
 - The guide for the area in `setup/ARCHITECTURE/` describes the resulting design, in the
