@@ -20,13 +20,13 @@ Rows 1 and 2 are enforced by `api/tests/guide-error-notification.test.js` (TEST-
 
 - Codes are grouped by prefix in `error-codes.js`: `E-INPUT-*`, `E-TRANSFORM-*`, `E-PERSIST-*` and `E-EGRESS-*`.
 - `api.js` returns `{ data, error }`. `error` is the full object when the body has one, and a string otherwise. The MCP server's `apiRequest()` in `mcp-server/server.js` reads both shapes.
-- Pages show a failure with `showToast(message, "error")` from `utils/toasts.js`. No page imports `error-toast.js` or the `utils/error-display.js` and `utils/error-fallback.js` modules.
+- Pages show a failure with `showToast(message, "error")` from `utils/toasts.js`. It is the only error display. To make the technical cause copyable, pass `{ details }`: the toast then shows it and gets a Copy button.
 
 ## Extending it
 
 1. Add the definition to `api/lib/error-codes.js` under the matching category constant, with the next free number.
 2. In the route, call `sendError(res, ERRORS.YOUR_CODE, context)`. For a field-level failure, call `sendValidationError()`.
-3. If the page must behave differently for the new code, compare `error.code` in the page script, as the detail pages do for `E-PERSIST-004`. Otherwise call `showToast(message, "error")`.
+3. If the page must behave differently for the new code, compare `error.code` in the page script, as the detail pages do for `E-PERSIST-004`. Otherwise call `showToast(message, "error")`, with `{ details: error.code }` when a reader may need to report it.
 4. If you change the code or the status of a not-found response, update every detail-page script that compares `E-PERSIST-004`.
 
 ## Not documented here

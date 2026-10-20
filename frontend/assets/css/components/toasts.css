@@ -26,6 +26,7 @@
 
 .toast {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   gap: var(--space-sm);
   width: min(360px, calc(100vw - 2rem));
@@ -79,6 +80,8 @@
 
 .toast__message {
   flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
   line-height: var(--leading-small);
 }
 
@@ -101,4 +104,33 @@
 
 .toast__dismiss-icon {
   display: block;
+}
+
+/* -------------------------------------------------------------------------
+   Error Details and Copy
+   Only error toasts that were given details render these.
+   ------------------------------------------------------------------------- */
+
+.toast__details {
+  flex-basis: 100%;
+  order: 3;
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.toast__copy {
+  order: 4;
+  flex-shrink: 0;
+  padding: var(--space-xs) var(--space-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.toast__copy:hover {
+  background: var(--bg-surface-alt);
 }

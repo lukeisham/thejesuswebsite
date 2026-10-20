@@ -31,7 +31,6 @@ function getStrippedBodyText() {
           ".sidebar__toggle",
           ".sidebar-backdrop",
           ".toast-container",
-          ".error-toast-container",
           ".cookie-consent",
         ].join(","),
       )

@@ -55,7 +55,7 @@ function dismissToast(toastEl) {
 function processQueue() {
   while (visible.length < MAX_VISIBLE && queue.length > 0) {
     const item = queue.shift();
-    const toastEl = createToastElement(item.message, item.variant, item.duration);
+    const toastEl = createToastElement(item.message, item.variant, item.details);
     visible.push(toastEl);
     getContainer().appendChild(toastEl);
 
@@ -71,14 +71,44 @@ function processQueue() {
   }
 }
 
-function createToastElement(message, variant, duration) {
+/**
+ * Copies an error's message and details so a reader can paste them into a bug report.
+ * A failed write is logged, not retried: the toast stays up and the text is still selectable.
+ */
+async function copyErrorText(text, copyButton) {
+  try {
+    await navigator.clipboard.writeText(text);
+    copyButton.textContent = 'Copied';
+    copyButton.setAttribute('aria-label', 'Copied to clipboard');
+  } catch (error) {
+    console.warn('showToast: could not copy error text to the clipboard', error);
+  }
+}
+
+function createDetailsElements(message, details) {
+  const copyButton = createElement('button', {
+    type: 'button',
+    className: 'toast__copy',
+    'aria-label': 'Copy error message and details to clipboard',
+    textContent: 'Copy',
+    onclick() { copyErrorText(`${message}\n\n${details}`, copyButton); },
+  });
+  return [
+    createElement('span', { className: 'toast__details', textContent: details }),
+    copyButton,
+  ];
+}
+
+function createToastElement(message, variant, details) {
   const variantClass = `toast--${variant}`;
+  const detailsElements = details ? createDetailsElements(message, details) : [];
 
   const el = createElement('div', {
     className: `toast ${variantClass}`,
     role: 'alert',
   }, [
     createElement('span', { className: 'toast__message' }, [message]),
+    ...detailsElements,
     createElement('button', {
       className: 'toast__dismiss',
       'aria-label': 'Dismiss',
@@ -108,12 +138,15 @@ function createToastElement(message, variant, duration) {
  * @param {'success'|'error'|'warning'|'info'} [variant='info']
  * @param {Object} [options]
  * @param {number} [options.duration] - Override auto-dismiss duration in ms. Use 0 to disable.
+ * @param {string} [options.details] - Technical detail shown under an error and copied with the
+ *   message by the Copy button. Ignored for other variants.
  *
  * @example
  * showToast('Item saved', 'success');
  * showToast('Network error', 'error', { duration: 0 });
+ * showToast('Could not save', 'error', { details: 'E-PERSIST-001: disk full' });
  */
-export function showToast(message, variant = 'info', { duration } = {}) {
+export function showToast(message, variant = 'info', { duration, details } = {}) {
   if (typeof message !== 'string' || message.length === 0) return;
   if (!VARIANTS.includes(variant)) {
     console.warn(`showToast: unknown variant "${variant}", falling back to "info"`);
@@ -122,7 +155,8 @@ export function showToast(message, variant = 'info', { duration } = {}) {
 
   const autoDuration = duration !== undefined ? duration : DISMISS_DELAYS[variant];
 
-  const item = { message, variant, duration: autoDuration };
+  const errorDetails = variant === 'error' && typeof details === 'string' ? details : '';
+  const item = { message, variant, duration: autoDuration, details: errorDetails };
   queue.push(item);
   processQueue();
 }

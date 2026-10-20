@@ -129,7 +129,7 @@ Yes / No. If yes, list which `E-*` error codes are affected and whether new code
 
 **b) Should this plan add, update, or remove any error notification behaviour?**
 
-Yes / No. If yes, describe what changes — new `sendError`/`sendValidationError` calls, new `showErrorToast`/`handleApiError` usage, changes to `error-fallback.js`, etc.
+Yes / No. If yes, describe what changes — new `sendError`/`sendValidationError` calls, new `showToast(message, "error", { details })` usage, etc.
 
 ## Notes
 Anything that isn't obvious — edge cases, constraints, ordering dependencies.

@@ -213,9 +213,5 @@ Used on the Evidence, Essays, Responses, Historiography, Challenges, Blog, News,
 - **Variants**: a `4px` left border on a `--bg-surface` background — `--success`, `--error`, `--warning`, `--info` (default).
 - `--shadow-toast`, `--radius-md`, padding `var(--space-md) var(--space-lg)`.
 
-#### Error Toast
-For errors that carry details a reader can copy.
-
-- Bottom-right, `16px` from the edges (`8px` and full width below `480px`). `min(280px, calc(100vw - 2rem))` wide.
-- Background: `--error` mixed 5% into `--bg-surface`. `4px solid var(--error)` left border, `--radius-md`.
-- Actions: Copy (message and details to the clipboard), Dismiss, and an `x` in the top-right corner. It never auto-dismisses.
+#### Error details and Copy
+For errors that carry details a reader can copy. `showToast(message, "error", { details })` shows the details under the message in `--font-mono` and `--text-muted`, and adds a Copy button. Copy puts the message and details on the clipboard, then the button reads "Copied". An error toast without details has no Copy button. Position, width, stacking and the 7-second auto-dismiss are the same as for every toast.

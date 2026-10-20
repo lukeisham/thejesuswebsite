@@ -90,7 +90,7 @@ The required sections are:
 5. **Files touched** — every file that will be created or modified, with `— created` or `— modified`.
 6. **Per-file rule check** — a table with one row for each file in **Files touched**. See "Per-file rule check section" below.
 7. **Guide tests** — which guide rows the plan adds or edits, and which of them get a guide test (TEST-10). See "Guide tests section" below.
-8. **Error notification** — answer two questions: **(a)** does this plan impact existing error handling (changes to a route, model, or frontend component that produces or displays errors)? If yes, list which `E-*` error codes are affected and whether new codes are needed. **(b)** Should the plan add, update, or remove any error notification behaviour (new error toast calls, new `sendError`/`sendValidationError` usage, changes to `error-fallback.js`, etc.)? Reference `setup/ARCHITECTURE/Website_guide.md` § Error Notification for the encoding architecture.
+8. **Error notification** — answer two questions: **(a)** does this plan impact existing error handling (changes to a route, model, or frontend component that produces or displays errors)? If yes, list which `E-*` error codes are affected and whether new codes are needed. **(b)** Should the plan add, update, or remove any error notification behaviour (new or changed `showToast(..., "error")` calls, new `sendError`/`sendValidationError` usage, etc.)? Reference `setup/ARCHITECTURE/Website_guide.md` § Error Notification for the encoding architecture.
 9. **Notes** — edge cases, constraints, ordering dependencies, anything non-obvious.
 10. **Completion Protocol** — always present, copied/adapted from `plan_template.md`'s own Completion Protocol section (see below). Every plan carries this verbatim so an implementing agent that only reads the plan file — not this skill — still knows how to finish it correctly.
 
@@ -284,7 +284,7 @@ Review every file you created or edited in Steps 2–4 for these plan-level issu
 - No task describes an action that would violate a listed rule (e.g. a task saying "add inline styles" when `CSS-2` is listed).
 
 **Error notification consistency:**
-- If the plan's "Error notification" section says error handling is impacted, verify every file listed in "Files touched" that produces or displays errors has a corresponding task referencing `sendError`, `sendValidationError`, `showErrorToast`, `handleApiError`, or `displayError` — whichever helper is appropriate for that layer.
+- If the plan's "Error notification" section says error handling is impacted, verify every file listed in "Files touched" that produces or displays errors has a corresponding task referencing `sendError`, `sendValidationError`, or `showToast(..., "error")` — whichever helper is appropriate for that layer.
 - If the plan adds a new error scenario (new validation failure, new boundary condition), check whether `api/lib/error-codes.js` needs a new `E-*` code. If it does, the plan's Tasks list must include a task to add it.
 - If the plan changes how an existing error is surfaced to the user (e.g. switching from `alert()` to error toast, or from raw `res.status(500).json()` to `sendError`), the plan must say so in "Error notification" and the Tasks list must reflect it.
 
