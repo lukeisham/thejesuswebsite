@@ -155,9 +155,9 @@ A section that does not serve it belongs in another guide, or nowhere.
 
 - **Place.** The app purpose is the first paragraph of `Website_guide.md`, under the title. A
   guide purpose is the first paragraph of that guide, under the title.
-- **Content.** State the highest-level input and the highest-level output. Then name the one or
-  two essential functions that turn the input into the output. Leave out every function that
-  only supports those.
+- **Content.** State the highest-level input and the highest-level output. Then say, in plain
+  words, what the one or two essential functions do to turn the input into the output, never
+  their code names. Leave out every function that only supports those.
 - **Word cap.** App purpose: 60 words or fewer. Guide purpose: 40 words or fewer. One paragraph,
   no list. A statement over the cap holds the *how*: cut until it is intent only.
 - **Never.** No file, function, process or table names, no counts, and no history. Those are
@@ -345,6 +345,10 @@ Assert three things per module: it imports cleanly, the happy path produces the 
 
 Exception: a guide test (TEST-10) scans every file that its guide rule covers, including files
 that the task did not change. That scan is its purpose.
+
+Exception: a model test (`api/tests/<name>.model.test.js`) may go past three assertions to pin a
+data-loss guard, such as a save that must keep the rows whose keys it omits. Each extra test
+names the loss it prevents. Smoke depth still applies to everything else in the file (D-061).
 
 **TEST-2a** — Run the Suite Before You Report
 Run the tests for each area you changed, and show the pass/fail summary (AG-2). A red test is
