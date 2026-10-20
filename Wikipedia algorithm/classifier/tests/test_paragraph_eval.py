@@ -133,9 +133,11 @@ class TestNeitherRate(unittest.TestCase):
 
 
 class TestLoadThreeTierGold(unittest.TestCase):
-    """Sanity-check the gold-set-three-tier.csv loader against known facts
-    about the file (measured 2026-07-30): 136 rows, tier distribution
-    1=80, 2=17, 3=39."""
+    """Sanity-check the gold-set-three-tier.csv loader against the file:
+    136 rows, tier distribution 1=82, 3=54.
+
+    The counts pin the file on purpose. A relabel of the gold changes them, so
+    whoever relabels updates the counts here and in CLASSIFIER_DIAGNOSIS.md."""
 
     def test_loads_136_rows(self) -> None:
         rows = load_three_tier_gold()
@@ -143,12 +145,11 @@ class TestLoadThreeTierGold(unittest.TestCase):
 
     def test_tier_map_produces_expected_label_counts(self) -> None:
         rows = load_three_tier_gold()
-        counts = {"data": 0, "close": 0, "interpretation": 0}
+        counts = {"data": 0, "interpretation": 0}
         for r in rows:
             counts[r["gold_label"]] += 1
-        self.assertEqual(counts["data"], 80)
-        self.assertEqual(counts["close"], 17)
-        self.assertEqual(counts["interpretation"], 39)
+        self.assertEqual(counts["data"], 82)
+        self.assertEqual(counts["interpretation"], 54)
 
     def test_every_row_has_nonempty_text(self) -> None:
         rows = load_three_tier_gold()
@@ -156,7 +157,7 @@ class TestLoadThreeTierGold(unittest.TestCase):
             self.assertTrue(r["text"], msg=f"empty text for {r['article_title']}")
 
     def test_tier_label_map_is_the_documented_mapping(self) -> None:
-        self.assertEqual(THREE_TIER_LABEL_MAP, {"1": "data", "2": "close", "3": "interpretation"})
+        self.assertEqual(THREE_TIER_LABEL_MAP, {"1": "data", "3": "interpretation"})
 
 
 if __name__ == "__main__":

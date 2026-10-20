@@ -15,6 +15,46 @@ Phlegon), Ante-Nicene authors (Ignatius through Cyprian), named manuscripts
 (Sinaiticus, Vaticanus, P52, P66, P75, Bezae, etc.), and archaeological
 reports about New-Testament-period sites.
 
+## Current labelling rules (two classes)
+
+The labeller assigns two classes: **data** (descriptive) and **interpretation**. Tier 2 below is
+no longer assigned, because the scorer merges data and close into one descriptive class. Use the
+quick test: can a reader check the claim by opening the text or the record? If yes, it is data.
+If it is a claim that someone makes about a text, it is interpretation. A paragraph with any
+interpretation in it, even beside data, is interpretation. Only a paragraph with data alone is data.
+
+| Data (descriptive) | Example |
+|---|---|
+| What a primary source says or physical evidence shows: fact, event, place, date, quotation (a bare quotation from scripture or an ancient source too), manuscript reading, finding | "The Pilate inscription was found at Caesarea Maritima in 1961." |
+| A retelling of what a gospel narrative says, with its sequence and cross-references | "Jesus adds that unless he departs the Holy Spirit will not arrive." |
+| Which gospels or sources contain an event | "The feeding of the five thousand is reported in all four gospels." |
+| Two texts side by side, or how they differ, without saying why | "The Synoptics place the event near Bethsaida, while John locates it on the eastern shore." |
+| A plain statement about a text that a reader can see by opening it: word count, structure, wording, style, literary technique, where a New Testament word comes from or how it was translated | "The sermon is structured around six antitheses." "Mark sandwiches the cleansing of the temple between the two halves of the fig tree episode." |
+| An ancient author (before AD 451, the Council of Chalcedon) reported as a source or quoted, even when explaining a passage | "Cyprian wrote about footwashing." "Jerome describes that James is the same as James, son of Alphaeus." |
+| A modern author reporting a record, count, excavation or find, and who did the work | "Socin found from an Ottoman village list that Bethlehem had 539 houses." "The excavations resulted in the discovery of two public buildings." |
+
+| Interpretation | Example |
+|---|---|
+| Theological meaning, doctrine, what a passage means for faith | "The parable teaches that…" |
+| What Christians believe or teach | "The resurrection of Jesus is the Christian belief that…" |
+| What scholars or commentators hold, date, assume, agree on or dispute; a modern author's opinion or inference (argued, suggests, observes, notes, believes, may have) | "Most scholars date Mark to around AD 66–74." "Annas and Caiaphas may have sympathized with the Sadducees." |
+| A hedged guess about a date, a meaning or a motive (most likely, perhaps, probably, might, could, may have), or an approximate date (c., circa, "AD 30 or 33") | "The crucifixion of Jesus occurred in 1st-century Judaea, most likely in AD 30 or AD 33." "Paul (c. 5 – c. 64 or 67) was a Christian apostle." |
+| Identifying one person or place with another; theories, hypotheses, criteria | "James the Less is the same as James, the son of Mary of Cleophas." |
+| A claim about who wrote a text, when, from which sources, or to which genre it belongs, including a hypothetical source | "The author of Matthew drew on a hypothetical sayings collection known as Q." |
+| What later writers (after AD 451), legends, tradition, art or fiction say; a quotation of a later commentator (Bede) who explains a passage, or of a modern scholar cited by author and year; church practice, rites, devotions, sainthood; what people locally believe | "Another legend… is that Joseph is the Wandering Jew." |
+| A phrase that names an interpretive school or judges, even when ancient authors are named | "The ancient Christian tradition… unanimously recognized Nicopolis as Emmaus." |
+| A claim of significance with no source quoted | "The city is central to the narratives of the gospels." |
+
+The long sections below explain the linguistic signals. Where they place a case in Tier 2, read it
+as data or interpretation by the table above: a plain statement about a text's structure, wording
+or style is data, and a claim about who wrote it, when, from which sources or to which genre is
+interpretation. Where a boundary table below shows "2", read the same split.
+
+A belief, a debate or a hedge beside a find report makes the whole paragraph interpretation. A
+report of an excavation, a find or who did the work, with no belief or hedge, is data.
+
+---
+
 ## Determination and weighting principle
 
 The classifier looks for a distinction between tiers 1 & 2 (descriptive) and
@@ -309,10 +349,13 @@ itself doesn't make, it's Tier 3.
 |---|---|---|
 | "Matthew has 'kingdom of heaven'; Mark has 'kingdom of God.'" | **1** | Pure difference listing |
 | "Matthew has 'kingdom of heaven'; Mark has 'kingdom of God.' Matthew substitutes 'heaven' for 'God' as a Jewish reverential circumlocution." | **3** | The second sentence explains the difference |
-| "Matthew has 'kingdom of heaven' (32×) while Mark uses 'kingdom of God' (14×). Matthew retains 'kingdom of God' in only four passages (12:28; 19:24; 21:31; 21:43). The consistent substitution pattern is a well-established feature of Matthew's redaction." | **2** | Counts, patterns, and the claim "well-established feature" are close analysis without reaching for theological meaning or community context |
+| "Matthew has 'kingdom of heaven' (32×) while Mark uses 'kingdom of God' (14×). Matthew retains 'kingdom of God' in only four passages (12:28; 19:24; 21:31; 21:43)." | **1** | Counts and a list of passages: a direct observation about the texts |
+| "Matthew has 'kingdom of heaven' (32×) while Mark uses 'kingdom of God' (14×). The consistent substitution pattern is a well-established feature of Matthew's redaction." | **2** | Adds a claim about how the text was made (redaction), without reaching for theological meaning or community context |
 
-**Heuristic:** if the paragraph stays at the level of *what* the texts say and *how*
-they relate structurally, it's Tier 1 or 2. The moment it explains *why* the
+**Heuristic:** setting texts side by side, counting words and listing where a phrase occurs are
+Tier 1. Claiming how a text was made (authorship, dating, sources, redaction, genre) is
+interpretation. Plain statements about structure, wording or style are data. If the paragraph stays at the level of *what* the texts say and *how*
+they relate structurally, it's data. The moment it explains *why* the
 difference exists in terms of authorial intent, community context, or theological
 program, it's Tier 3.
 
@@ -328,14 +371,14 @@ program, it's Tier 3.
 
 | Paragraph shape | Tier | Why |
 |---|---|---|
-| "Scholars are divided on the dating of Mark's Gospel, with proposals ranging from the mid-50s to the early 70s CE." | **1** | Reports the state of the field; no argument advanced |
-| "The majority of scholars date Mark to shortly before or after 70 CE, citing the Olivet Discourse's apparent allusion to the temple's destruction (Mark 13:2, 14)." | **2** | Reports a scholarly consensus AND the evidence cited for it — still not arguing for/against |
+| "Scholars are divided on the dating of Mark's Gospel, with proposals ranging from the mid-50s to the early 70s CE." | **3** | Cites secondary sources who debate a date; the reader cannot check it by opening a primary source |
+| "The majority of scholars date Mark to shortly before or after 70 CE, citing the Olivet Discourse's apparent allusion to the temple's destruction (Mark 13:2, 14)." | **3** | Reports a scholarly consensus and the evidence it cites; still a claim made by secondary sources |
 | "Mark's Gospel is best dated to shortly after 70 CE. The specificity of Mark 13:14's 'abomination of desolation' and the Gospel's concern with suffering and persecution fit a post-war context in which the temple's destruction required theological explanation." | **3** | Takes a position and argues for it using evidence |
 
-**Heuristic:** reporting *that* scholars hold a view (or what evidence they cite) is
-Tier 1 or 2. Arguing *for* or *against* a view is Tier 3. The presence of "best,"
-"most likely," "probably," or "persuasively" attached to a scholarly claim signals
-Tier 3.
+**Heuristic:** any sentence that says what scholars hold, date, agree on, or dispute is
+Tier 3, whether it reports a debate, a consensus, or one scholar's note on a source
+("which some scholars note conflicts with Mishnaic law"). Words such as "scholars",
+"most scholars", "virtually all scholars" and "which some scholars note" are the clue.
 
 ### 5. Presenting archaeological evidence
 
@@ -345,19 +388,47 @@ Tier 3.
 | "The Capernaum synagogue's first-century basalt foundation underlies the fourth-century limestone structure, indicating continuous sacred use of the site across at least three centuries." | **2** | Observes a structural/chronological relationship within the data |
 | "The existence of a first-century synagogue at Capernaum corroborates the Gospel accounts of Jesus teaching in Galilean synagogues (Mark 1:21; Luke 4:31), suggesting the evangelists' portrayal of Jesus's Galilean ministry has a plausible archaeological foundation." | **3** | Uses the data to support a claim about historical reliability of the Gospels |
 
+### 6. Naming where something appears, and what believers hold
+
+| Paragraph shape | Tier | Why |
+|---|---|---|
+| "The feeding of the five thousand is a miracle of Jesus reported in all four gospels." | **1** | Names which sources contain the event; no comparison of what they say |
+| "It appears in all three Synoptic Gospels: Mark 13, Matthew 24-25, and Luke 21." | **1** | Same: a list of where the passage is |
+| "All four gospels report that women were the first to discover the empty tomb." | **1** | Same |
+| "The resurrection of Jesus is the Christian belief that God raised Jesus from the dead on the third day." | **3** | States what believers hold, which cannot be checked in a source |
+| "The Ascension of Jesus is the Christian teaching that Christ physically departed from Earth." | **3** | Same |
+| "The city is central to the narratives of the gospels, particularly the events of Jesus's final week." | **3** | A claim of significance with no source quoted |
+| "The Golden Legend records the grand lifestyle imagined for Martha and her siblings." | **3** | What a later legend says about a figure |
+
+**Heuristic:** naming the sources that contain something, or comparing and counting what they say,
+is Tier 1. Claiming how a text was made is Tier 2. Stating what believers, scholars, later writers or
+legends hold or say, or that something is significant, with no source quoted, is Tier 3.
+
+---
+
+### 7. Modern work on a site, and hedges
+
+| Paragraph shape | Class | Why |
+|---|---|---|
+| "In 1905, Kohl and Watzinger began a study of Galilean synagogues. The excavations resulted in the discovery of two public buildings." | **data** | Who did the work and what was found; no belief or hedge |
+| "The excavation revealed evidence of a substantial Roman village. Alexandre believes the site is precisely identified by Josephus, but other scholars disagree." | **interpretation** | A belief and a debate sit beside the find |
+| "The crucifixion of Jesus occurred in 1st-century Judaea, most likely in AD 30 or AD 33." | **interpretation** | A hedged date |
+| "Chrysostom: \"Wherein observe the thoughtfulness and affection of the servants…\"" | **data** | A Church Father (before AD 451) quoted, even when he explains a passage |
+| "Bede: Figuratively; Peter's house is the Law…" | **interpretation** | A later commentator (after AD 451) explains a passage |
+| "Mark sandwiches the cleansing of the temple between the two halves of the fig tree episode." | **data** | Structure, visible in the text |
+
 ---
 
 ## Summary: The Quick Test
 
-For any paragraph, ask three questions in order:
+For any paragraph, ask two questions in order:
 
-1. **Does the paragraph make a claim that cannot be verified by opening the cited source?**
-   - No → Tier 1 (Data)
-   - Yes → continue to question 2
+1. **Can a reader check every claim in the paragraph by opening the cited text or record?**
+   - Yes → Data
+   - No → continue to question 2
 
-2. **Does the paragraph's claim stay within the observable features of the text itself (structure, language, genre, source relationships, textual tradition)?**
-   - Yes → Tier 2 (Close Analysis)
-   - No → continue to question 3
+2. **Does the paragraph hold a belief, a debate, a hedge, an inference, a claim about who wrote a text, when, from which sources or to which genre, a claim of significance, or what later writers, tradition or believers say?**
+   - Yes → Interpretation
+   - No → Data
 
-3. **Does the paragraph reach outward to historical reconstruction, theological meaning, community context, or methodological/theoretical conclusions?**
-   - Yes → Tier 3 (Interpretation)
+One interpretation anywhere in the paragraph makes the whole paragraph interpretation.
