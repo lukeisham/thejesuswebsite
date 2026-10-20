@@ -2,7 +2,7 @@
 """Validate an LLM as a paragraph-tier labeller against the human gold set.
 
 Sends the exact paragraph text from gold-set-three-tier.csv (136 text-bearing
-rows) to a DeepSeek model and compares the predicted tier (data / close /
+rows) to a DeepSeek model and compares the predicted tier (data /
 interpretation) against the human label. Reports per-class precision/recall
 and overall agreement, then records whether the model passes the gate
 (>= 0.85 overall agreement, no single class below 0.75 recall).
@@ -33,7 +33,7 @@ THREE_TIER_PATH = ALGO_DIR / "gold-set-three-tier.csv"
 
 DEEPSEEK_BASE_URL = "https://api.deepseek.com"
 
-TIER_MAP = {"1": "data", "2": "close", "3": "interpretation"}
+TIER_MAP = {"1": "data", "3": "interpretation"}
 
 # Shared labelling prompts — single source of truth so this script and
 # llm_label_corpus.py cannot drift apart (llm_prompts.py).
@@ -50,7 +50,7 @@ def load_gold_paragraphs() -> list[dict]:
             tier_raw = (row.get("tier") or "").strip()
             gold_label = TIER_MAP.get(tier_raw)
             if gold_label is None:
-                continue
+                raise ValueError(f"{THREE_TIER_PATH.name}: tier {tier_raw!r} is not 1 or 3")
             text = (row.get("paragraph_text") or "").strip()
             if not text:
                 continue
@@ -111,7 +111,7 @@ def label_paragraphs_batch(
                     break
 
             # Normalise and validate.
-            valid_labels = {"data", "close", "interpretation"}
+            valid_labels = {"data", "interpretation"}
             for j, pred in enumerate(pred_labels):
                 if j >= len(batch):
                     break
@@ -138,7 +138,7 @@ def label_paragraphs_batch(
 
 def compute_metrics(results: list[dict]) -> dict:
     """Compute per-class precision/recall/F1 and overall agreement."""
-    classes = ["data", "close", "interpretation"]
+    classes = ["data", "interpretation"]
     cm: Counter = Counter()
 
     for r in results:
@@ -280,7 +280,7 @@ def main() -> None:
         print(f"  Gate passed:         {'YES' if metrics['gate_passed'] else 'NO'}")
         print()
         print("  Per-class metrics:")
-        for c in ["data", "close", "interpretation"]:
+        for c in ["data", "interpretation"]:
             s = metrics["per_class"][c]
             print(
                 f"    {c:<16}  prec={s['precision']:.3f}  "

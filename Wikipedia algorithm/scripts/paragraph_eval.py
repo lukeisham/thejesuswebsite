@@ -19,16 +19,13 @@ mismatch documented in CLASSIFIER_DIAGNOSIS.md (§A / §C):
    ALIGNED_ARTICLES below.
 
 2. **Three-tier standalone** — `gold-set-three-tier.csv` carries the actual
-   `paragraph_text` alongside a human `tier` (1=data, 2=close,
-   3=interpretation) label. Because the text is present, these 136
+   `paragraph_text` alongside a human `tier` (1=data, 3=interpretation;
+   tier 2 no longer exists) label. Because the text is present, these 136
    paragraphs can be classified *standalone* (fed straight to the four
    vector stores with no surrounding article, no positional lede/reference
    rule applied) and compared 1:1 against gold with **zero alignment risk**
    — no index-matching is needed at all. This is the largest and safest
-   paragraph-level gold comparison available, and it is the only place in
-   the codebase that can validate the close-analysis (Tier 2) store
-   directly, since the aligned-6 gold labels only distinguish
-   data/interpretation/neither.
+   paragraph-level gold comparison available.
 
    Coverage caveat: gold-set-three-tier.csv covers 45 article titles, only
    9 of which overlap with the 39-article gold-set-section-classifier.csv,
@@ -62,7 +59,10 @@ RAW_CLASSES = ("data", "close", "interpretation", "neither", "other")
 COLLAPSED_CLASSES = ("data", "interpretation", "neither")
 
 # Tier integer (gold-set-three-tier.csv's 'tier' column) -> classifier label.
-THREE_TIER_LABEL_MAP = {"1": "data", "2": "close", "3": "interpretation"}
+# The file name keeps "three-tier" for its many references. Tier 2 (close) was
+# dropped, so a "2" in the file is a row nobody converted: load_three_tier_gold
+# raises on it.
+THREE_TIER_LABEL_MAP = {"1": "data", "3": "interpretation"}
 
 # The 6 gold-set articles whose classifier segmentation exactly matches the
 # gold paragraph count — see module docstring, slice 1.
@@ -196,19 +196,22 @@ def load_gold_paragraph_labels() -> dict[str, list[str]]:
 
 
 def load_three_tier_gold() -> list[dict]:
-    """Load gold-set-three-tier.csv, mapping tier 1/2/3 -> data/close/interpretation.
+    """Load gold-set-three-tier.csv, mapping tier 1/3 -> data/interpretation.
 
     Returns a list of dicts with keys: article_title, paragraph_index, text,
-    gold_label. Rows whose 'tier' value isn't 1/2/3 are skipped (there are
-    none currently, but this keeps the loader honest if the file is
-    extended with e.g. an explicit 'neither' tier later).
+    gold_label. A row with any other 'tier' value raises, because a skipped
+    row would change every score without a warning.
     """
     rows: list[dict] = []
     with open(THREE_TIER_PATH, encoding="utf-8") as fh:
         for row in csv.DictReader(fh):
-            gold_label = THREE_TIER_LABEL_MAP.get((row.get("tier") or "").strip())
+            tier = (row.get("tier") or "").strip()
+            gold_label = THREE_TIER_LABEL_MAP.get(tier)
             if gold_label is None:
-                continue
+                raise ValueError(
+                    f"{THREE_TIER_PATH.name}: tier {tier!r} on {row['article_title']!r} "
+                    f"paragraph {row.get('paragraph_index')} is not 1 or 3"
+                )
             text = (row.get("paragraph_text") or "").strip()
             if not text:
                 continue

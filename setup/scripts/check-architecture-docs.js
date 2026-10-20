@@ -37,6 +37,13 @@ const REPO_PREFIXES = [
 ];
 const ROOT_FILES = new Set(["deploy.sh", "dev-proxy.js", ".gitignore"]);
 
+// Guides cite each other as `name.md` or `ARCHITECTURE/name.md`. Neither form
+// starts with a repo prefix, so without these two patterns a renamed guide
+// leaves dead references that no check reports.
+const PARTIAL_GUIDE_REF = /^ARCHITECTURE\/[^/]+\.md$/;
+const BARE_MD_REF = /^[^/\s]+\.md$/;
+const SKIPPED_DIRS = new Set(["node_modules", ".git"]);
+
 // Tokens containing these are patterns/placeholders, not real paths.
 const PLACEHOLDER = /[*<>{}]|NNN|…|\.\.\./;
 
@@ -45,6 +52,35 @@ const red = (s) => `\x1b[31m${s}\x1b[0m`;
 const green = (s) => `\x1b[32m${s}\x1b[0m`;
 const yellow = (s) => `\x1b[33m${s}\x1b[0m`;
 const dim = (s) => `\x1b[2m${s}\x1b[0m`;
+
+let markdownNames = null;
+
+/** Every `.md` basename in the repo, built once. A bare `name.md` resolves if any file has that name. */
+function repoMarkdownNames() {
+  if (markdownNames) return markdownNames;
+  markdownNames = new Set();
+  const walk = (dir) => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      if (entry.isDirectory()) {
+        if (!SKIPPED_DIRS.has(entry.name)) walk(path.join(dir, entry.name));
+      } else if (entry.name.endsWith(".md")) {
+        markdownNames.add(entry.name);
+      }
+    }
+  };
+  walk(REPO_ROOT);
+  return markdownNames;
+}
+
+function resolves(token) {
+  if (PARTIAL_GUIDE_REF.test(token)) {
+    return fs.existsSync(path.join(REPO_ROOT, "setup", token));
+  }
+  if (BARE_MD_REF.test(token)) {
+    return fs.existsSync(path.join(DOCS_DIR, token)) || repoMarkdownNames().has(token);
+  }
+  return fs.existsSync(path.join(REPO_ROOT, token));
+}
 
 function docFiles() {
   if (!fs.existsSync(DOCS_DIR)) return [];
@@ -74,7 +110,10 @@ function extractPaths(text) {
       if (!token) continue;
 
       const isRepoPath =
-        REPO_PREFIXES.some((p) => token.startsWith(p)) || ROOT_FILES.has(token);
+        REPO_PREFIXES.some((p) => token.startsWith(p)) ||
+        ROOT_FILES.has(token) ||
+        PARTIAL_GUIDE_REF.test(token) ||
+        BARE_MD_REF.test(token);
       if (!isRepoPath) continue;
 
       found.push({ token, line: i + 1 });
@@ -94,7 +133,7 @@ function checkPaths() {
 
     for (const { token, line } of extractPaths(text)) {
       checked++;
-      if (!fs.existsSync(path.join(REPO_ROOT, token))) {
+      if (!resolves(token)) {
         misses.push({ token, line });
       }
     }

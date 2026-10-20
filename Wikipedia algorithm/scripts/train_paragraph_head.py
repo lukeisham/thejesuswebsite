@@ -1,8 +1,16 @@
 """Train the paragraph head on the LLM-labelled corpus and test it held out.
 
+The head has two classes, data and interpretation (D-042). A "close" label in
+labels-corpus.json, made before close was dropped, counts as data here, as it
+does in the scorer.
+
 Run from the "Wikipedia algorithm" directory:
 
     python scripts/train_paragraph_head.py
+
+This script writes classifier/paragraph-head.json, the head that
+scoring_rule="head" loads. To train an experiment head without replacing it,
+use train_agreement_head.py.
 
 Options:
   --interp-offset X   Force the interpretation intercept shift to X instead
@@ -15,7 +23,8 @@ Steps:
      calibrate_held_out.py uses, so the two results are comparable.
   3. Choose the regularisation, the class weighting, the interpretation
      intercept shift, and t_sep using cross-validation on the train split
-     only.
+     only. The choice maximises Cohen's kappa of the predicted tier state
+     against the gold tier state (D-036), not tier accuracy.
   4. Fit the head on the whole train split and measure it once on the test
      split.
   5. Write classifier/paragraph-head.json, paragraph-head-result.json, and
@@ -65,11 +74,8 @@ from scripts.head_training import (  # noqa: E402
     balanced_class_weights,
     fit_softmax_regression,
 )
+from scripts.jev_pilot_report import cohen_kappa  # noqa: E402
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-)
 logger = logging.getLogger("train-paragraph-head")
 
 RESULT_PATH = ALGO_DIR / "paragraph-head-result.json"
@@ -77,7 +83,7 @@ HELD_OUT_RESULT_PATH = ALGO_DIR / "held-out-calibration-result.json"
 DIAGNOSIS_D5_HEADER = "## D.5 — Held-out validation (LLM-labelled corpus)"
 DIAGNOSIS_D6_HEADER = "## D.6 — Trained paragraph head"
 
-CLASSES = (LABEL_DATA, LABEL_CLOSE_ANALYSIS, LABEL_INTERPRETATION)
+CLASSES = (LABEL_DATA, LABEL_INTERPRETATION)
 SPLIT_SEED = 42  # Same seed as calibrate_with_held_out().
 TRAIN_FRACTION = 0.70
 CV_SEED = 7
@@ -102,8 +108,14 @@ class Article:
     aligned: bool  # True when llm_labels match the paragraphs by position
 
 
-def build_articles(store_manager: StoreManager) -> tuple[list[Article], int]:
-    """Embed every LLM-labelled article.
+def build_articles(
+    store_manager: StoreManager, labels_by_title: dict[str, list[str]] | None = None,
+) -> tuple[list[Article], int]:
+    """Embed every labelled article.
+
+    `labels_by_title` holds one label per fetched paragraph. It defaults to
+    the DeepSeek labels of labels-corpus.json; train_agreement_head.py passes
+    the Jev labels. The article's gold tier state comes from these labels.
 
     Some articles have a different LLM label count than paragraph count.
     The labels of those articles cannot be matched to paragraphs by
@@ -114,7 +126,7 @@ def build_articles(store_manager: StoreManager) -> tuple[list[Article], int]:
     Returns:
         Tuple (articles, number of articles that are not aligned).
     """
-    llm_labels = load_llm_corpus()
+    llm_labels = load_llm_corpus() if labels_by_title is None else labels_by_title
     fetch_cache = _load_fetch_cache()
     embedder = store_manager.embedder
 
@@ -142,6 +154,11 @@ def build_articles(store_manager: StoreManager) -> tuple[list[Article], int]:
     return articles, not_aligned
 
 
+def two_class(label: str) -> str:
+    """Fold a 'close' label into data. Other labels pass through unchanged."""
+    return LABEL_DATA if label == LABEL_CLOSE_ANALYSIS else label
+
+
 def training_rows(articles: list[Article]) -> tuple[np.ndarray, np.ndarray]:
     """Stack the body paragraphs of the articles into (features, class ids)."""
     features: list[np.ndarray] = []
@@ -149,7 +166,8 @@ def training_rows(articles: list[Article]) -> tuple[np.ndarray, np.ndarray]:
     for article in articles:
         if not article.aligned:
             continue
-        for i, label in enumerate(article.llm_labels):
+        for i, raw_label in enumerate(article.llm_labels):
+            label = two_class(raw_label)
             if article.positional[i] or label not in CLASSES:
                 continue
             features.append(article.embeddings[i])
@@ -184,26 +202,61 @@ def predict_article_labels(head: ParagraphHead, article: Article) -> list[str]:
     return labels
 
 
+def predicted_states(
+    articles: list[Article], predicted: dict[str, list[str]], t_sep: float,
+) -> list[str]:
+    """Tier state of each article from its predicted paragraph labels."""
+    return [score_article(predicted[a.title], t_sep)["tier_state"] for a in articles]
+
+
 def tier_accuracy(
     articles: list[Article], predicted: dict[str, list[str]], t_sep: float,
 ) -> float:
     """Share of articles whose predicted tier state equals the gold state."""
-    hits = sum(
-        score_article(predicted[a.title], t_sep)["tier_state"] == a.gold_state
-        for a in articles
-    )
-    return hits / len(articles)
+    states = predicted_states(articles, predicted, t_sep)
+    return sum(s == a.gold_state for s, a in zip(states, articles)) / len(articles)
+
+
+def tier_kappa(
+    articles: list[Article], predicted: dict[str, list[str]], t_sep: float,
+) -> float:
+    """Cohen's kappa between the predicted and the gold tier states (D-036)."""
+    return cohen_kappa(
+        predicted_states(articles, predicted, t_sep), [a.gold_state for a in articles])
+
+
+def fold_numbers(articles: list[Article]) -> list[int]:
+    """Cross-validation fold of each article, from a hash of its title."""
+    return assign_folds([_title_split_fraction(a.title, CV_SEED) for a in articles], N_FOLDS)
+
+
+def out_of_fold_heads(
+    articles: list[Article], c_value: float, class_weight: str, interp_offset: float,
+) -> list[ParagraphHead]:
+    """One shifted head per fold, each fitted on the articles outside that fold.
+
+    Fold k's head predicts the articles of fold k (and any paragraph whose
+    title hashes to fold k), so no prediction comes from a head that trained
+    on its own article.
+    """
+    folds = fold_numbers(articles)
+    return [
+        fit_head([a for a, f in zip(articles, folds) if f != fold], c_value, class_weight)
+        .with_intercept_shift(LABEL_INTERPRETATION, interp_offset)
+        for fold in range(N_FOLDS)
+    ]
 
 
 def cross_validate(train: list[Article]) -> list[dict]:
     """Score every (C, class weight, interpretation shift, t_sep) choice.
 
-    Each train article is predicted by a head that never saw it. The folds
-    come from a hash of the title, so they do not depend on list order.
+    Each article is predicted by a head that never saw it, so the scores pool
+    every article's out-of-fold prediction. The folds come from a hash of the
+    title, so they do not depend on list order. Called on the train split it
+    picks settings for the head; train_agreement_head.py also calls it on all
+    articles for the pooled evaluation.
     """
-    folds = assign_folds(
-        [_title_split_fraction(a.title, CV_SEED) for a in train], N_FOLDS,
-    )
+    folds = fold_numbers(train)
     rows: list[dict] = []
     for c_value in C_GRID:
         for class_weight in CLASS_WEIGHT_GRID:
@@ -229,15 +282,17 @@ def cross_validate(train: list[Article]) -> list[dict]:
                         "t_sep": t_sep,
                         "cv_tier_accuracy": round(
                             tier_accuracy(train, predicted[offset], t_sep), 4),
+                        "cv_kappa": round(
+                            tier_kappa(train, predicted[offset], t_sep), 4),
                     })
-            logger.info("CV C=%.1f weight=%s: best tier accuracy %.3f",
+            logger.info("CV C=%.1f weight=%s: best kappa %.3f",
                         c_value, class_weight,
-                        max(r["cv_tier_accuracy"] for r in rows[start:]))
+                        max(r["cv_kappa"] for r in rows[start:]))
     return rows
 
 
 def choose_config(cv_rows: list[dict], forced_offset: float | None = None) -> dict:
-    """Pick the highest CV accuracy.
+    """Pick the highest CV kappa (D-036).
 
     Ties go to the smaller interpretation shift, then to the lower t_sep
     (the value already in classifier/config.py). When `forced_offset` is
@@ -251,7 +306,7 @@ def choose_config(cv_rows: list[dict], forced_offset: float | None = None) -> di
                 f"--interp-offset {forced_offset} is not in the grid "
                 f"{INTERP_OFFSET_GRID}.")
     return max(rows, key=lambda r: (
-        r["cv_tier_accuracy"], -r["interp_offset"], -r["t_sep"]))
+        r["cv_kappa"], -r["interp_offset"], -r["t_sep"]))
 
 
 def paragraph_metrics(head: ParagraphHead, test: list[Article]) -> dict:
@@ -263,9 +318,9 @@ def paragraph_metrics(head: ParagraphHead, test: list[Article]) -> dict:
             continue
         labels = predict_article_labels(head, article)
         for i, is_positional in enumerate(article.positional):
-            if not is_positional and article.llm_labels[i] in CLASSES:
-                gold.append(article.llm_labels[i])
-                pred.append(labels[i])
+            if not is_positional and two_class(article.llm_labels[i]) in CLASSES:
+                gold.append(two_class(article.llm_labels[i]))
+                pred.append(two_class(labels[i]))
     gold_arr, pred_arr = np.array(gold), np.array(pred)
     metrics: dict = {
         "paragraphs": len(gold),
@@ -378,8 +433,8 @@ linear classifier on the full paragraph embedding. It replaces the four
 store scores with the 384 embedding values. It trains on the LLM labels of
 the train split only. It uses the same title-hash split as §D.5, so the two
 test results are comparable. The regularisation, the class weighting, and
-`t_sep` come from {N_FOLDS}-fold cross-validation on the train split. The test
-split is used once.
+`t_sep` come from {N_FOLDS}-fold cross-validation on the train split, chosen by
+the kappa of the tier states. The test split is used once.
 
 | Setting | Value |
 |---|---|
@@ -457,6 +512,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def main() -> None:
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
     args = parse_args()
     store_manager = StoreManager()
     articles, not_aligned = build_articles(store_manager)
