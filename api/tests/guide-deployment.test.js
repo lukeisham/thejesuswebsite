@@ -138,3 +138,32 @@ describe(`${GUIDE} row 8: one deploy at a time`, () => {
     );
   });
 });
+
+// ── Row 10: a claude/** branch is promoted to main and then deployed ──────────
+
+const PROMOTE_WORKFLOW = ".github/workflows/promote-claude-branch.yml";
+
+describe(`${GUIDE} row 10: claude branch promotion`, () => {
+  test(`${PROMOTE_WORKFLOW} runs on claude/** pushes and starts deploy.yml by dispatch`, () => {
+    const text = withoutHashComments(read(PROMOTE_WORKFLOW));
+    assert.match(
+      text,
+      /branches:\s*\[\s*'claude\/\*\*'\s*\]/,
+      `${PROMOTE_WORKFLOW} must trigger on pushes to claude/**. Rule: ${GUIDE}, Invariants row 10.`
+    );
+    assert.match(
+      text,
+      /gh workflow run deploy\.yml --ref main/,
+      `${PROMOTE_WORKFLOW} must start deploy.yml with "gh workflow run". A push made with the workflow token never triggers deploy.yml. Rule: ${GUIDE}, Invariants row 10.`
+    );
+  });
+
+  test(`${WORKFLOW} keeps its workflow_dispatch trigger`, () => {
+    const text = withoutHashComments(read(WORKFLOW));
+    assert.match(
+      text,
+      /workflow_dispatch:/,
+      `${WORKFLOW} lost workflow_dispatch. ${PROMOTE_WORKFLOW} can no longer start a deploy. Rule: ${GUIDE}, Invariants row 10.`
+    );
+  });
+});

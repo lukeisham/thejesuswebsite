@@ -1,0 +1,61 @@
+name: Promote claude branch to main
+
+on:
+  push:
+    branches: ['claude/**']
+
+# Two pushes must not race to move main. A second run waits for the first.
+concurrency:
+  group: promote-to-main
+  cancel-in-progress: false
+
+# The repository default for the workflow token is read-only. `contents: write`
+# lets the job push main. `actions: write` lets it start deploy.yml.
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      # Fast-forwards when main has not moved, else makes a merge commit. A
+      # conflict fails the job and leaves main unchanged: nobody resolves
+      # conflicts here, so the branch waits for a person.
+      - name: Merge branch into main
+        id: merge
+        env:
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          before=$(git rev-parse HEAD)
+          git merge --no-edit "origin/$BRANCH"
+          after=$(git rev-parse HEAD)
+
+          if [[ "$before" == "$after" ]]; then
+            echo "main already contains $BRANCH" | tee -a "$GITHUB_STEP_SUMMARY"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git push origin main
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          echo "Merged $BRANCH into main" | tee -a "$GITHUB_STEP_SUMMARY"
+
+      # A push made with GITHUB_TOKEN never triggers the `push` trigger of
+      # deploy.yml. A workflow_dispatch started with the same token does, so
+      # deploy.yml must keep its workflow_dispatch trigger
+      # (guide-deployment.test.js).
+      - name: Start the deploy
+        if: steps.merge.outputs.changed == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run deploy.yml --ref main
