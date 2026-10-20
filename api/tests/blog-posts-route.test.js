@@ -1,5 +1,7 @@
 // Blog Posts route tests — uses node:test + node:assert.
-// Pins the error-registry shape (API-3) for the 404 and 400 paths.
+// Pins the error-registry shape (API-3) for the 404 and 400 paths, the
+// 401/pass-through gate on every admin route (TEST-7), the published-only
+// gate on the public routes, and body and id validation (API-4).
 
 const { test, describe, beforeEach } = require("node:test");
 const assert = require("node:assert/strict");
@@ -103,5 +105,104 @@ describe("POST /blog-posts", () => {
 
     assert.equal(result.status, 400);
     assert.equal(result.body.error.code, "E-INPUT-001");
+  });
+});
+
+describe("POST and PUT validation", () => {
+  const badBodies = [
+    { label: "a non-string blog_title", body: { slug: "v-title", blog_title: 5 }, field: "blog_title" },
+    { label: "a published_draft outside 0 and 1", body: { slug: "v-draft", published_draft: 2 }, field: "published_draft" },
+    { label: "a non-string slug", body: { slug: 7 }, field: "slug" },
+  ];
+
+  for (const { label, body, field } of badBodies) {
+    test(`POST with ${label} returns 400 E-INPUT-038 naming ${field}`, async () => {
+      const result = await request(createApp(), {
+        method: "POST",
+        path: "/blog-posts",
+        body,
+        headers: { cookie: authCookie() },
+      });
+      assert.equal(result.status, 400);
+      assert.equal(result.body.error.code, "E-INPUT-038");
+      assert.equal(result.body.error.context.field, field);
+    });
+  }
+
+  test("PUT with a published_draft outside 0 and 1 returns 400 E-INPUT-038", async () => {
+    const result = await request(createApp(), {
+      method: "PUT",
+      path: "/blog-posts/1",
+      body: { published_draft: "yes" },
+      headers: { cookie: authCookie() },
+    });
+    assert.equal(result.status, 400);
+    assert.equal(result.body.error.code, "E-INPUT-038");
+    assert.equal(result.body.error.context.field, "published_draft");
+  });
+
+  for (const { method, path: reqPath, body } of [
+    { method: "PUT", path: "/blog-posts/abc", body: { blog_title: "x" } },
+    { method: "DELETE", path: "/blog-posts/abc" },
+    { method: "GET", path: "/blog-posts/admin/abc" },
+  ]) {
+    test(`${method} ${reqPath} returns 400 E-INPUT-005 naming id`, async () => {
+      const result = await request(createApp(), {
+        method,
+        path: reqPath,
+        body,
+        headers: { cookie: authCookie() },
+      });
+      assert.equal(result.status, 400);
+      assert.equal(result.body.error.code, "E-INPUT-005");
+      assert.equal(result.body.error.context.field, "id");
+    });
+  }
+});
+
+describe("/blog-posts admin gates", () => {
+  const gated = [
+    { method: "POST", path: "/blog-posts", body: { slug: "gate-post" }, passStatus: 201 },
+    { method: "PUT", path: "/blog-posts/99999", body: { blog_title: "x" }, passStatus: 404 },
+    { method: "DELETE", path: "/blog-posts/99999", passStatus: 404 },
+    { method: "GET", path: "/blog-posts/admin", passStatus: 200 },
+    { method: "GET", path: "/blog-posts/admin/99999", passStatus: 404 },
+  ];
+
+  for (const { method, path: reqPath, body, passStatus } of gated) {
+    test(`${method} ${reqPath} returns 401 without a session cookie`, async () => {
+      const result = await request(createApp(), { method, path: reqPath, body });
+      assert.equal(result.status, 401);
+    });
+
+    test(`${method} ${reqPath} passes the gate with a valid session`, async () => {
+      const result = await request(createApp(), {
+        method,
+        path: reqPath,
+        body,
+        headers: { cookie: authCookie() },
+      });
+      assert.equal(result.status, passStatus);
+    });
+  }
+});
+
+describe("public routes return published posts only", () => {
+  test("a draft slug returns 404 and the list omits it", async () => {
+    testDb
+      .prepare("INSERT INTO blog_posts (slug, blog_title, published_draft) VALUES (?, ?, ?)")
+      .run("secret-draft", "Secret", 0);
+    testDb
+      .prepare("INSERT INTO blog_posts (slug, blog_title, published_draft) VALUES (?, ?, ?)")
+      .run("open-post", "Open", 1);
+
+    const detail = await request(createApp(), { method: "GET", path: "/blog-posts/secret-draft" });
+    assert.equal(detail.status, 404);
+
+    const list = await request(createApp(), { method: "GET", path: "/blog-posts" });
+    assert.equal(list.status, 200);
+    const slugs = list.body.map((post) => post.slug);
+    assert.ok(slugs.includes("open-post"));
+    assert.ok(!slugs.includes("secret-draft"));
   });
 });

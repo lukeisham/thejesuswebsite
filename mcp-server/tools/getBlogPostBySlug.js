@@ -36,13 +36,23 @@ export async function handler(args, apiRequest) {
     };
   }
 
-  const data = await apiRequest(`/blog-posts/${encodeURIComponent(slug)}`);
-  if (!data || data.error) {
-    return {
-      content: [{ type: 'text', text: `Blog post not found for slug "${slug}".` }],
-      isError: true,
-    };
+  const notFound = {
+    content: [{ type: 'text', text: `Blog post not found for slug "${slug}".` }],
+    isError: true,
+  };
+
+  let data;
+  try {
+    data = await apiRequest(`/blog-posts/${encodeURIComponent(slug)}`);
+  } catch (error) {
+    // server.js apiRequest throws "Upstream API returned <status>..." for every
+    // non-2xx reply, so an unknown or draft slug (404) arrives here, never as
+    // data.error. Any other failure still propagates to the server's error
+    // response. If that message format changes, change this match with it.
+    if (/returned 404\b/.test(error.message)) return notFound;
+    throw error;
   }
+  if (!data || data.error) return notFound;
 
   return { content: [{ type: 'text', text: JSON.stringify(data, null, 2) }] };
 }

@@ -1,5 +1,8 @@
 // Blog Posts HTTP routes. This file only handles the request/response layer:
 // parse input, call the model, shape the response. All SQL lives in the model.
+// Mounted at /blog-posts in server.js; the admin editors (admin/blog/) and
+// frontend/assets/js/blog-*.js call these paths, and routes/publish.js owns
+// the draft-to-published switch.
 
 const express = require("express");
 const blogPostModel = require("../models/blog-post.model");
@@ -8,6 +11,48 @@ const ERRORS = require("../lib/error-codes");
 const { sendError, sendValidationError } = require("../lib/error-handler");
 
 const router = express.Router();
+
+// Body fields that hold text. A non-string here would reach SQLite as a number
+// or object and be stored silently (API-4). null is allowed: it clears the value.
+const TEXT_FIELDS = [
+  "blog_title",
+  "blog_date",
+  "blog_content",
+  "blog_thumbnail",
+  "metadata_keywords",
+];
+
+// Returns { field, errorDef } for the first invalid body field, or null.
+// published_draft mirrors the CHECK (published_draft IN (0, 1)) in schema.sql;
+// if that constraint changes, change it here too.
+function findBodyProblem(body) {
+  if (body.slug !== undefined && (typeof body.slug !== "string" || !body.slug.trim())) {
+    return { field: "slug", errorDef: ERRORS.INVALID_BODY_FIELD };
+  }
+  for (const field of TEXT_FIELDS) {
+    const value = body[field];
+    if (value !== undefined && value !== null && typeof value !== "string") {
+      return { field, errorDef: ERRORS.INVALID_BODY_FIELD };
+    }
+  }
+  if (body.published_draft !== undefined && body.published_draft !== 0 && body.published_draft !== 1) {
+    return { field: "published_draft", errorDef: ERRORS.INVALID_BODY_FIELD };
+  }
+  return null;
+}
+
+// Parses the :id path parameter. Sends a 400 naming "id" and returns null when
+// it is not a positive integer, so a handler can `if (id === null) return`.
+function parseIdParam(req, res) {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id) || id < 1) {
+    sendValidationError(res, "id", ERRORS.INVALID_NUMERIC_PARAM, {
+      received: req.params.id,
+    });
+    return null;
+  }
+  return id;
+}
 
 // GET /blog-posts — public list of published blog posts
 router.get("/", (req, res) => {
@@ -41,7 +86,9 @@ router.get("/admin", requireAuth, (req, res) => {
 // GET /blog-posts/admin/:id — admin detail by id (must come before /:slug)
 router.get("/admin/:id", requireAuth, (req, res) => {
   try {
-    const item = blogPostModel.getAdminById(Number(req.params.id));
+    const id = parseIdParam(req, res);
+    if (id === null) return;
+    const item = blogPostModel.getAdminById(id);
     if (!item)
       return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: "blog post", id: req.params.id });
     res.json(item);
@@ -70,6 +117,8 @@ router.post("/", requireAuth, (req, res) => {
     if (!req.body.slug) {
       return sendError(res, ERRORS.MISSING_BODY_FIELD, { fields: ["slug"] });
     }
+    const problem = findBodyProblem(req.body);
+    if (problem) return sendValidationError(res, problem.field, problem.errorDef);
     const created = blogPostModel.createComposite(req.body);
     res.status(201).json(created);
   } catch (error) {
@@ -84,10 +133,11 @@ router.post("/", requireAuth, (req, res) => {
 // PUT /blog-posts/:id — update blog post (admin only)
 router.put("/:id", requireAuth, (req, res) => {
   try {
-    const updated = blogPostModel.updateComposite(
-      Number(req.params.id),
-      req.body,
-    );
+    const id = parseIdParam(req, res);
+    if (id === null) return;
+    const problem = findBodyProblem(req.body);
+    if (problem) return sendValidationError(res, problem.field, problem.errorDef);
+    const updated = blogPostModel.updateComposite(id, req.body);
     if (!updated)
       return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: "blog post", id: req.params.id });
     res.json(updated);
@@ -103,7 +153,9 @@ router.put("/:id", requireAuth, (req, res) => {
 // DELETE /blog-posts/:id — remove blog post (admin only)
 router.delete("/:id", requireAuth, (req, res) => {
   try {
-    const removed = blogPostModel.remove(Number(req.params.id));
+    const id = parseIdParam(req, res);
+    if (id === null) return;
+    const removed = blogPostModel.remove(id);
     if (!removed)
       return sendError(res, ERRORS.SQL_RECORD_NOT_FOUND, { entity: "blog post", id: req.params.id });
     res.status(204).end();

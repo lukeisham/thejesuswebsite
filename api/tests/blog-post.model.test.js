@@ -1,127 +1,80 @@
-// Blog post model tests — covers create+read round-trip of blog_thumbnail
-// and confirms mla_sources are attached in getDetailBySlug.
-//
-// Run:  node api/tests/blog-post.model.test.js
-// Runs against an in-memory database built from schema.sql (TEST-4). Failed
-// checks set a non-zero exit code, which is what `node --test` reads.
+// Blog post model smoke tests (node:test) against an in-memory database built
+// from schema.sql: the write/read round-trip including blog_thumbnail, the
+// public-versus-admin read split, the paginated envelope, and the
+// missing-id guards on update and remove.
 
-process.env.DB_PATH = ":memory:";
-
-const fs = require("fs");
+const { test, describe, beforeEach } = require("node:test");
+const assert = require("node:assert/strict");
 const path = require("path");
+const Module = require("module");
+const { createTestDb } = require("./helpers/db");
 
-const db = require("../config");
-db.exec(fs.readFileSync(path.resolve(__dirname, "..", "..", "database", "schema.sql"), "utf8"));
+const testDb = createTestDb();
+
+// blog-post.model.js requires ../config; hand it the in-memory database.
+const configPath = require.resolve(path.resolve(__dirname, "..", "config"));
+Module._cache[configPath] = {
+  id: configPath,
+  filename: configPath,
+  loaded: true,
+  exports: testDb,
+};
 
 const model = require("../models/blog-post.model");
 
-let createdId = null;
-let createdSlug = null;
-
-function assert(condition, message) {
-  if (!condition) {
-    console.error("FAIL:", message);
-    process.exitCode = 1;
-  } else {
-    console.log("PASS:", message);
-  }
-}
-
-// ── Create with blog_thumbnail ──
-
-const testData = {
-  blog_title: "Test Post — blog_thumbnail round-trip",
-  slug: "test-blog-thumbnail",
-  blog_content: "Test content with [mla:1] inline citation.",
-  blog_thumbnail: "/assets/images/test-thumb.webp",
-  published_draft: 0,
-};
-
-const created = model.create(testData);
-createdId = created.id;
-createdSlug = created.slug;
-
-assert(
-  created.blog_thumbnail === testData.blog_thumbnail,
-  "create() persists blog_thumbnail",
-);
-assert(typeof createdId === "number" && createdId > 0, "create() returns an id");
-
-// ── Read back (by id) ──
-
-const byId = model.getById(createdId);
-assert(byId !== undefined, "getById() returns the created row");
-assert(
-  byId.blog_thumbnail === testData.blog_thumbnail,
-  "getById() returns blog_thumbnail",
-);
-
-// ── Read admin detail (by id) ──
-
-const adminDetail = model.getAdminById(createdId);
-assert(adminDetail !== undefined, "getAdminById() returns detail");
-assert(
-  adminDetail.blog_thumbnail === testData.blog_thumbnail,
-  "getAdminById() includes blog_thumbnail",
-);
-assert(
-  Array.isArray(adminDetail.mla_sources),
-  "getAdminById() includes mla_sources array",
-);
-
-// ── Publish and read public detail (by slug) ──
-
-model.update(createdId, { published_draft: 1 });
-const publicDetail = model.getDetailBySlug(createdSlug);
-assert(publicDetail !== undefined, "getDetailBySlug() returns published post");
-assert(
-  Array.isArray(publicDetail.mla_sources),
-  "getDetailBySlug() includes mla_sources array",
-);
-assert(
-  publicDetail.blog_thumbnail === testData.blog_thumbnail,
-  "getDetailBySlug() includes blog_thumbnail",
-);
-
-// ── Update blog_thumbnail ──
-
-const updated = model.update(createdId, {
-  blog_thumbnail: "/assets/images/updated-thumb.webp",
+beforeEach(() => {
+  testDb.exec("DELETE FROM blog_posts");
 });
-assert(
-  updated.blog_thumbnail === "/assets/images/updated-thumb.webp",
-  "update() persists changed blog_thumbnail",
-);
 
-// ── Pagination (API-8) ──
+describe("blog-post model", () => {
+  test("create persists blog_thumbnail and getDetailBySlug returns it with mla_sources", () => {
+    const created = model.create({
+      slug: "round-trip",
+      blog_title: "Round trip",
+      blog_thumbnail: "/assets/images/thumb.webp",
+      published_draft: 1,
+    });
+    assert.equal(created.blog_thumbnail, "/assets/images/thumb.webp");
 
-const paginationSlugs = ["test-blog-page-1", "test-blog-page-2", "test-blog-page-3"];
-const paginationIds = paginationSlugs.map((slug, i) =>
-  model.create({
-    blog_title: `Pagination Test ${i + 1}`,
-    slug,
-    blog_content: "Pagination test content.",
-    published_draft: 1,
-  }).id,
-);
+    const detail = model.getDetailBySlug("round-trip");
+    assert.equal(detail.blog_thumbnail, "/assets/images/thumb.webp");
+    assert.deepEqual(detail.mla_sources, []);
+  });
 
-const flatResult = model.getAllPublished();
-assert(Array.isArray(flatResult), "getAllPublished() with no page/limit returns a flat array");
+  test("getAllPublished excludes drafts and getAllAdmin includes them", () => {
+    model.create({ slug: "live", blog_title: "Live", published_draft: 1 });
+    model.create({ slug: "hidden", blog_title: "Hidden", published_draft: 0 });
 
-const pagedResult = model.getAllPublished({ page: 1, limit: 1 });
-assert(
-  !Array.isArray(pagedResult) && Array.isArray(pagedResult.items),
-  "getAllPublished({page, limit}) returns the paginated envelope",
-);
-assert(pagedResult.items.length <= 1, "paginated items respects the limit");
-assert(typeof pagedResult.total === "number", "paginated envelope includes a numeric total");
+    const publicSlugs = model.getAllPublished().map((post) => post.slug);
+    assert.deepEqual(publicSlugs, ["live"]);
+    assert.equal(model.getBySlug("hidden"), undefined);
 
-for (const id of paginationIds) model.remove(id);
+    const adminSlugs = model.getAllAdmin().map((post) => post.slug).sort();
+    assert.deepEqual(adminSlugs, ["hidden", "live"]);
+  });
 
-// ── Cleanup ──
+  test("getAllPublished with page and limit returns the paginated envelope", () => {
+    for (const n of [1, 2, 3]) {
+      model.create({ slug: `page-${n}`, blog_title: `Page ${n}`, published_draft: 1 });
+    }
+    const result = model.getAllPublished({ page: 1, limit: 2 });
+    assert.equal(result.items.length, 2);
+    assert.equal(result.total, 3);
+    assert.equal(result.totalPages, 2);
+  });
 
-model.remove(createdId);
-const gone = model.getById(createdId);
-assert(gone === undefined, "remove() deletes the test row");
+  test("update changes only the given field and remove deletes the row", () => {
+    const { id } = model.create({ slug: "edit-me", blog_title: "Before" });
+    const updated = model.update(id, { blog_title: "After" });
+    assert.equal(updated.blog_title, "After");
+    assert.equal(updated.slug, "edit-me");
 
-console.log("\nDone.");
+    assert.equal(model.remove(id), true);
+    assert.equal(model.getById(id), undefined);
+  });
+
+  test("update and remove report a missing id instead of throwing", () => {
+    assert.equal(model.update(99999, { blog_title: "x" }), undefined);
+    assert.equal(model.remove(99999), false);
+  });
+});

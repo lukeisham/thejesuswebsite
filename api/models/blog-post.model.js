@@ -1,6 +1,9 @@
 // Blog post data access — all SQL for the `blog_posts` table lives here.
 // Functions are synchronous (better-sqlite3) and return plain objects/arrays.
 // No HTTP concerns in this file: no req, no res, no status codes.
+// Called by routes/blog-posts.js and routes/publish.js (the MODELS map). The
+// FTS triggers, static page generation and sitemap that follow a save are in
+// setup/ARCHITECTURE/publishing-pipeline.md.
 
 const db = require("../config");
 const {
@@ -29,6 +32,34 @@ const WRITABLE_COLUMNS = [
   "metadata_keywords",
 ];
 
+// SQL-9: named columns instead of SELECT *. Lists every column of the table
+// (schema.sql) so response shapes stay identical for the admin and public
+// readers; hero_image, hero_image_alt and landing_page_display are not
+// writable but existing rows still carry them.
+const ALL_COLUMNS = [
+  "id",
+  ...WRITABLE_COLUMNS,
+  "hero_image",
+  "hero_image_alt",
+  "landing_page_display",
+  "created_at",
+  "updated_at",
+].join(", ");
+
+// SQL-1: fixed-SQL statements compile once, on first use. Lazy rather than at
+// require time because route and guard tests load this module against a
+// partial in-memory schema, where an eager prepare() would throw.
+const statements = new Map();
+
+function cachedStatement(name, sql) {
+  let stmt = statements.get(name);
+  if (!stmt) {
+    stmt = db.prepare(sql);
+    statements.set(name, stmt);
+  }
+  return stmt;
+}
+
 /**
  * Every blog post — published and draft alike — raw DB column names, for the
  * admin list view. Requires auth at the route level; never exposed on the
@@ -39,7 +70,10 @@ const WRITABLE_COLUMNS = [
  * @returns {object[]}
  */
 function getAllAdmin() {
-  return db.prepare("SELECT * FROM blog_posts ORDER BY created_at DESC").all();
+  return cachedStatement(
+    "selectAllAdmin",
+    `SELECT ${ALL_COLUMNS} FROM blog_posts ORDER BY created_at DESC`,
+  ).all();
 }
 
 /**
@@ -54,8 +88,7 @@ function getAllAdmin() {
  */
 function getAllPublished(filters = {}) {
   const { page, limit } = filters;
-  const itemsSql =
-    "SELECT * FROM blog_posts WHERE published_draft = 1 ORDER BY created_at DESC";
+  const itemsSql = `SELECT ${ALL_COLUMNS} FROM blog_posts WHERE published_draft = 1 ORDER BY created_at DESC`;
   const countSql =
     "SELECT COUNT(*) AS total FROM blog_posts WHERE published_draft = 1";
   return paginate(db, itemsSql, countSql, [], { page, limit });
@@ -68,9 +101,10 @@ function getAllPublished(filters = {}) {
  * @returns {object|undefined}
  */
 function getBySlug(slug) {
-  return db
-    .prepare("SELECT * FROM blog_posts WHERE slug = ? AND published_draft = 1")
-    .get(slug);
+  return cachedStatement(
+    "selectPublishedBySlug",
+    `SELECT ${ALL_COLUMNS} FROM blog_posts WHERE slug = ? AND published_draft = 1`,
+  ).get(slug);
 }
 
 /**
@@ -80,7 +114,10 @@ function getBySlug(slug) {
  * @returns {object|undefined}
  */
 function getById(id) {
-  return db.prepare("SELECT * FROM blog_posts WHERE id = ?").get(id);
+  return cachedStatement(
+    "selectById",
+    `SELECT ${ALL_COLUMNS} FROM blog_posts WHERE id = ?`,
+  ).get(id);
 }
 
 /**
@@ -134,7 +171,10 @@ function update(id, data) {
  * @returns {boolean}
  */
 function remove(id) {
-  const result = db.prepare("DELETE FROM blog_posts WHERE id = ?").run(id);
+  const result = cachedStatement(
+    "deleteById",
+    "DELETE FROM blog_posts WHERE id = ?",
+  ).run(id);
   return result.changes > 0;
 }
 

@@ -155,6 +155,27 @@ describe("getBlogPostBySlug", () => {
 
     assert.equal(result.isError, true);
   });
+
+  it("turns an upstream 404 throw into a not-found result", async () => {
+    const apiRequest = async () => {
+      throw new Error("Upstream API returned 404: E-PERSIST-004 Record not found");
+    };
+    const result = await getBlogPostBySlug.handler({ slug: "gone" }, apiRequest);
+
+    assert.equal(result.isError, true);
+    assert.match(result.content[0].text, /Blog post not found/);
+  });
+
+  it("rethrows an upstream failure that is not a 404", async () => {
+    const apiRequest = async () => {
+      throw new Error("Upstream API returned 500");
+    };
+
+    await assert.rejects(
+      getBlogPostBySlug.handler({ slug: "x" }, apiRequest),
+      /returned 500/,
+    );
+  });
 });
 
 // --- getNewsArticleBySlug ----------------------------------------------------
