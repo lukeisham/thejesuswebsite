@@ -19,14 +19,14 @@ deploy turns committed code into a running, current site and never serves stale 
 | `/etc/nginx/sites-available/thejesuswebsite` on the VPS is a symlink to `deploy/nginx.conf` | `deploy.sh` reloads the file at that path and never copies the repo file there | A committed header change reloads "successfully" and has no effect |
 | Only one deploy runs at a time: the workflow has a `concurrency` group, and the webhook returns 409 while a deploy runs | Two deploys would reset and restart over each other | Two resets and restarts overlap, and the site can end in a half-updated state |
 | Files ignored by git (most of `setup/`, `.env`, `*.db`) never reach GitHub or the VPS. `.gitignore` lists the `setup/` files that are tracked | The VPS gets the repository only | A rule or script that lives in an ignored file does not exist in production |
-| A push to a `claude/**` branch is merged into `main` by `promote-claude-branch.yml`, which then starts `deploy.yml` with `workflow_dispatch` | A push made with the workflow token never triggers the `push` trigger of `deploy.yml` | The merge lands on `main` and no deploy runs |
+| A push to a `claude/**` branch is merged into `main` by `promote-claude-branch.yml`, after `npm test` passes, and then starts `deploy.yml` with `workflow_dispatch` | A push made with the workflow token never triggers the `push` trigger of `deploy.yml` | The merge lands on `main` and no deploy runs |
 | `scripts/pull-from-github.sh` only fast-forwards local `main`. A person runs it by hand when cloud work should reach the dev machine | A merge or a reset would overwrite local commits and edits | Local work is lost |
 
 Rows 3, 4 (order inside `deploy.sh` and the step order in the workflow), 5 and 8 are enforced by `api/tests/guide-deployment.test.js` (TEST-10). Row 10 (the `claude/**` promotion) is enforced by the same file. The other rows are not.
 
 ## Shape
 
-0. A cloud session pushes a `claude/**` branch. `.github/workflows/promote-claude-branch.yml` merges it into `main`, pushes `main`, and starts `deploy.yml`. A merge conflict fails the job and leaves `main` unchanged.
+0. A cloud session pushes a `claude/**` branch. `.github/workflows/promote-claude-branch.yml` merges it into `main`, runs the `api/` tests on the merged result, pushes `main`, and starts `deploy.yml`. A merge conflict or a failed test fails the job and leaves `main` unchanged.
 1. A push to `main` triggers `.github/workflows/deploy.yml`.
 2. The workflow calls the HTTPS deploy webhook in `api/routes/deploy-webhook.js`. The webhook runs the reset, then `deploy.sh`.
 3. `deploy.sh` runs migrations, `npm run pages`, `npm run sitemap`, the about-page date stamps, data embedding, the asset stamp and the nginx reload.
