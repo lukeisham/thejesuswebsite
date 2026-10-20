@@ -12,6 +12,7 @@ const path = require("path");
 const fs = require("fs");
 const rateLimit = require("./middleware/rate-limit");
 const ERRORS = require("./lib/error-codes");
+const { startAnalyticsPruning } = require("./lib/analytics-retention");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -273,6 +274,9 @@ function validateProductionConfig() {
 app.listen(PORT, () => {
   console.log(`API listening on http://localhost:${PORT}`);
   validateProductionConfig();
+  // Inside the listen callback, not at module load, so requiring this file
+  // never deletes data; analytics rows past the retention window are pruned daily.
+  startAnalyticsPruning();
 });
 
 module.exports = app;

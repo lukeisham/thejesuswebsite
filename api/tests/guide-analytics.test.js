@@ -65,6 +65,92 @@ describe(`${GUIDE} row 1: the frontend names /analytics only in api.js`, () => {
   });
 });
 
+// ── Consent row: main.js records a view only behind the consent check ─────────
+
+const MAIN = "frontend/assets/js/main.js";
+const CONSENT_WRAPPER = "recordPageViewIfAllowed";
+
+// Source text of a top-level `function name(...) { ... }` (ends at the first
+// line that starts with `}`), or null when it is absent.
+function functionBody(text, name) {
+  const start = text.search(new RegExp(`^(?:export )?(?:async )?function ${name}\\b`, "m"));
+  if (start === -1) return null;
+  const end = text.indexOf("\n}", start);
+  return text.slice(start, end === -1 ? text.length : end + 2);
+}
+
+describe(`${GUIDE} consent row: a declined visitor is not recorded`, () => {
+  const text = read(MAIN);
+
+  test("recordPageViewIfAllowed checks getConsent()", () => {
+    const body = functionBody(text, CONSENT_WRAPPER);
+    assert.ok(body, `${MAIN} no longer defines ${CONSENT_WRAPPER}(). Rule: ${GUIDE}, Invariants (consent row).`);
+    assert.ok(
+      body.includes("getConsent()"),
+      `${MAIN}:${lineOf(text, text.indexOf(body))} ${CONSENT_WRAPPER}() does not call getConsent(). ` +
+        `Declined visitors would be recorded. Rule: ${GUIDE}, Invariants (consent row).`
+    );
+  });
+
+  test("every recordPageView( call in main.js is inside recordPageViewIfAllowed", () => {
+    const body = functionBody(text, CONSENT_WRAPPER) ?? "";
+    const bodyStart = text.indexOf(body);
+    const hits = [];
+    for (const m of text.matchAll(/\brecordPageView\(/g)) {
+      const inside = body && m.index >= bodyStart && m.index < bodyStart + body.length;
+      if (!inside) hits.push(`${MAIN}:${lineOf(text, m.index)}`);
+    }
+    assert.deepEqual(
+      hits,
+      [],
+      `recordPageView() called outside ${CONSENT_WRAPPER}() at ${hits.join(", ")}. ` +
+        `Rule: ${GUIDE}, Invariants (consent row).`
+    );
+  });
+
+  test("no other frontend script calls recordPageView(", () => {
+    const hits = [];
+    for (const file of FRONTEND_JS) {
+      if (file === ANALYTICS_CLIENT || file === MAIN) continue;
+      const t = read(file);
+      for (const m of t.matchAll(/\brecordPageView\(/g)) hits.push(`${file}:${lineOf(t, m.index)}`);
+    }
+    assert.deepEqual(
+      hits,
+      [],
+      `recordPageView() called at ${hits.join(", ")}, bypassing the consent check in ${MAIN}. ` +
+        `Rule: ${GUIDE}, Invariants (consent row).`
+    );
+  });
+});
+
+// ── Retention row: server.js starts the pruning ───────────────────────────────
+
+describe(`${GUIDE} retention row: pruning starts with the server`, () => {
+  test("server.js calls startAnalyticsPruning(", () => {
+    const text = read("api/server.js");
+    assert.ok(
+      /\bstartAnalyticsPruning\(/.test(text),
+      `api/server.js does not call startAnalyticsPruning(). The analytics table would grow without bound. ` +
+        `Rule: ${GUIDE}, Invariants (retention row).`
+    );
+  });
+});
+
+// ── Bots row: the model defines the one HUMAN predicate ───────────────────────
+
+describe(`${GUIDE} bots row: human statistics share one predicate`, () => {
+  test("analytics.model.js defines HUMAN and uses it in queries", () => {
+    const file = "api/models/analytics.model.js";
+    const text = read(file);
+    assert.ok(/^const HUMAN = /m.test(text), `${file} does not define HUMAN. Rule: ${GUIDE}, Invariants (bots row).`);
+    assert.ok(
+      text.includes("${HUMAN}"),
+      `${file} never interpolates \${HUMAN}, so bots are counted as visitors. Rule: ${GUIDE}, Invariants (bots row).`
+    );
+  });
+});
+
 // ── Row 4: one public write route, every read route behind requireAuth ────────
 
 const ROUTE = "api/routes/analytics.js";

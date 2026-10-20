@@ -344,6 +344,66 @@ describe("model: getBotStats()", () => {
   });
 });
 
+// ── Human-only statistics and pruning ────────────────────────────────────────
+
+describe("model: bots are excluded from visitor statistics", () => {
+  beforeEach(clearTable);
+
+  function seedHumanAndBot() {
+    analyticsModel.record({
+      page: "/human",
+      user_agent: "Chrome",
+      ip_hash: "h1",
+      session_id: "s1",
+      is_bot: 0,
+    });
+    analyticsModel.record({
+      page: "/bot",
+      user_agent: "Googlebot",
+      ip_hash: "h2",
+      session_id: "s2",
+      is_bot: 1,
+    });
+  }
+
+  test("getSummary counts the human row and ignores the bot row", () => {
+    seedHumanAndBot();
+    const result = analyticsModel.getSummary();
+    assert.equal(result.total_views, 1);
+    assert.equal(result.unique_sessions, 1);
+  });
+
+  test("getTopPages lists only the human page", () => {
+    seedHumanAndBot();
+    assert.deepStrictEqual(analyticsModel.getTopPages(10), [
+      { page: "/human", views: 1 },
+    ]);
+  });
+
+  test("getBotStats still counts the bot", () => {
+    seedHumanAndBot();
+    const result = analyticsModel.getBotStats(null);
+    assert.equal(result.human, 1);
+    assert.equal(result.bot, 1);
+  });
+});
+
+describe("model: pruneOlderThan()", () => {
+  beforeEach(clearTable);
+
+  test("deletes rows older than the window and keeps newer ones", () => {
+    const insert = testDb.prepare(
+      "INSERT INTO analytics (page, visited_at) VALUES (?, datetime('now', ?))",
+    );
+    insert.run("/old", "-400 days");
+    insert.run("/recent", "-10 days");
+
+    assert.equal(analyticsModel.pruneOlderThan(365), 1);
+    const pages = testDb.prepare("SELECT page FROM analytics").all();
+    assert.deepStrictEqual(pages, [{ page: "/recent" }]);
+  });
+});
+
 // Route: POST /analytics hardening
 
 const http = require("http");

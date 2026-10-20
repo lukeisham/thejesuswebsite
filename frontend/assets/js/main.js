@@ -2,7 +2,7 @@
  * Main JS entry point.
  *
  * Imports and initialises all shared modules. Each concern stays in its own
- * file (SR-1). This file contains no logic itself — only wiring.
+ * file (SR-1). This file holds only wiring and the page-view consent check.
  *
  * @module main
  */
@@ -10,15 +10,14 @@
 import { initSidebar } from './sidebar.js';
 import { initHamburger } from './sidebar_hamburger.js';
 import { initFooter } from './footer.js';
-import { showConsentBanner } from './cookies.js';
+import { showConsentBanner, getConsent } from './cookies.js';
 import { recordPageView } from './api.js';
 import { initLazyLoad } from './utils/lazy-load.js';
 
 // ─── Reduced-motion check ────────────────────────────────────────────────────
 //
-// Reads --duration-* and --ease-* from CSS custom properties rather than
-// hard-coding values (CSS-2). If prefers-reduced-motion is set, we add a
-// helper class that CSS rules can reference.
+// Mirrors prefers-reduced-motion onto <html> as a class, so CSS rules can
+// reference it. The class follows live changes made while the page is open.
 
 function checkReducedMotion() {
   const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -45,6 +44,17 @@ function initSkipLink() {
   });
 }
 
+// ─── Page-view recording ─────────────────────────────────────────────────────
+//
+// Declined visitors are not recorded. cookies.js stores the choice,
+// recordPageView in api.js posts to the analytics endpoint
+// (setup/ARCHITECTURE/analytics.md describes the flow).
+
+function recordPageViewIfAllowed() {
+  if (getConsent() === false) return;
+  recordPageView(window.location.pathname);
+}
+
 // ─── Bootstrap ────────────────────────────────────────────────────────────────
 
 function init() {
@@ -56,17 +66,14 @@ function init() {
   showConsentBanner();
   initLazyLoad();
 
-  // Record initial page view
-  recordPageView(window.location.pathname);
+  recordPageViewIfAllowed();
 
-  // Record page views on client-side navigation (popstate)
   window.addEventListener('popstate', () => {
-    recordPageView(window.location.pathname);
+    recordPageViewIfAllowed();
     initSidebar();
   });
 }
 
-// Run after DOM is ready
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', init);
 } else {

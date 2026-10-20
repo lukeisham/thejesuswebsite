@@ -1,6 +1,8 @@
 // Analytics data access — all SQL for the `analytics` table lives here.
 // Records one row per page view and answers the dashboard's aggregate questions.
 // No HTTP concerns in this file: no req, no res, no status codes.
+// Bots are recorded (is_bot = 1) but only getBotStats counts them; every other
+// statistic is human traffic, so the dashboard's visitor numbers exclude crawlers.
 
 const db = require("../config");
 const { pickWritable } = require("./model-helpers");
@@ -20,6 +22,11 @@ const WRITABLE_COLUMNS = [
   "search_terms",
 ];
 
+// Constant SQL, never user input. Rows saved before bot detection have
+// is_bot NULL and count as human. Used by every stat except getBotStats' bot
+// queries and getRecent; a statistic that omits it silently counts crawlers.
+const HUMAN = "(is_bot = 0 OR is_bot IS NULL)";
+
 /** Record a single page view. `page` is required; the rest are best-effort. */
 function record(data) {
   const row = pickWritable(data, WRITABLE_COLUMNS);
@@ -36,18 +43,20 @@ function record(data) {
   return result.lastInsertRowid;
 }
 
-/** Most-viewed pages over the whole history, highest first. */
+/** Most-viewed pages by humans over the whole history, highest first. */
 function getTopPages(limit = 20) {
   return db
     .prepare(
-      "SELECT page, COUNT(*) AS views FROM analytics GROUP BY page ORDER BY views DESC LIMIT ?",
+      `SELECT page, COUNT(*) AS views FROM analytics WHERE ${HUMAN} GROUP BY page ORDER BY views DESC LIMIT ?`,
     )
     .all(limit);
 }
 
-/** Total views and unique sessions, optionally since an ISO date string. */
+/** Human views and unique sessions, optionally since an ISO date string. */
 function getSummary(since = null) {
-  const where = since ? "WHERE visited_at >= ?" : "";
+  const where = since
+    ? `WHERE ${HUMAN} AND visited_at >= ?`
+    : `WHERE ${HUMAN}`;
   const params = since ? [since] : [];
   return db
     .prepare(
@@ -56,12 +65,12 @@ function getSummary(since = null) {
     .get(...params);
 }
 
-/** Top referrers, ignoring direct (null/empty) traffic.
+/** Top human referrers, ignoring direct (null/empty) traffic.
  *  When `external` is truthy, also excludes same-site referrers
  *  (thejesuswebsite.org) so only outside traffic sources are shown. */
 function getTopReferrers(limit = 20, external = false) {
   let sql =
-    "SELECT referrer, COUNT(*) AS count FROM analytics WHERE referrer IS NOT NULL AND referrer <> ''";
+    `SELECT referrer, COUNT(*) AS count FROM analytics WHERE ${HUMAN} AND referrer IS NOT NULL AND referrer <> ''`;
   const params = [];
 
   if (external) {
@@ -94,7 +103,7 @@ function getTopPagesWithTrend(days, limit = 5) {
       `
         SELECT page, COUNT(*) AS views, COUNT(DISTINCT session_id) AS unique_sessions
         FROM analytics
-        WHERE visited_at >= datetime('now', '-${days} days')
+        WHERE ${HUMAN} AND visited_at >= datetime('now', '-${days} days')
         GROUP BY page
         ORDER BY views DESC
         LIMIT ?
@@ -111,6 +120,7 @@ function getTopPagesWithTrend(days, limit = 5) {
         SELECT COALESCE(COUNT(*), 0) AS cnt
         FROM dates
         LEFT JOIN analytics ON date(analytics.visited_at) = dates.d AND analytics.page = ?
+          AND ${HUMAN}
         GROUP BY dates.d
         ORDER BY dates.d
     `);
@@ -123,16 +133,18 @@ function getTopPagesWithTrend(days, limit = 5) {
   }));
 }
 
-/** Most recent visits, newest first — for a live activity feed. */
+/** Most recent visits, bots included (is_bot is on each row), newest first. */
 function getRecent(limit = 50) {
   return db
     .prepare("SELECT * FROM analytics ORDER BY visited_at DESC LIMIT ?")
     .all(limit);
 }
 
-/** Top countries by page views, optionally since an ISO date. */
+/** Top countries by human page views, optionally since an ISO date. */
 function getTopCountries(since, limit = 10) {
-  const where = since ? "WHERE visited_at >= ?" : "";
+  const where = since
+    ? `WHERE ${HUMAN} AND visited_at >= ?`
+    : `WHERE ${HUMAN}`;
   const params = since ? [since] : [];
   params.push(limit);
   return db
@@ -147,9 +159,11 @@ function getTopCountries(since, limit = 10) {
     .all(...params);
 }
 
-/** Device-type, browser, and OS breakdowns, optionally since an ISO date. */
+/** Human device-type, browser, and OS breakdowns, optionally since an ISO date. */
 function getDeviceBreakdown(since) {
-  const where = since ? "WHERE visited_at >= ?" : "";
+  const where = since
+    ? `WHERE ${HUMAN} AND visited_at >= ?`
+    : `WHERE ${HUMAN}`;
   const params = since ? [since] : [];
 
   const deviceTypes = db
@@ -188,11 +202,11 @@ function getDeviceBreakdown(since) {
   return { device_types: deviceTypes, browsers, os };
 }
 
-/** Top search terms from search-engine referrers, optionally since an ISO date. */
+/** Top human search terms from search-engine referrers, optionally since an ISO date. */
 function getSearchTerms(since, limit = 20) {
   const where = since
-    ? "WHERE visited_at >= ? AND search_terms IS NOT NULL AND search_terms <> ''"
-    : "WHERE search_terms IS NOT NULL AND search_terms <> ''";
+    ? `WHERE ${HUMAN} AND visited_at >= ? AND search_terms IS NOT NULL AND search_terms <> ''`
+    : `WHERE ${HUMAN} AND search_terms IS NOT NULL AND search_terms <> ''`;
   const params = since ? [since] : [];
   params.push(limit);
   return db
@@ -213,8 +227,6 @@ function getBotStats(since) {
   const whereClause = since ? "WHERE visited_at >= ?" : "";
   const params = since ? [since] : [];
 
-  // Use a subquery-style approach: prepare separate statements for clarity.
-  // SQLite allows ? in the WHERE clause across all three queries.
   function buildWhere(existing, extra) {
     const parts = [existing];
     if (whereClause) parts.push(whereClause.replace("WHERE", "AND"));
@@ -224,7 +236,7 @@ function getBotStats(since) {
 
   const human = db
     .prepare(
-      `SELECT COUNT(*) AS count FROM analytics ${buildWhere("WHERE user_agent IS NOT NULL AND (is_bot = 0 OR is_bot IS NULL)")}`,
+      `SELECT COUNT(*) AS count FROM analytics ${buildWhere(`WHERE user_agent IS NOT NULL AND ${HUMAN}`)}`,
     )
     .get(...params);
 
@@ -259,8 +271,21 @@ function getBotStats(since) {
   };
 }
 
+/**
+ * Delete rows visited more than `days` days ago.
+ * Called daily by lib/analytics-retention.js; uses idx_analytics_visited_at.
+ * @param {number} days
+ * @returns {number} rows deleted
+ */
+function pruneOlderThan(days) {
+  return db
+    .prepare("DELETE FROM analytics WHERE visited_at < datetime('now', ?)")
+    .run(`-${Number(days)} days`).changes;
+}
+
 module.exports = {
   record,
+  pruneOlderThan,
   getTopPages,
   getSummary,
   getTopReferrers,

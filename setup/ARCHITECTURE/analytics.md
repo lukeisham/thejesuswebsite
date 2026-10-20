@@ -1,29 +1,32 @@
 # Page-view analytics
 
-Visitors' page loads become aggregate statistics that the admin reads. The server derives device, country and bot status itself, so the browser reports only what it alone knows.
+Page loads of visitors who have not declined tracking become aggregate statistics about human readers, which the admin reads. The server derives device, country and bot status itself, so the browser reports only what it alone knows.
 
 **Source of truth:** `api/routes/analytics.js` — wins any disagreement with this doc.
-**Spans:** `api/routes/analytics.js`, `api/models/analytics.model.js`, `api/server.js`, `api/services/ua-parser.js`, `api/services/geoip.js`, `api/scripts/import-geoip.js`, `deploy.sh`, `database/schema.sql`, `frontend/assets/js/api.js`, `frontend/assets/js/main.js`, `admin/analytics.html`, `admin/assets/js/analytics.js`.
+**Spans:** `api/routes/analytics.js`, `api/models/analytics.model.js`, `api/server.js`, `api/services/ua-parser.js`, `api/services/geoip.js`, `api/scripts/import-geoip.js`, `deploy.sh`, `database/schema.sql`, `api/lib/analytics-retention.js`, `frontend/assets/js/api.js`, `frontend/assets/js/main.js`, `frontend/assets/js/cookies.js`, `admin/analytics.html`, `admin/assets/js/analytics.js`.
 
 ## Invariants
 
 | Must hold | Why | Breaks silently if violated |
 |---|---|---|
-| The browser records a view only through `recordPageView()` in `api.js` (JS-5), and `main.js` is its only caller | One client keeps the field names, the length caps and the fire-and-forget behaviour in one place | A second caller double-counts views, or sends fields the route ignores |
+| The browser records a view only through `recordPageView()` in `api.js` (JS-5), and `recordPageViewIfAllowed()` in `main.js` is its only caller | One client keeps the field names, the length caps and the fire-and-forget behaviour in one place | A second caller double-counts views, or sends fields the route ignores |
 | The browser sends only `page`, `referrer` and `session_id`. The route derives user agent, device, country, bot flag and search terms from the request | A client-supplied value would let any caller forge the statistics | A new field in the client is dropped by the route. No error appears |
 | The client caps match `MAX_FIELD_LENGTHS` in the route (`referrer` is cut to 500 in `recordPageView()`) | The route answers a longer value with a 400, and the client never reads the reply | An over-long `page` path is lost, and no view is recorded |
 | `POST /analytics` is public and has its own rate limit. Every `GET /analytics*` route mounts `requireAuth` (API-5) | Visitors must be able to report a view. Only the admin may read the visitors' data | An open read route shows visitor data to anyone |
 | The raw IP never reaches the database. The route stores a SHA-256 of `req.ip`, and `req.ip` is the client address only while `server.js` sets `trust proxy` to 1 behind nginx | Without `trust proxy`, every request carries the proxy address | Every visitor shares one `ip_hash`, and the country is empty |
 | `geoip_blocks` is filled at deploy time by `deploy.sh` from the CSV files in `api/data/geoip/` through `api/scripts/import-geoip.js` | `geoip.js` reads only that table. It returns no country for private addresses, for IPv6, and when the table is empty | The country column stays empty. The dashboard shows no country data |
+| The browser records nothing for a visitor who declined the cookie banner. `recordPageViewIfAllowed()` in `main.js` returns when `getConsent()` from `cookies.js` is `false`, and it runs before the only call to `recordPageView()`. No choice yet, or accept, records | The banner offers a Decline, and the site must honour it | A new caller of `recordPageView()` that skips the check records declined visitors. No error appears |
+| The server deletes rows older than `RETENTION_DAYS` (365). `startAnalyticsPruning()` in `api/lib/analytics-retention.js` runs once when `server.js` starts listening and then every 24 hours, in the server process (no cron, no pm2 process) | The table would grow without bound | If the call leaves the `app.listen` callback in `server.js`, nothing prunes and the table grows. No error appears |
+| Bots are recorded with `is_bot` set, but every human statistic filters with the one `HUMAN` predicate in the model. Only `getBotStats()` counts bots, and `getRecent()` lists them with their flag | Crawler hits would inflate the visitor numbers | A new statistic query that omits `HUMAN` counts bots as visitors. No error appears |
 | The admin dashboard reads through `Admin.api.get()` and the route returns the shapes that `admin/assets/js/analytics.js` renders (`/analytics` returns `stats` and `pageViews`; the page reads referrers, countries, devices, search terms and bot stats from the sub-routes) | The page renders from those keys | A renamed key renders an empty card. No error appears |
 
-Guide test: `api/tests/guide-analytics.test.js` checks row 1 for the endpoint path only (not the single-caller claim) and row 4.
+Guide test: `api/tests/guide-analytics.test.js` checks that only `api.js` names the endpoint path, that every `recordPageView()` call in `main.js` sits behind the consent check, that the model defines `HUMAN`, that `server.js` starts the pruning, and the route gates (row 4). It does not check that each statistic query uses `HUMAN`.
 
 ## Shape
 
-- `frontend/assets/js/main.js` calls `recordPageView()` on load and on `popstate`. `recordPageView()` keeps `session_id` in `sessionStorage`, so a session ends with the tab.
+- `frontend/assets/js/main.js` calls `recordPageViewIfAllowed()` on load and on `popstate`. `recordPageView()` keeps `session_id` in `sessionStorage`, so a session ends with the tab.
 - `api/routes/analytics.js` validates, enriches with `api/services/ua-parser.js` and `api/services/geoip.js`, and calls `api/models/analytics.model.js`. The model owns all SQL for the `analytics` table.
-- `api/server.js` mounts the router at `/analytics`.
+- `api/server.js` mounts the router at `/analytics` and starts the daily pruning in `api/lib/analytics-retention.js`.
 - `admin/analytics.html` loads `admin/assets/js/analytics.js`, which fetches the read routes with the admin client.
 
 ## Extending it
