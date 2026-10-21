@@ -1,5 +1,7 @@
 # The Jesus Website — UI/UX & Style Guide (Index)
 
+Someone styling or building part of the site gets the shared values and the layout rules for each kind of page and component, so the result looks and behaves like the rest of the site.
+
 This file is the map of the style guide. Read it first for any visual or CSS task, then open only the section file that the table below names. It holds the design aim and the section map. The rules themselves are in the section files.
 
 **Design aim**: An archival site for historical evidence about Jesus. The tone is serious and scholarly. Pages are dense with information and stay readable. The readers are curious people who want structured historical data.
