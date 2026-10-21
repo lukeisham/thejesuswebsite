@@ -31,6 +31,7 @@ Here* at the end.
 | 15 | Each file you edit: comments give the *why* and the links to other files. Its cross-app behaviour is in a guide or README, and the file matches it. | CORE-5 |
 | 16 | A purpose statement states the *why*: input, output, and the essential functions between them. App purpose 60 words or fewer, guide purpose 40 or fewer. | CORE-6 |
 | 17 | Do not read completed or abandoned plans to write code. Read archived material only while you develop a feature. | AG-6 |
+| 18 | A doc you write or edit opens with a purpose statement, numbers its headings, and puts structured facts in tables. | DOC-1, DOC-2, DOC-3 |
 
 ---
 
@@ -39,7 +40,8 @@ Here* at the end.
 These six rules apply without exception. A breach is a defect.
 
 **Touch rule.** When you edit a file (code, guide, style guide or README), bring that whole file
-into line with the Core Rules in the same change. Do not open or edit a file only to clean it.
+into line with the Core Rules in the same change. A Markdown doc also meets the Documentation
+Rules (DOC-1 to DOC-3). Do not open or edit a file only to clean it.
 This is the one exception to AG-1.
 
 In a touched doc, keep only purpose, navigation and cross-module behaviour. Delete history,
@@ -167,6 +169,37 @@ A section that does not serve it belongs in another guide, or nowhere.
   does, the statement holds the *how*.
 
 When you touch a guide, bring its purpose statement into line with this rule (Touch rule).
+Every other doc has a purpose statement too (DOC-1).
+
+---
+
+## Documentation Rules
+
+A doc is any Markdown file in the repo: a guide, a style guide section, a README, a plan, a test
+plan, or a reference. Two kinds of file keep their own format: `CLAUDE.md`, which only imports
+this file, and a `SKILL.md`, whose frontmatter `description` is its purpose statement.
+
+**DOC-1 — Every doc opens with a purpose statement.**
+The first paragraph under the title says why the doc exists, in 40 words or fewer: what a reader
+brings to it and what they leave with. CORE-6 sets the content and the *never* list. A new doc
+has one from its first commit. An existing doc gets one when you next touch it (Touch rule).
+
+**DOC-2 — Clear headings, numbered.**
+A heading names its topic in a few words, so the list of headings reads as a table of contents.
+Number every `##` heading `1`, `2`, `3`, and every `###` heading under it `1.1`, `1.2`, so a
+citation names one heading. Never skip a level.
+
+- The style guide prefixes its numbers with `§` (`§1.2`), because other files cite it that way.
+- A file whose entries carry stable IDs uses the IDs as its numbering: this file, the decisions
+  logs, and `setup/ISSUES/Issues.md`. Do not number their headings as well.
+- Renumbering a heading breaks every citation of it. `grep` the repo for the old number and fix
+  each hit in the same change.
+
+**DOC-3 — Tables for structured facts.**
+When three or more items share the same fields (a token and its value, a file and its job, a
+rule and its check, a step and its command), put them in a table with one column per field. A
+cell holds a short phrase. Keep prose for reasons and for a sequence that a reader follows in
+order, and a numbered list for steps. Never put a table where one sentence is enough.
 
 ---
 
