@@ -74,3 +74,37 @@
 - [ ] SQL-4 — the whitelist `assertWhitelisted()` calls still run before the cache is consulted; caching didn't bypass or weaken them
 - [ ] SQL-9 — no `SELECT *` remains in `essay.model.js` or `news-article.model.js`
 - [ ] Automated tests exist and pass: `api/tests/relations.test.js` (cache correctness), `api/tests/essay.model.test.js`, `api/tests/news-article.model.test.js` (named-column assertions)
+
+## Validation: API route guide and guide tests
+**Plan:** api-route-guide-tests.md
+**Date:** 2026-10-22
+
+### Manual checks
+- [ ] `cd api && node --test tests/guide-api-routes.test.js` passes, and each of its three rows fails when you add a `SELECT *` to a model, a `.prepare(` to a route, or drop `requireAuth` from a write route (then revert).
+- [ ] In the admin, open one evidence record and one academic challenge: every field that had a value still shows it.
+- [ ] On the live site, `/evidence/` and one evidence detail page render their content with no console errors.
+
+### Code-review checks
+- [ ] SQL-9 — each new `ALL_COLUMNS` holds every column the old `SELECT *` returned (compare with `database/schema.sql`).
+- [ ] API-5 — every entry in `PUBLIC_WRITES` has a reason that holds without the test.
+- [ ] SQL-4 — the three `RUNTIME_TABLE_QUERIES` exceptions still take their table from a whitelist.
+- [ ] CORE-6 / DOC-1 / DOC-2 — `setup/ARCHITECTURE/api-routes.md` and `setup/ARCHITECTURE/INDEX.md` open with a purpose of 40 words or fewer and number their headings.
+- [ ] Touch rule + CORE-5 — `setup/ARCHITECTURE/INDEX.md`: purpose, numbered headings, file template numbered
+- [ ] Touch rule + CORE-5 — `api/models/academic-challenges.model.js`: comments give the why and the links, the guide matches the file
+- [ ] Touch rule + CORE-5 — `api/models/analytics.model.js`: comments give the why and the links, the guide matches the file
+- [ ] Touch rule + CORE-5 — `api/models/arbor.model.js`: comments give the why and the links, the guide matches the file
+- [ ] Touch rule + CORE-5 — `api/models/collection.model.js`: comments give the why and the links, the guide matches the file
+- [ ] Touch rule + CORE-5 — `api/models/credential.model.js`: comments give the why and the links, the guide matches the file
+- [ ] Touch rule + CORE-5 — `api/models/evidence.model.js`: comments give the why and the links, the guide matches the file
+- [ ] Touch rule + CORE-5 — `api/models/historiography.model.js`: comments give the why and the links, the guide matches the file
+- [ ] Touch rule + CORE-5 — `api/models/identifiers.model.js`: comments give the why and the links, the guide matches the file
+- [ ] Touch rule + CORE-5 — `api/models/map.model.js`: comments give the why and the links, the guide matches the file
+- [ ] Touch rule + CORE-5 — `api/models/mla-source.model.js`: comments give the why and the links, the guide matches the file
+- [ ] Touch rule + CORE-5 — `api/models/popular-challenges.model.js`: comments give the why and the links, the guide matches the file
+- [ ] Touch rule + CORE-5 — `api/models/resource.model.js`: comments give the why and the links, the guide matches the file
+- [ ] Touch rule + CORE-5 — `api/models/site-settings.model.js`: comments give the why and the links, the guide matches the file
+- [ ] Touch rule + CORE-5 — `api/models/timeline.model.js`: comments give the why and the links, the guide matches the file
+- [ ] Touch rule + CORE-5 — `api/models/wikipedia.model.js`: comments give the why and the links, the guide matches the file
+- [ ] Touch rule + CORE-5 — `api/models/relations/junctions.js`: comments give the why and the links, the guide matches the file
+- [ ] Touch rule + CORE-5 — `api/services/page-generator.js`: comments give the why and the links, the guide matches the file
+- [ ] TEST-10 — `api/tests/guide-api-routes.test.js`: fails with the rule, file, line and guide path; exceptions are named with a reason
