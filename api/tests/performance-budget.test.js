@@ -7,10 +7,13 @@ const { test, describe } = require("node:test");
 const assert = require("node:assert/strict");
 const {
   parseBudget,
+  parsePages,
   metricsFromLighthouse,
+  lighthousePageProblems,
   metricsFromWebPageTest,
   findViolations,
 } = require("./helpers/performance-budget");
+const { PAGES } = require("../scripts/run-lighthouse");
 
 const GUIDE_PATH = "setup/ARCHITECTURE/performance-and-caching.md";
 
@@ -51,6 +54,17 @@ describe("performance budget helper", () => {
     const result = { data: { median: { firstView: { LargestContentfulPaint: 3000, CumulativeLayoutShift: 0.01, TotalBlockingTime: 50 } } } };
     const violations = findViolations(budget, metricsFromWebPageTest(result), ["score"]);
     assert.deepEqual(violations.map((line) => line.split(":")[0]), ["lcp"]);
+  });
+
+  test("the guide's Pages covered table lists the pages in run-lighthouse.js", () => {
+    assert.deepEqual(parsePages(), PAGES);
+  });
+
+  test("a report for an error page is a problem, a normal report is not", () => {
+    assert.deepEqual(lighthousePageProblems({ audits: { "http-status-code": { score: 1 } } }), []);
+    const problems = lighthousePageProblems({ audits: { "http-status-code": { score: 0, displayValue: "404" } } });
+    assert.equal(problems.length, 1);
+    assert.match(problems[0], /404/);
   });
 
   test("a result with a missing metric is a violation, not a pass", () => {

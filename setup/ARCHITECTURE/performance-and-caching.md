@@ -21,7 +21,7 @@ content changes, and visitors see a first-paint snapshot that live data then con
 
 ## 2. Performance budget
 
-A page must load inside these limits on a mobile connection. They are Google's "good" marks. Measure the deployed site with Lighthouse (mobile preset) or WebPageTest, never a local copy. The check reads this table, so the numbers live here and nowhere else.
+Every page type must load inside these limits on a mobile connection. They are Google's "good" marks. Measure the deployed site with Lighthouse (mobile preset) or WebPageTest, never a local copy. The check reads this table, so the numbers live here and nowhere else.
 
 | Key | Metric | Limit |
 | :-- | :--- | :--- |
@@ -32,13 +32,33 @@ A page must load inside these limits on a mobile connection. They are Google's "
 
 WebPageTest gives no performance score, so a WebPageTest result is checked against `lcp`, `cls` and `tbt` only.
 
+### 2.1 Pages covered
+
+One representative page stands for each page type, and each page is checked against the whole table above. The list of addresses is `PAGES` in `api/scripts/run-lighthouse.js`. This table must match it. Admin pages are not covered.
+
+| Name | Address | Page type |
+| :-- | :--- | :--- |
+| `home` | `/` | Home page |
+| `list` | `/news-and-blog/news/` | List page |
+| `detail` | `/contextual-essays/census-of-quirinius` | Detail page |
+| `evidence` | `/evidence/the-logos` | Evidence page |
+| `timeline` | `/evidence/timeline/` | Timeline |
+| `arbor` | `/evidence/arbor.html` | Arbor diagram |
+| `maps` | `/evidence/maps/galilee.html` | Maps |
+| `debate` | `/debate/` | Debate |
+| `resources` | `/resources/` | Resources |
+
+A page that returns an error status fails the check, so a removed page cannot pass quietly. Pick a new representative page and update both lists when a page is removed.
+
+### 2.2 Running the check
+
 The check is opt-in. `npm test` never runs it, and no deploy step calls it. The guide test is `api/tests/perf/guide-performance-and-caching.test.js` (TEST-10). It fails and names the metric, the value and the limit when a saved result breaks the table. The helper that reads this table is covered by `api/tests/performance-budget.test.js`, which does run in `npm test`.
 
 | Step | Command or action |
 | :-- | :--- |
-| Measure with Lighthouse | `cd api && npm run perf:lighthouse` saves a report in `api/perf-results/` |
-| Measure with WebPageTest | Save its JSON result as `api/perf-results/webpagetest-<date>.json` |
-| Check the newest result of each tool | `cd api && npm run test:perf` |
+| Measure with Lighthouse | `cd api && npm run perf:lighthouse` saves one report per page in `api/perf-results/` |
+| Measure with WebPageTest | Save its JSON result as `api/perf-results/webpagetest-<name>-<date>.json`, with the page name from section 2.1 |
+| Check the newest result for each page and tool | `cd api && npm run test:perf` |
 | Run both on GitHub | Actions tab, "Performance check", Run workflow. GitHub emails a failed run |
 | Ask in chat | When Luke asks for a performance test, the agent runs `gh workflow run performance-check.yml`, watches the run with `gh run watch`, and reports the result in chat. The workflow runs on GitHub, so its file must be on `main` first. Luke also gets the GitHub email if the run fails |
 
@@ -51,9 +71,9 @@ The check is opt-in. `npm test` never runs it, and no deploy step calls it. The 
 - **Measurement:**
 
 ```
-run-lighthouse.js ─> api/perf-results/lighthouse-*.json ─┐
-WebPageTest JSON  ─> api/perf-results/webpagetest-*.json ┼─> test:perf ─> pass, or fail naming the metric
-Budget table in this guide ──────────────────────────────┘
+run-lighthouse.js (PAGES) ─> perf-results/lighthouse-<name>-*.json ─┐
+WebPageTest JSON ──────────> perf-results/webpagetest-<name>-*.json ┼─> test:perf ─> pass, or fail naming page and metric
+Budget table in this guide ─────────────────────────────────────────┘
 ```
 
   `performance-check.yml` runs the Lighthouse script and then `test:perf` on GitHub. It starts only by hand.

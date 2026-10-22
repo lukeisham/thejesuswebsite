@@ -25,6 +25,22 @@ function parseBudget(guideText = fs.readFileSync(GUIDE_PATH, "utf8")) {
   return budget;
 }
 
+// One page row looks like: | `home` | `/` | Home page |
+const PAGE_ROW = /^\|\s*`([a-z]+)`\s*\|\s*`([^`]+)`\s*\|/;
+
+/**
+ * Read the "Pages covered" table from the performance guide.
+ * @param {string} [guideText] - Guide text. Defaults to the guide on disk.
+ * @returns {{name: string, path: string}[]} The pages, in table order.
+ */
+function parsePages(guideText = fs.readFileSync(GUIDE_PATH, "utf8")) {
+  return guideText
+    .split("\n")
+    .map((line) => PAGE_ROW.exec(line))
+    .filter(Boolean)
+    .map((match) => ({ name: match[1], path: match[2] }));
+}
+
 /**
  * Pull the budget metrics out of a Lighthouse JSON report.
  * @param {object} report - Parsed `lighthouse --output=json` file.
@@ -38,6 +54,22 @@ function metricsFromLighthouse(report) {
     cls: report.audits?.["cumulative-layout-shift"]?.numericValue,
     tbt: report.audits?.["total-blocking-time"]?.numericValue,
   };
+}
+
+/**
+ * Find a Lighthouse report that did not measure a real page. A slug that was
+ * removed gives an error page that Lighthouse scores like any other, so the
+ * budget alone would pass it.
+ * @param {object} report - Parsed `lighthouse --output=json` file.
+ * @returns {string[]} One sentence per problem. Empty when the page loaded.
+ */
+function lighthousePageProblems(report) {
+  const problems = [];
+  if (report.runtimeError) problems.push(`Lighthouse reported an error: ${report.runtimeError.code}`);
+  if (report.audits?.["http-status-code"]?.score === 0) {
+    problems.push(`the page returned an error status (${report.audits["http-status-code"].displayValue})`);
+  }
+  return problems;
 }
 
 /**
@@ -78,4 +110,12 @@ function findViolations(budget, metrics, skipKeys = []) {
   return violations;
 }
 
-module.exports = { GUIDE_PATH, parseBudget, metricsFromLighthouse, metricsFromWebPageTest, findViolations };
+module.exports = {
+  GUIDE_PATH,
+  parseBudget,
+  parsePages,
+  metricsFromLighthouse,
+  lighthousePageProblems,
+  metricsFromWebPageTest,
+  findViolations,
+};
