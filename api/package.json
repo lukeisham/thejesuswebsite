@@ -19,7 +19,9 @@
     "version-assets": "node scripts/version-assets.js",
     "stamp-about-dates": "node scripts/stamp-about-dates.js",
     "standardize-uploads": "node scripts/standardize-existing-uploads.js",
-    "test": "node --test tests/*.test.js"
+    "test": "node --test tests/*.test.js",
+    "test:perf": "node --test tests/perf/*.test.js",
+    "perf:lighthouse": "node scripts/run-lighthouse.js"
   },
   "engines": {
     "node": ">=18"

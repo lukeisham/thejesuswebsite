@@ -1,0 +1,30 @@
+name: Performance check
+
+# Manual only: start it from the Actions tab. It never runs on push, so the
+# normal deploy and the claude/** promotion do not wait for it. A failed run
+# means the live site broke the budget in
+# setup/ARCHITECTURE/performance-and-caching.md, and GitHub emails the failure.
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  performance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+
+      # The scripts use only Node built-ins and npx, so no npm ci is needed.
+      - name: Run Lighthouse against the live site
+        working-directory: api
+        run: npm run perf:lighthouse
+
+      - name: Check the result against the guide
+        working-directory: api
+        run: npm run test:perf

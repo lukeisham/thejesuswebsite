@@ -98,3 +98,6 @@ frontend/debate/popular-challenges/*.html
 !frontend/debate/popular-challenges/\[slug\].html
 frontend/debate/academic-challenges/*.html
 !frontend/debate/academic-challenges/\[slug\].html
+
+# Lighthouse and WebPageTest results (api/scripts/run-lighthouse.js). Local only.
+api/perf-results/
