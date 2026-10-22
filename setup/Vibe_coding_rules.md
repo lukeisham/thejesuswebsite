@@ -1,10 +1,10 @@
 # Vibe Coding Rules
 
 The coding standard for this project, written for any agent that edits it. It holds the facts
-about this project and the checks against known agent habits. General good practice (semantic
-HTML, `alt` text, context managers) is listed only in *IDs Without a Rule Here*.
+about this project and the checks against known agent habits.
 
-Rule IDs are stable and never reused. Code comments cite these IDs, so an ID never changes its
+General good practice (semantic HTML, `alt` text, context managers) is listed only in
+*IDs Without a Rule Here*. Rule IDs are stable and never reused. Code comments cite these IDs, so an ID never changes its
 meaning. An ID that is cited elsewhere but has no rule here is resolved in *IDs Without a Rule
 Here* at the end.
 
@@ -58,6 +58,7 @@ Each kind of information has exactly one home:
 | **This file** | Each rule exception, named under its rule (CORE-4). | Exceptions that nobody granted. |
 | **`setup/Decisions_log.md`** (classifier rulings: `Wikipedia algorithm/Classifier_decisions.md`) | The dated record of each important decision and standing permission: who, when, why, and what was rejected (CORE-4). One table row per entry. Append only. | Routine edits, how the code works, secrets. |
 | **`setup/ISSUES/issues.md`, `setup/PLANS/`** | Open problems and planned work. | How the current code works. |
+| **`setup/DEPENDENCIES/Dependency_log.md`** (local-only, D-065) | Dependencies that need an update: package, installed and fixed version, severity, status. | Version lists in guides, or decisions. |
 | **Commit message** | What changed and why, for this change. Issue numbers go here. | — |
 
 **CORE-1 — Code documents itself.**

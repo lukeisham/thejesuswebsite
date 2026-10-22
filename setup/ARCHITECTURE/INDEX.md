@@ -7,7 +7,7 @@ cross-module patterns. The other files in this directory each cover one subsyste
 
 ---
 
-## The gate
+## 1. The gate
 
 A sentence may live in this directory only if it passes **both** tests:
 
@@ -21,7 +21,7 @@ A sentence may live in this directory only if it passes **both** tests:
 Everything that passes is a *constraint on future edits*. Everything that fails
 is either code's job or trivia. When in doubt, cut it.
 
-## The ban list
+## 2. The ban list
 
 These rot fastest and are the reason docs stop being believed. None of them
 belong here, ever:
@@ -41,11 +41,12 @@ belong here, ever:
 **The tell:** if a sentence would still be *interesting* in a retrospective but
 would not *change what you write today*, it is history. Delete it.
 
-## File template
+## 3. File template
 
 Every subsystem file uses these sections, in this order, with nothing else
 at the top level. If your content doesn't fit the template, that is the template
-telling you it doesn't belong here.
+telling you it doesn't belong here. Number the `##` headings (DOC-2), as the template
+shows. An older guide gets its numbers when it is next touched.
 
 ```markdown
 # <Subsystem>
@@ -55,20 +56,20 @@ telling you it doesn't belong here.
 **Source of truth:** `path/to/file` — wins any disagreement with this doc.
 **Spans:** `fileA`, `fileB`, `fileC` — change one, check the others.
 
-## Invariants
+## 1. Invariants
 
 | Must hold | Why | Breaks silently if violated |
 |---|---|---|
 
-## Shape
+## 2. Shape
 
 <Which module owns what. Pointers, not contents. Keep under ~10 lines.>
 
-## Extending it
+## 3. Extending it
 
 <Ordered steps for the change people actually make to this subsystem.>
 
-## Not documented here
+## 4. Not documented here
 
 <The volatile detail, and where to read it. Deliberately excluded.>
 ```
@@ -90,7 +91,7 @@ Two sections carry most of the anti-drift weight:
 The **Breaks silently if violated** column is the gate made into a form field.
 If you can't fill it in, the row fails test 1 — cut the row.
 
-## Keeping it true
+## 4. Keeping it true
 
 Periodic review does not keep a doc true, because reviews get skipped. Tie each
 update to the edit that invalidates it.
@@ -124,13 +125,14 @@ git already is one.
 
 ---
 
-## Files
+## 5. Files
 
 | File | Covers |
 |---|---|
 | [`Website_guide.md`](Website_guide.md) | Entry point — project map, cross-module patterns (visual split, editor bridges, frontend/admin split), running locally |
 | [`publishing-pipeline.md`](publishing-pipeline.md) | Draft to publish, static pages, first-paint snapshots, partial saves, and the steps to add a content entity |
 | [`deployment.md`](deployment.md) | Local to GitHub to VPS, the deploy order, the webhook restart, the nginx symlink |
+| [`dependencies.md`](dependencies.md) | Finding, logging and closing dependency updates; how the lock files and `deploy.sh` keep the server in step |
 | [`performance-and-caching.md`](performance-and-caching.md) | Cache lifetimes by file type, edge cache, lazy loading and the first-paint snapshot |
 | [`accessibility.md`](accessibility.md) | Heading order, skip link, focus, keyboard controls on the visuals, toasts |
 | [`image-display.md`](image-display.md) | Figures vs thumbnails — the two image patterns, figure numbering, lazy loading |

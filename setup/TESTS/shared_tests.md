@@ -149,3 +149,24 @@
 - [ ] Touch rule + CORE-5 — `setup/ARCHITECTURE/Website_guide.md`: comments give the why and the links, the guide matches the file
 - [ ] Touch rule + CORE-5 — `setup/ARCHITECTURE/timeline.md`: comments give the why and the links, the guide matches the file
 - [ ] TEST-10 — `api/tests/guide-website-guide.test.js`: fails with the rule, file, line and guide path; exceptions are named with a reason
+
+## Validation: Dependency guide and dependency log
+**Plan:** dependency-guide-and-log.md
+**Date:** 2026-10-22
+
+### Manual checks
+- [ ] `setup/ARCHITECTURE/dependencies.md` opens with a purpose of 40 words or fewer, has numbered headings, and holds no version number or advisory ID.
+- [ ] `setup/DEPENDENCIES/Dependency_log.md` exists, is ignored by git (`git check-ignore -v setup/DEPENDENCIES/Dependency_log.md` prints the `/setup/*` rule), and holds row `DEP-001` for Express with status `open`.
+- [ ] `DEP-001` states that the lock installs Express 4.22.2 and that no file in `api/` calls `res.redirect`.
+- [ ] `node setup/scripts/check-architecture-docs.js` reports no dead path (the guide names the log without backticks).
+- [ ] `setup/ARCHITECTURE/INDEX.md` lists `dependencies.md` in its Files table.
+- [ ] `cd api && npm test` passes, including `guide-dependencies.test.js` and `guide-decisions-log.test.js`.
+
+### Code-review checks
+- [ ] CORE-4 — the new decision row in `setup/Decisions_log.md` has 12 cells, names Luke, and gives the reason (public repository).
+- [ ] CORE-4 — the home table in `setup/Vibe_coding_rules.md` has one new row for the log, and no other change.
+- [ ] CORE-6 / DOC-1 / DOC-2 — `setup/ARCHITECTURE/dependencies.md` and `setup/DEPENDENCIES/Dependency_log.md` open with a purpose of 40 words or fewer.
+- [ ] Touch rule + CORE-5 — `setup/ARCHITECTURE/INDEX.md`: purpose, numbered headings, the guide matches the file
+- [ ] Touch rule + CORE-5 — `setup/Vibe_coding_rules.md`: comments give the why and the links, the guide matches the file
+- [ ] Touch rule + CORE-5 — `setup/Decisions_log.md`: new row only, entries untouched
+- [ ] TEST-10 — `api/tests/guide-dependencies.test.js`: fails with the rule, file, line and guide path; exceptions are named with a reason
