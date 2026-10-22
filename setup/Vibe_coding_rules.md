@@ -45,7 +45,7 @@ This is the one exception to AG-1.
 
 In a touched doc, keep only purpose, navigation and cross-module behaviour. Delete history,
 dates, status notes and permissions. Move a decision to `setup/Decisions_log.md` and an open
-problem to `setup/ISSUES/Issues.md`, then delete it from the doc. You can move a decision into
+problem to `setup/ISSUES/issues.md`, then delete it from the doc. You can move a decision into
 the log without asking first (D-011). Say in your reply which entries you added.
 
 Each kind of information has exactly one home:
@@ -57,7 +57,7 @@ Each kind of information has exactly one home:
 | **`setup/STYLE_GUIDE/`** | Visual conventions that apply across the site, and navigation to them. | History, status, or decisions. |
 | **This file** | Each rule exception, named under its rule (CORE-4). | Exceptions that nobody granted. |
 | **`setup/Decisions_log.md`** (classifier rulings: `Wikipedia algorithm/Classifier_decisions.md`) | The dated record of each important decision and standing permission: who, when, why, and what was rejected (CORE-4). One table row per entry. Append only. | Routine edits, how the code works, secrets. |
-| **`setup/ISSUES/Issues.md`, `setup/PLANS/`** | Open problems and planned work. | How the current code works. |
+| **`setup/ISSUES/issues.md`, `setup/PLANS/`** | Open problems and planned work. | How the current code works. |
 | **Commit message** | What changed and why, for this change. Issue numbers go here. | — |
 
 **CORE-1 — Code documents itself.**
@@ -113,7 +113,7 @@ definition of a standing permission.
 - Every important decision and every standing permission gets an entry in
   `setup/Decisions_log.md`. A decision on the Wikipedia classifier's labelling rules, labeller
   or activation gate goes in `Wikipedia algorithm/Classifier_decisions.md` instead (D-056).
-- An entry is one row in a table, as in `setup/ISSUES/Issues.md`, never a prose block. One
+- An entry is one row in a table, as in `setup/ISSUES/issues.md`, never a prose block. One
   column per field: ID, title, type, date, by, applies to, rule, status, decision, why,
   rejected, where it lives. A cell holds a short phrase. Escape a literal `|` as `\|`.
 - A rule exception is also named in this file, under its rule, with where it applies and why.
@@ -187,7 +187,7 @@ citation names one heading. Never skip a level.
 
 - The style guide prefixes its numbers with `§` (`§1.2`), because other files cite it that way.
 - A file whose entries carry stable IDs uses the IDs as its numbering: this file, the decisions
-  logs, and `setup/ISSUES/Issues.md`. Do not number their headings as well.
+  logs, and `setup/ISSUES/issues.md`. Do not number their headings as well.
 - Renumbering a heading breaks every citation of it. `grep` the repo for the old number and fix
   each hit in the same change.
 

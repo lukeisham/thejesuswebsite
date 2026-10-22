@@ -1,50 +1,54 @@
 # Plan: <Feature Name>
 
+<Purpose statement: what this plan delivers and why, in 40 words or fewer (CORE-6). This is the plan's goal.>
+
 **Module(s):** <Frontend / Admin / API / Database / MCP Server / Shared>
 **Date:** <YYYY-MM-DD>
 **Status:** Drafting
 **Live site:** https://thejesuswebsite.org <!-- Canonical production origin. NOT thejesuswebsite.com — that is an unrelated, dead domain. Use this exact origin in every live-testing task URL. -->
 
-## Goal
-One or two sentences describing what this plan delivers and why.
-
-## Coding rules to keep in mind
+## 1. Coding rules to keep in mind
 - **<Rule ID>** — <why it's especially relevant here>
 - **<Rule ID>** — <why it's especially relevant here>
 
-## Tasks
+## 2. Tasks
 
-<!-- Add or remove groups as needed. Order by dependency. -->
+<!-- Add or remove groups as needed. Order by dependency. Number the groups 2.1, 2.2, … in order. -->
 
-### <Group — e.g. Database>
-
-- [ ] **<Verb> <thing>** — one sentence. File: `path/to/file.ext`
-- [ ] **<Verb> <thing>** — one sentence. File: `path/to/file.ext`
-
-### <Group — e.g. API>
+### 2.1 <Group — e.g. Database>
 
 - [ ] **<Verb> <thing>** — one sentence. File: `path/to/file.ext`
 - [ ] **<Verb> <thing>** — one sentence. File: `path/to/file.ext`
 
-### <Group — e.g. Frontend>
+### 2.2 <Group — e.g. API>
 
 - [ ] **<Verb> <thing>** — one sentence. File: `path/to/file.ext`
-- [ ] **<Verb> <thing>** — one sentence. File: `path/to/file.ext`
 
-### Core Rules pass
+### 2.3 <Group — e.g. Frontend>
+
+- [ ] **<Verb> <thing>** — one sentence. File: `path/to/file.ext`
+- [ ] **Register `<new page>` with the sitemap generator** — a new HTML page only. `deploy.sh` rebuilds `frontend/sitemap.xml` from this script, so never edit the XML. File: `api/scripts/generate-sitemap.js`
+
+### 2.4 Core Rules pass
 
 <!-- One task per file marked "modified" in the Per-file rule check table. Delete the group if the plan modifies no existing file. -->
 
 - [ ] **Bring `<modified file>` into line with the Core Rules** — apply the Touch rule and CORE-5 steps 1–4 to the whole file. Run `node setup/scripts/check-architecture-docs.js --touched` and compare each guide it lists with the file. Name the file in the final reply if you added a connection comment, a guide row, or a fix from CORE-5 step 4. File: `path/to/file.ext`
 
-### Guides and guide tests
+### 2.5 Guides and guide tests
 
 <!-- One task per guide the plan edits (including its CORE-6 purpose statement) and one per guide test file the plan adds or updates (TEST-10). Delete the group if the Guide tests section says "None". -->
 
 - [ ] **Update `<guide>`** — add or edit the row, bring the purpose statement to 40 words or fewer (CORE-6), and name the guide test next to the rows that it covers. File: `setup/ARCHITECTURE/<guide>.md`
 - [ ] **Add guide test for `<guide>`** — read the source files as text and fail when code breaks the row. Failure messages name the rule, the file and line, and the guide path. Each exception sits in a named list with a one-line reason. File: `api/tests/guide-<guide-name>.test.js`
 
-### Deploy & verify
+### 2.6 Close out
+
+<!-- Only when this plan's goal is to fix rows already in the issue log. Delete the group otherwise. -->
+
+- [ ] **Resolve issue row `<#>`** — once the fix is verified, change only that row's `Status` cell to `resolved`, by script, in the file that holds it. File: `setup/ISSUES/issues.md` or its archive
+
+### 2.7 Deploy & verify
 
 <!-- Verification is a three-tier ladder. Tiers are CUMULATIVE, not alternatives:
      pick the highest tier this plan reaches, and include every tier at or below it.
@@ -70,7 +74,7 @@ Tier 3 supersedes Tier 2 *for the same page*, but a plan touching both public an
 <!-- Non-Claude agents (e.g. DeepSeek in Zed) cannot run Tiers 2–3: leave the box unchecked,
      annotate "Deferred to Claude in Chrome: <reason>", and do not move the plan to Completed/. -->
 
-### Tier 2 playbook — local browser check
+### 2.8 Tier 2 playbook — local browser check
 
 <!-- Keep verbatim in plans with a Tier 2 task; delete otherwise. -->
 
@@ -79,9 +83,9 @@ Tier 3 supersedes Tier 2 *for the same page*, but a plan touching both public an
 3. **Verify via DOM, not screenshots.** Prove the change with `read_page` or a `javascript_tool` query (`document.querySelector(...)?.textContent`, `getBoundingClientRect()`, computed styles) plus `read_console_messages`. Screenshots are optional supporting evidence — they can render blank after a JS-driven scroll and must never be the sole proof.
 4. **Never use this tool family on `/admin/` or any logged-in page** — it cannot authenticate. That is Tier 3.
 5. If `preview_start` times out, fix the server/URL and call `preview_start` again fresh — don't salvage a half-initialized pane with `navigate`.
-6. **Front the tab before asserting on rendered DOM.** Diagram/canvas pages (timeline, arbor, maps) build their DOM inside `batchWrite()` (`frontend/assets/js/utils/dom.js`), which schedules the write via `requestAnimationFrame` — browsers throttle rAF to near-zero in a backgrounded or hidden tab, so the page can sit in its pre-render state indefinitely even though nothing is wrong. Confirm the tab is actually visible (`tabs_select`, or check `document.visibilityState !== "hidden"` via `javascript_tool`) before treating "nothing rendered yet" as a bug — otherwise a correctly-working page reads as a stalled `init()`.
+6. **Front the tab before asserting on rendered DOM.** Diagram/canvas pages (timeline, arbor, maps) build their DOM inside `batchWrite()` (`frontend/assets/js/utils/dom.js`), which schedules the write via `requestAnimationFrame` — browsers throttle rAF to near-zero in a backgrounded or hidden tab, so the page can sit in its pre-render state indefinitely even though nothing is wrong. Confirm the tab is actually visible (`tabs_select`, or check `document.visibilityState !== "hidden"` via `javascript_tool`) before treating "nothing rendered yet" as a bug.
 
-### Tier 3 playbook — live check in real Chrome
+### 2.9 Tier 3 playbook — live check in real Chrome
 
 <!-- Keep verbatim in plans with a Tier 3 task; delete otherwise. -->
 
@@ -98,11 +102,11 @@ Tier 3 supersedes Tier 2 *for the same page*, but a plan touching both public an
    5. **Clean up:** clear anything typed into a form, never click Save, and avoid actions that mutate persistent state (e.g. publishing a draft or deleting a record). Leave no test records in production.
 7. **If the user is unavailable or declines:** run the non-interactive checks anyway (curl, asset diffs, test suite), then leave the Tier 3 box **unchecked and annotated** with what was and wasn't verified. The plan stays in `PLANS/New/`. Do **not** log a row in `setup/ISSUES/issues.md` — the passkey constraint is a known environment fact, not a defect.
 
-## Files touched
+## 3. Files touched
 - `path/to/file.ext` — created / modified
 - `path/to/file.ext` — created / modified
 
-## Per-file rule check
+## 4. Per-file rule check
 
 <!-- One row per file in "Files touched", and no other files. A modified file needs the Touch rule and CORE-5, with a task in the Core Rules pass group. A modified guide, style guide or README also needs its CORE-6 purpose statement. A created file meets the Core Rules from the first commit. Never add a file only to clean it. -->
 
@@ -111,7 +115,7 @@ Tier 3 supersedes Tier 2 *for the same page*, but a plan touching both public an
 | `path/to/file.ext` | modified | `<Rule ID>`, `<Rule ID>` | Touch rule + CORE-5 steps 1–4 |
 | `path/to/new-file.ext` | created | `<Rule ID>` | Meets Core Rules from the first commit |
 
-## Guide tests
+## 5. Guide tests
 
 <!-- Answer all three questions (TEST-10). Write "None" and the reason if the plan adds or edits no guide row. -->
 
@@ -119,9 +123,9 @@ Tier 3 supersedes Tier 2 *for the same page*, but a plan touching both public an
 2. **Rows a text search can check** (a banned pattern, or a value that two files must share): each has a task to add or update `api/tests/guide-<guide-name>.test.js`.
 3. **Rows that stay prose** (meaning or behaviour): list them, or "None".
 
-## Error notification
+## 6. Error notification
 
-<!-- Answer both questions. Reference setup/ARCHITECTURE/Website_guide.md § Error Notification for the encoding architecture. -->
+<!-- Answer both questions. The error architecture is in setup/ARCHITECTURE/error-notification.md. -->
 
 **a) Does this plan impact existing error handling?**
 
@@ -131,19 +135,19 @@ Yes / No. If yes, list which `E-*` error codes are affected and whether new code
 
 Yes / No. If yes, describe what changes — new `sendError`/`sendValidationError` calls, new `showToast(message, "error", { details })` usage, etc.
 
-## Notes
+## 7. Notes
 Anything that isn't obvious — edge cases, constraints, ordering dependencies.
 
 ---
 
-## Completion Protocol
+## 8. Completion Protocol
 
 **For any implementing agent — including LLMs other than Claude that may pick this plan up:**
 
-- **Use a Python script for every markdown edit described here, never manual find/replace.** Hand-edited markdown/HTML is a known source of corruption in this codebase (stray/duplicated tags spliced into files by imprecise edits — see `setup/ISSUES/issues.md`) — don't repeat that failure mode on this plan's own tracking. Write a short script that parses the file, changes only the intended text, and rewrites it.
-- **Marking progress**: As each task is implemented and verified, change `- [ ]` to `- [x]` in the checklist above.
-- **Logging issues**: Log to `setup/ISSUES/issues.md` only issues **discovered during the generation or implementation of this plan** (pre-existing problems found along the way, ambiguities, side effects). Do **not** log the problem this plan was created to fix — that is the plan's Goal, not a new issue.
-- **Resolving issues**: If this plan's Goal is to fix row(s) already logged by an earlier plan, first check `setup/ISSUES/issues.md` (the active log). If the row number isn't there, it's been archived — check the `setup/ISSUES/Issues_<first>_to_<last>.md` file whose range covers it (now 30–110, 111–200, 201–250 and 251–299); and archival doesn't always mean the row was resolved, so don't assume an archived row is already fixed. Include a task that updates only the `Status` cell for those specific row(s) from `open` to `resolved` (via script, in whichever file currently holds them) once the fix is verified working — leave every other row untouched.
-- **Plan lifecycle**: Once every task in this plan is complete (all checkboxes ticked), update the **Status** line in the header to `✅ Completed` and move this file to `setup/PLANS/Completed/`.
-- **Push everything to GitHub as the final step** — the code changes, any `setup/ISSUES/issues.md` update, and this plan file's own edits/move all go in the same commit/push as the plan's "Deploy & verify" group. Nothing is considered done until it's pushed.
-
+1. **Edit markdown by script, never by hand.** Use a short Python script that parses the file, changes only the intended text, and rewrites it. Imprecise hand edits have spliced stray and duplicated tags into files in this codebase.
+2. **Mark progress.** As each task is implemented and verified, change `- [ ]` to `- [x]`.
+3. **Log new issues.** Add rows to `setup/ISSUES/issues.md` only for problems discovered while generating or implementing this plan. Never log the problem this plan exists to fix. That is its goal.
+4. **Resolve existing issues.** If this plan fixes rows already in the log, find each row in `setup/ISSUES/issues.md` or in the archive `setup/ISSUES/Issues_<first>_to_<last>.md` whose range covers its number. An archived row can still be open. Change only that row's `Status` cell to `resolved` once the fix is verified (task 2.6).
+5. **Audit what shipped.** Before completion, confirm that every file in Files touched exists with its planned content, not a stub or a placeholder. A missing or smaller-than-planned file keeps the plan in `PLANS/New/`, with a note that names the gap.
+6. **Complete the plan.** When every box is ticked and the audit passes, change **Status** to `✅ Completed` and move this file to `setup/PLANS/Completed/`. Until then it stays in `setup/PLANS/New/`.
+7. **Push everything last.** The code, any `setup/ISSUES/issues.md` update, and this plan file's edits and move go in the same push as the Deploy & verify group. Nothing is done until it is pushed.
