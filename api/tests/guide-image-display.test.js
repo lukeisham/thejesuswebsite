@@ -244,6 +244,73 @@ describe(`${GUIDE} row 7: the map background`, () => {
   });
 });
 
+// ── Row 8: the home hero ─────────────────────────────────────────────────────
+
+describe(`${GUIDE} row 8: the home hero`, () => {
+  const HOME = "frontend/index.html";
+  const homeText = withoutHtmlComments(read(HOME));
+  const lineOf = (index) => homeText.slice(0, index).split("\n").length;
+
+  /** The value of `name` in one tag, or null. */
+  const attr = (tag, name) => tag.match(new RegExp(`\\s${name}="([^"]*)"`))?.[1] ?? null;
+
+  const preload = homeText.match(/<link\b[^>]*\brel="preload"[^>]*\bas="image"[^>]*>/);
+  const picture = homeText.match(/<picture\b[\s\S]*?<\/picture>/);
+  const source = picture?.[0].match(/<source\b[^>]*>/)?.[0];
+  const img = picture?.[0].match(/<img\b[^>]*>/)?.[0];
+
+  /** Each `url width` pair of a srcset, as { file, width }. */
+  const candidates = (srcset) =>
+    srcset.split(",").map((entry) => {
+      const [url, descriptor] = entry.trim().split(/\s+/);
+      return { file: `frontend${url}`, width: Number.parseInt(descriptor, 10) };
+    });
+
+  test("index.html has a hero preload and a <picture> with a <source> and an <img>", () => {
+    assert.ok(
+      preload && picture && source && img,
+      `${HOME} needs an image <link rel="preload">, and a <picture> that holds a <source> and an <img>. Rule: ${GUIDE}, Invariants row 8.`
+    );
+  });
+
+  test("the preload repeats the srcset and sizes of the <source>", () => {
+    assert.equal(
+      attr(preload[0], "imagesrcset"),
+      attr(source, "srcset"),
+      `${HOME}:${lineOf(preload.index)} preload imagesrcset differs from the <source> srcset. The browser fetches two files. Rule: ${GUIDE}, Invariants row 8.`
+    );
+    assert.equal(
+      attr(preload[0], "imagesizes"),
+      attr(source, "sizes"),
+      `${HOME}:${lineOf(preload.index)} preload imagesizes differs from the <source> sizes. The browser fetches two files. Rule: ${GUIDE}, Invariants row 8.`
+    );
+  });
+
+  test("every file in the srcset exists at the width its descriptor states", async () => {
+    const sharp = require("sharp");
+    for (const { file, width } of candidates(attr(source, "srcset"))) {
+      assert.ok(exists(file), `${HOME} names ${file} in the hero srcset but it is missing. Rule: ${GUIDE}, Invariants row 8.`);
+      const meta = await sharp(path.join(REPO, file)).metadata();
+      assert.equal(
+        meta.width,
+        width,
+        `${file} is ${meta.width}px wide but the hero srcset says ${width}w. Rule: ${GUIDE}, Invariants row 8.`
+      );
+    }
+  });
+
+  test("the <img> width and height match its JPEG file", async () => {
+    const sharp = require("sharp");
+    const file = `frontend${attr(img, "src")}`;
+    const meta = await sharp(path.join(REPO, file)).metadata();
+    assert.deepEqual(
+      [attr(img, "width"), attr(img, "height")],
+      [String(meta.width), String(meta.height)],
+      `${HOME}:${lineOf(picture.index)} hero <img> size differs from ${file} (${meta.width} by ${meta.height}). The layout shifts when the image loads. Rule: ${GUIDE}, Invariants row 8.`
+    );
+  });
+});
+
 // ── Row 3: a row with no thumbnail renders a placeholder ─────────────────────
 
 describe(`${GUIDE} row 3: no thumbnail renders a placeholder`, () => {

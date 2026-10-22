@@ -12,7 +12,6 @@
         />
         <meta name="robots" content="index, follow" />
 
-        <!-- Open Graph / Twitter Card -->
         <meta
             property="og:title"
             content="The Jesus Website — Historical Evidence for Jesus of Nazareth"
@@ -42,7 +41,6 @@
             content="https://thejesuswebsite.org/assets/images/jesus_walking_on_water.jpg"
         />
 
-        <!-- JSON-LD: WebSite -->
         <script type="application/ld+json">
             {
                 "@context": "https://schema.org",
@@ -58,7 +56,6 @@
             }
         </script>
 
-        <!-- Favicon & PWA -->
         <link rel="icon" href="/assets/images/favicon.png" type="image/png" />
         <link rel="icon" href="/favicon.ico" sizes="32x32" />
         <link
@@ -67,7 +64,6 @@
         />
         <link rel="manifest" href="/assets/images/site.webmanifest" />
 
-        <!-- AI agent discovery -->
         <link rel="llms.txt" href="/llms.txt" />
 
         <!-- CSS (HTML-4: CSS in <head>) -->
@@ -89,11 +85,17 @@
         <link rel="stylesheet" href="/assets/css/components/figures.css" />
         <link rel="stylesheet" href="/assets/css/pages/home.css" />
 
-        <!-- Preload hero image -->
+        <!-- The hero is the Largest Contentful Paint element, so it is fetched
+             before layout. The srcset and sizes must match the hero <source>
+             below, or the browser fetches a second file
+             (image-display.md, invariants row 8). -->
         <link
             rel="preload"
             as="image"
-            href="/assets/images/jesus_walking_on_water.jpg"
+            type="image/avif"
+            fetchpriority="high"
+            imagesrcset="/assets/images/jesus_walking_on_water-480.avif 480w, /assets/images/jesus_walking_on_water-768.avif 768w, /assets/images/jesus_walking_on_water-1024.avif 1024w"
+            imagesizes="(min-width: 1000px) 680px, (min-width: 768px) calc(100vw - 20rem), calc(100vw - 2rem)"
         />
     </head>
     <body>
@@ -145,15 +147,22 @@
         </nav>
 
         <main id="main-content">
-            <!-- Hero image: full-width -->
             <section class="home-hero">
                 <figure>
-                    <img
-                        src="/assets/images/jesus_walking_on_water.jpg"
-                        alt="Jesus walking on water toward his disciples&rsquo; boat"
-                        width="1280"
-                        height="600"
-                    />
+                    <picture>
+                        <source
+                            type="image/avif"
+                            srcset="/assets/images/jesus_walking_on_water-480.avif 480w, /assets/images/jesus_walking_on_water-768.avif 768w, /assets/images/jesus_walking_on_water-1024.avif 1024w"
+                            sizes="(min-width: 1000px) 680px, (min-width: 768px) calc(100vw - 20rem), calc(100vw - 2rem)"
+                        />
+                        <img
+                            src="/assets/images/jesus_walking_on_water.jpg"
+                            alt="Jesus walking on water toward his disciples&rsquo; boat"
+                            width="1024"
+                            height="572"
+                            fetchpriority="high"
+                        />
+                    </picture>
                     <figcaption>
                         <span class="fig-number">Fig. 1</span> &mdash; Jesus
                         walks on water toward his disciples&rsquo; boat during a
@@ -163,7 +172,6 @@
                 </figure>
             </section>
 
-            <!-- Site title + tagline -->
             <section class="home-title-block">
                 <h2 class="home-title">The Jesus Website</h2>
                 <p class="home-tagline">
@@ -171,7 +179,6 @@
                 </p>
             </section>
 
-            <!-- Main content: comprehensive survey introduction -->
             <section class="home-section">
                 <div class="home-section-body">
                     <p>

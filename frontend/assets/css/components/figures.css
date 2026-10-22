@@ -17,8 +17,9 @@ figure {
   max-width: 100%;
 }
 
-figure img,
-figure picture {
+/* Only the <img> takes the border. A <picture> wrapper (the home hero) gets
+   its block display from reset.css, so a border on it would draw a second frame. */
+figure img {
   display: block;
   max-width: 100%;
   height: auto;
