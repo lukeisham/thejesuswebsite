@@ -1,6 +1,7 @@
 // Security headers middleware — sets defensive HTTP response headers on every
 // request (including public routes). HSTS is conditional on production to avoid
-// breaking localhost development over plain HTTP.
+// breaking localhost development over plain HTTP. Rules that span this file and
+// others (the CSP below, shared with nginx) are in setup/ARCHITECTURE/security.md.
 
 function securityHeaders(req, res, next) {
   res.setHeader("X-Content-Type-Options", "nosniff");
@@ -27,16 +28,16 @@ function securityHeaders(req, res, next) {
   }
 
   // Content-Security-Policy — protects direct API/JSON consumers.
-  // 'unsafe-inline' for script-src and style-src is a deliberate allowance:
-  // HTML files across the site use inline boot <script> blocks and
-  // zoom-variant inline <style> overrides, which a stricter CSP would block.
+  // This string must equal the `$page_csp` map in deploy/nginx-http.conf, which
+  // sends the policy for the HTML pages that this server never serves; a guide
+  // test compares the two (setup/ARCHITECTURE/security.md, row 1).
+  // 'unsafe-inline' stays in script-src and style-src because pages carry inline
+  // <script> and <style> blocks and style attributes that a stricter policy
+  // would block.
   // img-src 'self' data: means every image must be same-origin
   // (frontend/assets/images/ or public/uploads/) — this directive is what
   // blocks remote images, so one silently fails in production while appearing
-  // to work in a permissive local setup. The API server does not serve the
-  // site's HTML pages directly, so this CSP only applies to direct API
-  // consumers — real page-level protection requires a <meta> tag or
-  // reverse-proxy header on the HTML documents themselves.
+  // to work in a permissive local setup.
   res.setHeader(
     "Content-Security-Policy",
     "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'",

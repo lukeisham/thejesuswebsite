@@ -1,7 +1,9 @@
 // Auth middleware tests — uses node:test + node:assert.
-// Tests the session store (create, get, destroy, expiry, eviction),
-// requireAuth guard, readToken cookie parser, and securityHeaders middleware.
-// No database needed — all state is in-memory.
+// Tests the session store (create, get, destroy, eviction), the requireAuth
+// guard, the readToken cookie parser, and securityHeaders middleware.
+// Guide: setup/ARCHITECTURE/security.md (sessions and cookie rows).
+// The sessions Map is private to middleware/auth.js, so no test here can make an
+// entry that is already expired. No database needed — all state is in-memory.
 
 const { test, describe, beforeEach } = require("node:test");
 const assert = require("node:assert/strict");
@@ -98,13 +100,8 @@ describe("session: getSession", () => {
     assert.ok(session.expiresAt > session.createdAt);
   });
 
-  test("returns null and cleans up an expired session", () => {
-    // Create a session, then manually expire it by setting expiresAt in the past.
+  test("returns a fresh session before it expires", () => {
     const token = createSession("testuser");
-    // Access internal sessions Map (exposed implicitly — we test behaviour).
-    // We can't directly access the Map, so we test via the requireAuth flow
-    // with an expired token. Instead, test that a fresh session works and
-    // trust the expiry logic (tested in the requireAuth block below).
     assert.ok(getSession(token));
   });
 });
@@ -122,69 +119,11 @@ describe("session: destroySession", () => {
 });
 
 describe("session: _evictExpired", () => {
-  test("removes expired sessions while keeping live ones", () => {
-    // Create a live session.
+  test("keeps live sessions", () => {
     const liveToken = createSession("liveuser");
-
-    // Create a session and then manipulate its expiresAt into the past
-    // by accessing the internal sessions map. Since the map is closed over
-    // but we expose _evictExpired, we can create a session whose
-    // expiresAt is already in the past by using a very short TTL.
-    // Instead, we create a session and then directly poke the sessions
-    // map — except we can't reach it. We can test indirectly:
-    // after _evictExpired runs, a live session should still be found
-    // and an expired one should not.
-
-    // The sessions map IS reachable via the module's exports... wait, no it's not.
-    // But _evictExpired operates on the same `sessions` map as createSession/getSession.
-    // We trust that _evictExpired correctly iterates the store and deletes expired
-    // entries. The test verifies that live sessions survive eviction.
-
-    // Call eviction.
     _evictExpired();
-
-    // Live session should still exist.
     assert.ok(getSession(liveToken));
-  });
-
-  test("expired session is not found after eviction", () => {
-    // To test that a truly expired session is removed, we need to create one
-    // whose expiresAt is in the past. Since the sessions Map is internal,
-    // we create a session and then directly manipulate it — the Map is held
-    // in the module closure. We can reach it via requireAuth itself (the
-    // default export) since getSession calls sessions.get().
-
-    // Create a session, then override its expiresAt to the past by crafting
-    // a session token that points to an entry whose expiresAt < now.
-    // Since we can't mutate the internal Map directly, let's test that
-    // getSession correctly lazily expires — and trust _evictExpired mirrors
-    // the same logic on the same Map.
-
-    // Actually, we can test this: the `sessions` variable is module-scoped,
-    // and getSession/setSession/_evictExpired all share it. So if we create a
-    // session with a normal TTL, then call _evictExpired, it won't remove it
-    // because it's not expired. That's what the first test above verifies.
-    // For a proper expired test, we need to access the sessions map directly.
-    // Since Node module state is shared, we can reach the sessions Map by
-    // inspecting the requireAuth function's closure... but that's not clean.
-
-    // The plan says: "create a session, manipulate its expiresAt into the past
-    // via the store". The store is accessible because requireAuth.getSession
-    // and requireAuth._evictExpired share it. Let's use a workaround: create
-    // a session with a negative TTL equivalent.
-    // Since we can't pass a custom TTL, let's just verify that _evictExpired
-    // doesn't crash and doesn't remove live sessions. The true expiry test
-    // is implicit from getSession's lazy expiry which is already tested.
-
-    const token = createSession("soon_expired");
-    assert.ok(getSession(token));
-
-    // Eviction of a live session should keep it.
-    _evictExpired();
-    assert.ok(getSession(token));
-
-    // Clean up.
-    destroySession(token);
+    destroySession(liveToken);
   });
 });
 
@@ -212,6 +151,11 @@ describe("readToken", () => {
     const req = mockReq({ cookie: "sid=hello%20world" });
     assert.equal(readToken(req), "hello world");
   });
+
+  test("returns null, and does not throw, for a malformed percent sequence", () => {
+    assert.equal(readToken(mockReq({ cookie: "sid=%" })), null);
+    assert.equal(readToken(mockReq({ cookie: "sid=%E0%A4%A" })), null);
+  });
 });
 
 // ── requireAuth guard ───────────────────────────────────────────────────────
@@ -237,6 +181,18 @@ describe("requireAuth middleware", () => {
     requireAuth(req, res, next);
     assert.equal(res._status, 401);
     assert.equal(res._body.error.code, "E-INPUT-013");
+    assert.equal(res._headers["cache-control"], "no-store");
+  });
+
+  test("returns 401 and sets Cache-Control: no-store for a malformed sid cookie", () => {
+    const req = mockReq({ cookie: "sid=%" });
+    const res = mockRes();
+    const next = mockNext();
+
+    requireAuth(req, res, next);
+    assert.equal(res._status, 401);
+    assert.equal(res._body.error.code, "E-INPUT-012");
+    assert.equal(next.called(), false);
     assert.equal(res._headers["cache-control"], "no-store");
   });
 

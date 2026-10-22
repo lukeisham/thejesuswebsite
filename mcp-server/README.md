@@ -1,17 +1,14 @@
 # MCP Server — thejesuswebsite.org
 
-Exposes thejesuswebsite's published scholarly content to AI assistants via the
-[Model Context Protocol](https://modelcontextprotocol.io) (MCP). Any MCP-compatible
-client can use these tools to search and retrieve evidence, essays, blog posts,
-timeline events, maps, and news articles.
+AI assistants ask for published scholarly content about Jesus and receive structured, read-only results. This server turns each question into a request to the public site data and returns the answer, over the [Model Context Protocol](https://modelcontextprotocol.io) (MCP).
 
-## How it works
+## 1. How it works
 
 The server supports two transports:
 
-- **Streamable HTTP** (default) — runs as a standalone process listening on a
-  port. Any MCP client can connect via URL. Used on the VPS to serve the hosted
-  endpoint at `https://www.thejesuswebsite.org/mcp`. No local install required.
+- **Streamable HTTP** (default) — runs as a standalone process. It listens on
+  `127.0.0.1` only, and nginx serves it publicly at
+  `https://thejesuswebsite.org/mcp` with the rate limits. No local install required.
 - **stdio** (`--stdio` flag) — classic MCP transport for local development.
   Your MCP client launches and manages the process directly.
 
@@ -26,16 +23,18 @@ AI Client ──HTTP──▶ nginx ──proxy──▶ mcp-server ──HTTP�
 AI Client ──stdio──▶ mcp-server ──HTTP──▶ API ──▶ SQLite
 ```
 
-### Hosted endpoint (no setup required)
+### 1.1 Hosted endpoint (no setup required)
 
 ```
-https://www.thejesuswebsite.org/mcp
+https://thejesuswebsite.org/mcp
 ```
 
 Point any MCP-compatible client at this URL. The server is read-only and
-requires no authentication — it only returns published (public) content.
+requires no authentication — it only returns published (public) content. Use
+the bare domain: `www` redirects to it, and some clients turn a redirected POST
+into a GET.
 
-## Available tools
+## 2. Available tools
 
 | Tool | Description |
 |---|---|
@@ -49,69 +48,56 @@ requires no authentication — it only returns published (public) content.
 
 All tools are **read-only** and return only published (public) content.
 
-## Discovery
+## 3. Discovery
 
-AI agents can discover this server through several channels:
+AI agents can discover this server through these channels:
 
-- **`llms.txt`** — the website serves an [`llms.txt`](https://llmstxt.org) at
-  `https://www.thejesuswebsite.org/llms.txt` that describes the MCP server,
-  its hosted endpoint URL, and lists all available tools. It is linked from the
-  homepage via `<link rel="llms.txt">` and from every HTML response via a
-  `Link` HTTP header.
+| Channel | How it works |
+|---|---|
+| `llms.txt` | The site serves [`llms.txt`](https://llmstxt.org) at `https://thejesuswebsite.org/llms.txt`. It describes the MCP server, its hosted endpoint URL, and every tool. |
+| Homepage `<link>` tag | `<link rel="llms.txt" href="/llms.txt">` in `<head>` on every page. |
+| `Link` HTTP header | `Link: </llms.txt>; rel="llms.txt"` is sent with every HTML response, so an agent finds it without parsing the page. |
+| Direct URL | `https://thejesuswebsite.org/mcp` is the hosted Streamable HTTP endpoint. A client that supports URL connections can use it without reading `llms.txt`. |
+| MCP server list | Submit a PR to the official [MCP server list](https://github.com/modelcontextprotocol/servers) with the entry in section 3.1. |
+| Aggregators | Submit to [glama.ai/mcp](https://glama.ai/mcp), [mcp.so](https://mcp.so), and [smithery.ai](https://smithery.ai) for broader discoverability. |
 
-- **Homepage `<link>` tag** — `<link rel="llms.txt" href="/llms.txt">` in
-  `<head>` on every page.
+### 3.1 Registry entry
 
-- **`Link` HTTP header** — `Link: </llms.txt>; rel="llms.txt"` is sent with
-  every HTML response, discoverable without parsing the page.
-
-- **Direct URL** — `https://www.thejesuswebsite.org/mcp` is the hosted
-  Streamable HTTP endpoint. Any MCP client that supports URL-based connections
-  can connect directly without reading `llms.txt`.
-
-- **Community MCP registries** — to register in the official
-  [MCP server list](https://github.com/modelcontextprotocol/servers),
-  submit a PR adding this entry:
-
-  ```json
-  {
-    "thejesuswebsite": {
-      "name": "The Jesus Website",
-      "description": "Read-only access to published scholarly content about the historical Jesus — evidence items, essays, blog posts, news articles, timeline events, and maps.",
-      "repository": "https://github.com/your-org/thejesuswebsite",
-      "url": "https://www.thejesuswebsite.org/mcp",
-      "tools": [
-        "searchEvidence",
-        "getItemBySlug",
-        "getEssayBySlug",
-        "getBlogPostBySlug",
-        "getNewsArticleBySlug",
-        "getTimelineEvents",
-        "getMapData"
-      ]
-    }
+```json
+{
+  "thejesuswebsite": {
+    "name": "The Jesus Website",
+    "description": "Read-only access to published scholarly content about the historical Jesus — evidence items, essays, blog posts, news articles, timeline events, and maps.",
+    "repository": "https://github.com/your-org/thejesuswebsite",
+    "url": "https://thejesuswebsite.org/mcp",
+    "tools": [
+      "searchEvidence",
+      "getItemBySlug",
+      "getEssayBySlug",
+      "getBlogPostBySlug",
+      "getNewsArticleBySlug",
+      "getTimelineEvents",
+      "getMapData"
+    ]
   }
-  ```
+}
+```
 
-- **Aggregators** — also submit to [glama.ai/mcp](https://glama.ai/mcp),
-  [mcp.so](https://mcp.so), and [smithery.ai](https://smithery.ai) for
-  broader discoverability.
-
-## Prerequisites
+## 4. Prerequisites
 
 - **Node.js >= 18**
 - Access to the thejesuswebsite API, either:
   - **Local**: the API running on `http://localhost:3000` (see `../api/`)
-  - **Remote**: the production API at `https://www.thejesuswebsite.org/api`
+  - **Remote**: the production API at `https://thejesuswebsite.org/api`
 
-## Quick start
+## 5. Quick start
 
-### Hosted (no setup)
+### 5.1 Hosted (no setup)
 
-Connect your MCP client directly to `https://www.thejesuswebsite.org/mcp`.
+Connect your MCP client directly to `https://thejesuswebsite.org/mcp`.
 See the client-specific config snippets below for URL-based connection examples.
 
-### Local development
+### 5.2 Local development
 
 ```bash
 cd mcp-server
@@ -120,19 +106,21 @@ npm install
 # Copy and edit the env file (or set variables directly)
 cp .env.example .env
 
-# Streamable HTTP mode (default — listens on port 3100):
+# Streamable HTTP mode (default — listens on 127.0.0.1:3100):
 node --env-file=.env server.js
 
 # stdio mode (for IDE-based MCP clients like Zed, Cursor):
 node --env-file=.env server.js --stdio
 ```
 
-## Environment variables
+## 6. Environment variables
 
 | Variable | Default | Description |
 |---|---|---|
-| `API_BASE_URL` | `http://localhost:3000` | Base URL of the thejesuswebsite JSON API. Express has no `/api` prefix; only nginx and `dev-proxy.js` add and strip it. Use `http://localhost:4179/api` through `dev-proxy.js`, or `https://www.thejesuswebsite.org/api` through nginx. |
+| `API_BASE_URL` | `http://localhost:3000` | Base URL of the thejesuswebsite JSON API. Express has no `/api` prefix; only nginx and `dev-proxy.js` add and strip it. Use `http://localhost:4179/api` through `dev-proxy.js`, or `https://thejesuswebsite.org/api` through nginx. |
 | `PORT` | `3100` | Port for the Streamable HTTP server. Ignored in `--stdio` mode. |
+
+The HTTP server always listens on `127.0.0.1`. It has no setting for the host, because the rate limits live in nginx and a listener on every interface would skip them.
 
 Three ways to load env vars:
 
@@ -149,15 +137,15 @@ node server.js
 # Option 3 — let your MCP client set the env (see config snippets below)
 ```
 
-## MCP client configuration
+## 7. MCP client configuration
 
-### URL-based connection (recommended — no local install)
+### 7.1 URL-based connection (recommended — no local install)
 
 For clients that support MCP over HTTP, point them at the hosted endpoint.
 This works from anywhere with no Node.js, no repo clone, and no config:
 
 ```
-URL: https://www.thejesuswebsite.org/mcp
+URL: https://thejesuswebsite.org/mcp
 ```
 
 Client-specific URL config:
@@ -168,7 +156,7 @@ Client-specific URL config:
 {
   "context_servers": {
     "thejesuswebsite": {
-      "url": "https://www.thejesuswebsite.org/mcp"
+      "url": "https://thejesuswebsite.org/mcp"
     }
   }
 }
@@ -180,7 +168,7 @@ Client-specific URL config:
 {
   "mcpServers": {
     "thejesuswebsite": {
-      "url": "https://www.thejesuswebsite.org/mcp"
+      "url": "https://thejesuswebsite.org/mcp"
     }
   }
 }
@@ -192,13 +180,13 @@ Client-specific URL config:
 {
   "mcpServers": {
     "thejesuswebsite": {
-      "url": "https://www.thejesuswebsite.org/mcp"
+      "url": "https://thejesuswebsite.org/mcp"
     }
   }
 }
 ```
 
-### stdio connection (local development — full control)
+### 7.2 stdio connection (local development — full control)
 
 If you need to run the server locally (e.g. pointing at `localhost:3000`
 during development), use stdio mode:
@@ -246,7 +234,7 @@ during development), use stdio mode:
       "command": "node",
       "args": ["/absolute/path/to/mcp-server/server.js", "--stdio"],
       "env": {
-        "API_BASE_URL": "https://www.thejesuswebsite.org/api"
+        "API_BASE_URL": "https://thejesuswebsite.org/api"
       }
     }
   }
@@ -263,19 +251,19 @@ during development), use stdio mode:
       "command": "node",
       "args": ["/absolute/path/to/mcp-server/server.js", "--stdio"],
       "env": {
-        "API_BASE_URL": "https://www.thejesuswebsite.org/api"
+        "API_BASE_URL": "https://thejesuswebsite.org/api"
       }
     }
   ]
 }
 ```
 
-### Generic
+### 7.3 Generic
 
 **URL-based (hosted):**
 
 ```
-url: https://www.thejesuswebsite.org/mcp
+url: https://thejesuswebsite.org/mcp
 ```
 
 **stdio (local):**
@@ -283,10 +271,10 @@ url: https://www.thejesuswebsite.org/mcp
 ```
 command: node
 args: ["/path/to/server.js", "--stdio"]
-env: { "API_BASE_URL": "https://www.thejesuswebsite.org/api" }
+env: { "API_BASE_URL": "https://thejesuswebsite.org/api" }
 ```
 
-## Running tests
+## 8. Running tests
 
 ```bash
 npm test
@@ -295,7 +283,7 @@ npm test
 Tests use `node:test` and `node:assert` (no extra dependencies). They inject
 a mock `apiRequest` so no live API or network access is needed.
 
-## Project structure
+## 9. Project structure
 
 ```
 mcp-server/

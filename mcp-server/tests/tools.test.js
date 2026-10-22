@@ -345,7 +345,8 @@ describe("server.js apiRequest", () => {
 // --- HTTP server integration test --------------------------------------------
 // Spawns server.js in Streamable HTTP mode, waits for it to bind, then verifies
 // the /health endpoint responds correctly. Uses a dedicated test port to avoid
-// colliding with a running dev server.
+// colliding with a running dev server. Requests go to 127.0.0.1 because that is
+// the only address server.js binds (HOST in server.js).
 
 const TEST_PORT = 3099;
 
@@ -395,7 +396,7 @@ describe("HTTP server", () => {
 
   it("responds to /health with 200 and status ok", async () => {
     const response = await new Promise((resolve, reject) => {
-      const req = get(`http://localhost:${TEST_PORT}/health`, (res) => {
+      const req = get(`http://127.0.0.1:${TEST_PORT}/health`, (res) => {
         let body = "";
         res.on("data", (chunk) => {
           body += chunk;
@@ -416,7 +417,7 @@ describe("HTTP server", () => {
   // A POST with a real JSON-RPC message must reach the tool registry. The
   // server once passed the body as a string, so every POST failed to parse.
   function postMcp(rawBody) {
-    return fetch(`http://localhost:${TEST_PORT}/`, {
+    return fetch(`http://127.0.0.1:${TEST_PORT}/`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

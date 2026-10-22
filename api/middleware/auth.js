@@ -1,9 +1,11 @@
 // Authentication middleware and session store.
-// A successful passkey assertion (see routes/passkey.js) mints a random token,
-// returned to the browser as an httpOnly cookie and checked on each admin
-// request. Sessions live in-process: no external session library is used
-// (SR-2 — dependencies are for visual/display libraries only). For a single-admin
-// VPS an in-memory map is sufficient; a restart simply forces a fresh login.
+// routes/passkey.js (and routes/dev-bypass.js) call createSession() after a
+// verified login and set the token as an httpOnly cookie. requireAuth checks
+// that cookie on every admin request; routes/auth.js reads it for /auth/me and
+// /auth/logout through readToken(). Sessions and cookie parsing are hand-written
+// because a new dependency needs sign-off (SR-2) and one cookie does not need
+// one. The session lifetime and its effect on deploys are in
+// setup/ARCHITECTURE/security.md.
 
 const crypto = require("crypto");
 const ERRORS = require("../lib/error-codes");
@@ -13,8 +15,8 @@ const SESSION_COOKIE = "sid";
 const SESSION_TTL_MS = 1000 * 60 * 60 * 12; // 12 hours
 
 // token -> { userHandle, createdAt, expiresAt }
-// Sessions live in this in-memory Map with a 12 h TTL — nothing is persisted,
-// so an API restart logs the admin out.
+// Held in process memory only: a restart, including every deploy, ends all
+// sessions. If this moves to disk, the guide row on sessions must change too.
 const sessions = new Map();
 
 /** Evict every session whose expiresAt has passed. */
@@ -63,7 +65,14 @@ function clearSessions() {
   sessions.clear();
 }
 
-/** Read the session token from the request's Cookie header without a parser lib. */
+/**
+ * Read the session token from the request's Cookie header without a parser lib.
+ * The header is attacker input: decodeURIComponent throws a URIError on a stray
+ * "%", so a bad value returns null and the callers answer 401. It does not
+ * console.warn, because any stranger can send this header and would fill the log.
+ * @param {import('express').Request} req
+ * @returns {string|null} The token, or null when absent or malformed.
+ */
 function readToken(req) {
   const header = req.headers.cookie;
   if (!header) return null;
@@ -71,9 +80,12 @@ function readToken(req) {
     .split(";")
     .map((part) => part.trim())
     .find((part) => part.startsWith(`${SESSION_COOKIE}=`));
-  return cookie
-    ? decodeURIComponent(cookie.slice(SESSION_COOKIE.length + 1))
-    : null;
+  if (!cookie) return null;
+  try {
+    return decodeURIComponent(cookie.slice(SESSION_COOKIE.length + 1));
+  } catch {
+    return null;
+  }
 }
 
 /**

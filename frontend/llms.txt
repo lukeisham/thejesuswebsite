@@ -35,7 +35,7 @@ AI clients can query the published scholarly content through seven read-only
 tools rather than parsing raw HTTP or HTML.
 
 **Hosted endpoint (no setup required):**
-`https://www.thejesuswebsite.org/mcp`
+`https://thejesuswebsite.org/mcp`
 
 Point any MCP client (Zed, Claude Desktop, Cursor, Continue, Cline, etc.)
 at this URL. No API key, no local install, no Node.js required — the server
@@ -56,7 +56,7 @@ back to the raw JSON API described below.
 ## Public read-only JSON API
 
 All endpoints are GET-only public reads. Append the path to
-`https://www.thejesuswebsite.org/api`. All responses are JSON.
+`https://thejesuswebsite.org/api`. All responses are JSON.
 
 ### Evidence
 

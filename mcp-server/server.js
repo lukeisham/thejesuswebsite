@@ -8,6 +8,12 @@
 // The default is Express itself, which has no /api prefix. Only nginx and
 // dev-proxy.js add and strip /api, so a client that goes through them must
 // set API_BASE_URL with the /api suffix.
+//
+// In HTTP mode the process listens on HOST (loopback) only. The public URL is
+// nginx `location /mcp` (deploy/nginx.conf), which holds the rate limits, the
+// body-size cap and the access log; scripts/pm2-apply.js (HEALTH_URLS) polls
+// the same host and port. A listener on all interfaces would let a client skip
+// every one of those. See setup/ARCHITECTURE/security.md.
 
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
@@ -20,6 +26,7 @@ import { createServer } from "node:http";
 
 const API_BASE_URL = process.env.API_BASE_URL || "http://localhost:3000";
 const PORT = parseInt(process.env.PORT || "3100", 10);
+const HOST = "127.0.0.1";
 
 // --- Tool registry -----------------------------------------------------------
 // Import one module per tool (SR-1). Add new tools by inserting another entry
@@ -194,7 +201,7 @@ if (process.argv.includes("--stdio")) {
     }
   });
 
-  httpServer.listen(PORT, () => {
-    console.log(`MCP server listening on http://localhost:${PORT}`);
+  httpServer.listen(PORT, HOST, () => {
+    console.log(`MCP server listening on http://${HOST}:${PORT}`);
   });
 }
