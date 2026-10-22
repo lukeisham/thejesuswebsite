@@ -8,7 +8,7 @@
 // calculation and the snake_case/camelCase field-key normalisation on load
 // and save. The actual DOM structure (labelled inputs, hint text, image
 // preview, disabled-while-saving button, styled messages) was verified
-// manually in a live browser session — see setup/TESTS/site-settings-wiring.md.
+// manually in a live browser session — see setup/CHECKLISTS/site-settings-wiring.md.
 
 const test = require("node:test");
 const assert = require("node:assert");

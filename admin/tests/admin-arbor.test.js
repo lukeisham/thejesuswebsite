@@ -4,7 +4,7 @@
 // admin-arbor/arbor-edges.js (validateConnection).
 //
 // The DOM-bound drag/click canvas wiring is validated manually via browser
-// testing (see setup/TESTS/admin_tests.md for the manual checklist).
+// testing (see setup/CHECKLISTS/admin_tests.md for the manual checklist).
 
 const { test, describe, beforeEach } = require("node:test");
 const assert = require("node:assert/strict");

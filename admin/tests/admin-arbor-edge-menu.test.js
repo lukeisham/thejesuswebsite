@@ -2,7 +2,7 @@
 // Exercises the pure clampMenuPosition helper in
 // admin-arbor/arbor-edge-menu.js (mirrors the connect-menu clamp tests in
 // admin-arbor.test.js). The DOM-bound open/close/keyboard wiring is
-// validated manually via browser testing (see setup/TESTS/admin_tests.md).
+// validated manually via browser testing (see setup/CHECKLISTS/admin_tests.md).
 
 const { test, describe } = require("node:test");
 const assert = require("node:assert/strict");

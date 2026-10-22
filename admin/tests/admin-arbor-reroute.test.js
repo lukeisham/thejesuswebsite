@@ -2,7 +2,7 @@
 // Exercises the pure waypoint-manipulation helpers in
 // admin-arbor/arbor-edge-reroute.js (grid snap, insert/remove/move/nudge,
 // commit payload). The DOM-bound drag/keyboard wiring is validated manually
-// via browser testing (see setup/TESTS/admin_tests.md).
+// via browser testing (see setup/CHECKLISTS/admin_tests.md).
 
 const { test, describe } = require("node:test");
 const assert = require("node:assert/strict");

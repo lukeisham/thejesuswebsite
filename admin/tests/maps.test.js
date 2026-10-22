@@ -5,7 +5,7 @@
 // The DOM-bound drag/click logic in maps-pins.js and the region selector in
 // maps-regions.js are validated manually via browser testing against a running
 // API server. Only the pure, DOM-free exported functions from maps-render.js
-// are exercised here (see setup/TESTS/admin_tests.md for the manual checklist).
+// are exercised here (see setup/CHECKLISTS/admin_tests.md for the manual checklist).
 
 const { test, describe } = require("node:test");
 const assert = require("node:assert/strict");

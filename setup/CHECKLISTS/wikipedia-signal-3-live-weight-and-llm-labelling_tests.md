@@ -229,4 +229,4 @@ needs headroom for hidden `reasoning_content`, not just the visible answer).
 | `Wikipedia algorithm/.calibrate-fetch-cache.json` | Extended from 39 to 258 articles |
 | `requirements.txt` | Added `openai` (DeepSeek's API is OpenAI-compatible) |
 | `setup/Issues.md` | Row #161 added (harvest_one() keyword-detector regression, unrelated, not fixed) |
-| `setup/TESTS/wikipedia-signal-3-live-weight-and-llm-labelling_tests.md` | This file — rewritten with real results |
+| `setup/CHECKLISTS/wikipedia-signal-3-live-weight-and-llm-labelling_tests.md` | This file — rewritten with real results |

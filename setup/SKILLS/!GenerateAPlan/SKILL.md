@@ -150,7 +150,7 @@ If the plan adds a new HTML page, confirm that Step 2 has a task to register it 
 
 ## Step 4 — Create a validation checklist
 
-Save it at `setup/TESTS/<module-name>_tests.md` (for example `frontend_tests.md` or
+Save it at `setup/CHECKLISTS/<module-name>_tests.md` (for example `frontend_tests.md` or
 `api_tests.md`). If the file exists, append a section. Never overwrite it. These are manual
 checks. Automated tests are tasks in the plan.
 

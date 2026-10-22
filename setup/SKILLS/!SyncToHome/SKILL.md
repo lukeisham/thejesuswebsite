@@ -38,7 +38,7 @@ The script pushes the work to a `claude/send-…` branch. The workflow
 ## Local-only additions
 
 Git does not carry gitignored files to GitHub or to the home computer. Examples
-are `setup/ISSUES/issues.md`, `setup/PLANS/`, `setup/TESTS/`, `scratchpad.md` and
+are `setup/ISSUES/issues.md`, `setup/PLANS/`, `setup/CHECKLISTS/`, `scratchpad.md` and
 `CLAUDE.local.md`. If the cloud session wrote text that belongs in one of these
 files, or would have, put that text in the bundle. Luke pastes it into Terminal.
 

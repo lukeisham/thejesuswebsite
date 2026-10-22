@@ -916,7 +916,7 @@ Sign in at `https://thejesuswebsite.org/admin/` with your passkey first. Save no
 **Date:** 2026-10-18
 
 ### Manual checks
-- [ ] Before any code change: the baseline file `setup/TESTS/baseline/cluster-bridges-before.json` exists. It holds the position of every dot, label and era heading from the live admin timeline and the live public timeline. (Passkey sign-in needed.)
+- [ ] Before any code change: the baseline file `setup/CHECKLISTS/baseline/cluster-bridges-before.json` exists. It holds the position of every dot, label and era heading from the live admin timeline and the live public timeline. (Passkey sign-in needed.)
 - [ ] After deploy, public timeline (`https://thejesuswebsite.org/timeline`): the new capture matches the baseline exactly, and the console has no error.
 - [ ] After deploy, admin timeline (`https://thejesuswebsite.org/admin/diagrams/timeline.html`): the new capture matches the baseline exactly. Dots, labels and era headings are in the same places. Drag a node and see the label move. Do not click Save.
 - [ ] Admin maps (`/admin/diagrams/maps.html`): pins at one spot still fan out around the shared point.

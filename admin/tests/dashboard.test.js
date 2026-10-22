@@ -2,7 +2,7 @@
 // Exercises the pure TYPE_LABELS map and contentItemUrl() helper extracted
 // from admin/index.html's inline script into admin/assets/js/dashboard.js.
 // The DOM-bound fetch/filter wiring is validated manually via browser
-// testing (see setup/TESTS/admin_tests.md).
+// testing (see setup/CHECKLISTS/admin_tests.md).
 
 const { test, describe } = require("node:test");
 const assert = require("node:assert/strict");
