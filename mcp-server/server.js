@@ -85,57 +85,68 @@ export async function apiRequest(path) {
 
 // --- Server setup ------------------------------------------------------------
 
-const server = new Server(
-  {
-    name: "thejesuswebsite-mcp-server",
-    version: "1.0.0",
-  },
-  {
-    capabilities: { tools: {} },
-  },
-);
+/**
+ * Builds an MCP server with every tool registered. HTTP mode calls this once
+ * per request, because a stateless transport serves one request and the SDK
+ * throws if it is reused (the next call would answer 500).
+ *
+ * @returns {Server} A server that is not yet connected to a transport.
+ */
+function createMcpServer() {
+  const server = new Server(
+    {
+      name: "thejesuswebsite-mcp-server",
+      version: "1.0.0",
+    },
+    {
+      capabilities: { tools: {} },
+    },
+  );
 
-// ListTools: respond with the name, description, and inputSchema of every tool.
-server.setRequestHandler(ListToolsRequestSchema, async () => ({
-  tools: toolModules.map(({ name, description, inputSchema }) => ({
-    name,
-    description,
-    inputSchema,
-  })),
-}));
+  // ListTools: respond with the name, description, and inputSchema of every tool.
+  server.setRequestHandler(ListToolsRequestSchema, async () => ({
+    tools: toolModules.map(({ name, description, inputSchema }) => ({
+      name,
+      description,
+      inputSchema,
+    })),
+  }));
 
-// CallTool: dispatch to the matching handler, passing validated args and the
-// shared apiRequest helper. Unknown tool names and upstream errors both produce
-// explicit MCP error responses (JS-2: never fail silently).
-server.setRequestHandler(CallToolRequestSchema, async (request) => {
-  const tool = toolModules.find((t) => t.name === request.params.name);
+  // CallTool: dispatch to the matching handler, passing validated args and the
+  // shared apiRequest helper. Unknown tool names and upstream errors both produce
+  // explicit MCP error responses (JS-2: never fail silently).
+  server.setRequestHandler(CallToolRequestSchema, async (request) => {
+    const tool = toolModules.find((t) => t.name === request.params.name);
 
-  if (!tool) {
-    return {
-      content: [
-        {
-          type: "text",
-          text: `Unknown tool: "${request.params.name}".`,
-        },
-      ],
-      isError: true,
-    };
-  }
+    if (!tool) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Unknown tool: "${request.params.name}".`,
+          },
+        ],
+        isError: true,
+      };
+    }
 
-  try {
-    return await tool.handler(request.params.arguments ?? {}, apiRequest);
-  } catch (error) {
-    return {
-      content: [
-        {
-          type: "text",
-          text: `Tool "${request.params.name}" failed: ${error.message}`,
-        },
-      ],
-      isError: true,
-    };
-  }
-});
+    try {
+      return await tool.handler(request.params.arguments ?? {}, apiRequest);
+    } catch (error) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `Tool "${request.params.name}" failed: ${error.message}`,
+          },
+        ],
+        isError: true,
+      };
+    }
+  });
+
+  return server;
+}
 
 // --- Transport ---------------------------------------------------------------
 
@@ -145,13 +156,29 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
 if (process.argv.includes("--stdio")) {
   const transport = new StdioServerTransport();
-  await server.connect(transport);
+  await createMcpServer().connect(transport);
 } else {
-  const transport = new StreamableHTTPServerTransport({
-    sessionIdGenerator: undefined,
-  });
-
-  await server.connect(transport);
+  /**
+   * Answers one MCP request with its own server and transport, and closes both
+   * when the response ends.
+   *
+   * @param {import('node:http').IncomingMessage} req
+   * @param {import('node:http').ServerResponse} res
+   * @param {object} [body] - Parsed JSON-RPC payload (POST only).
+   * @returns {Promise<void>}
+   */
+  async function handleMcpRequest(req, res, body) {
+    const server = createMcpServer();
+    const transport = new StreamableHTTPServerTransport({
+      sessionIdGenerator: undefined,
+    });
+    res.on("close", () => {
+      transport.close();
+      server.close();
+    });
+    await server.connect(transport);
+    await transport.handleRequest(req, res, body);
+  }
 
   const httpServer = createServer(async (req, res) => {
     // Health check — lightweight, no MCP negotiation needed.
@@ -184,10 +211,10 @@ if (process.argv.includes("--stdio")) {
           );
           return;
         }
-        await transport.handleRequest(req, res, body);
+        await handleMcpRequest(req, res, body);
       } else if (req.method === "GET" || req.method === "DELETE") {
         // GET: SSE stream or session lookup. DELETE: session teardown.
-        await transport.handleRequest(req, res);
+        await handleMcpRequest(req, res);
       } else {
         res.writeHead(405, { "Content-Type": "text/plain" });
         res.end("Method Not Allowed");

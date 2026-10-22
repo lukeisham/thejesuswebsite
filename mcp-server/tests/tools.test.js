@@ -427,6 +427,19 @@ describe("HTTP server", () => {
     });
   }
 
+  // A stateless transport serves one request. When server.js reused one
+  // transport, the first POST answered 200 and every later one answered 500.
+  it("answers a second tools/list POST with 200", async () => {
+    const body = JSON.stringify({ jsonrpc: "2.0", id: 2, method: "tools/list" });
+    const first = await postMcp(body);
+    await first.text();
+    const second = await postMcp(body);
+    const text = await second.text();
+
+    assert.equal(second.status, 200);
+    assert.match(text, /searchEvidence/);
+  });
+
   it("answers a tools/list POST with the tool names", async () => {
     const res = await postMcp(
       JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" }),
