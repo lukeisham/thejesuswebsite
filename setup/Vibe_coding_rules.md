@@ -1,9 +1,8 @@
 # Vibe Coding Rules
 
-The coding standard for this project. This file holds only what a capable model would not do
-without being told: facts about this project, and checks against known agent habits. General
-good practice (semantic HTML, `alt` text, context managers, heading order) is assumed, not
-listed.
+The coding standard for this project, written for any agent that edits it. It holds the facts
+about this project and the checks against known agent habits. General good practice (semantic
+HTML, `alt` text, context managers) is listed only in *IDs Without a Rule Here*.
 
 Rule IDs are stable and never reused. Code comments cite these IDs, so an ID never changes its
 meaning. An ID that is cited elsewhere but has no rule here is resolved in *IDs Without a Rule
@@ -29,7 +28,7 @@ Here* at the end.
 | 13 | Smoke tests only, and run them. | TEST-2, TEST-2a |
 | 14 | A guide row you edit that a text search can check has a guide test. | TEST-10 |
 | 15 | Each file you edit: comments give the *why* and the links to other files. Its cross-app behaviour is in a guide or README, and the file matches it. | CORE-5 |
-| 16 | A purpose statement states the *why*: input, output, and the essential functions between them. App purpose 60 words or fewer, guide purpose 40 or fewer. | CORE-6 |
+| 16 | A purpose statement states the *why*: input, output, and the essential functions between them. App purpose 60 words or fewer, every other doc 40 or fewer. | CORE-6 |
 | 17 | Do not read completed or abandoned plans to write code. Read archived material only while you develop a feature. | AG-6 |
 | 18 | A doc you write or edit opens with a purpose statement, numbers its headings, and puts structured facts in tables. | DOC-1, DOC-2, DOC-3 |
 
@@ -37,7 +36,7 @@ Here* at the end.
 
 ## Core Rules
 
-These six rules apply without exception. A breach is a defect.
+These rules apply without exception. A breach is a defect.
 
 **Touch rule.** When you edit a file (code, guide, style guide or README), bring that whole file
 into line with the Core Rules in the same change. A Markdown doc also meets the Documentation
@@ -82,7 +81,8 @@ A comment never holds:
   are local-only, so the number points nowhere on GitHub or the VPS. State the reason itself;
 - a narration of what the next line obviously does.
 
-When you see a stale comment, or one that restates the code, delete it.
+In a file you are already editing, delete each stale comment and each comment that restates
+the code (Touch rule).
 
 - ✅ `// Registered before /admin/:list_key, or the parameter swallows this path (API-7).`
 - ✅ `// Called by every admin editor on save; the order it returns is the saved order.`
@@ -116,8 +116,6 @@ definition of a standing permission.
 - An entry is one row in a table, as in `setup/ISSUES/Issues.md`, never a prose block. One
   column per field: ID, title, type, date, by, applies to, rule, status, decision, why,
   rejected, where it lives. A cell holds a short phrase. Escape a literal `|` as `\|`.
-  Convert the existing prose entries to rows when you next edit the log. Do not open the log
-  only to convert it (Touch rule).
 - A rule exception is also named in this file, under its rule, with where it applies and why.
   See PY-1, CSS-1, CSS-3 and SVG-1 for the pattern.
 - The guide for the area in `setup/ARCHITECTURE/` describes the resulting design, in the
@@ -129,14 +127,12 @@ a break from a rule is a defect. After it is logged, code that matches it is int
 you "fix" a rule break, read the rule's exceptions and search the decisions log.
 
 **CORE-5 — Bring each file you edit up to the comment and guide rules.**
-The codebase meets CORE-2 and CORE-3 one file at a time. Each file that you edit for a task
-must meet both rules when the change is complete. Do not open a file only to do this work
-(Touch rule). For each file that you edit, do these steps:
+Each file that you edit for a task must meet CORE-2 and CORE-3 when the change is complete.
+For each file that you edit, do these steps:
 
-1. **Comments.** Make sure that each comment gives the *why*, not the *what* (CORE-2). Where
-   the file calls another file, is called by another file, or depends on a shared value, add a
-   comment that names that connection and what breaks if it changes. Delete comments that only
-   restate the code.
+1. **Comments.** Apply CORE-2. Where the file calls another file, is called by another file,
+   or depends on a shared value, add a comment that names that connection and what breaks if
+   it changes.
 2. **Cross-app behaviour.** Find out whether the file takes part in behaviour that crosses a
    module, process or file boundary (CORE-3 lists the kinds). If it does not, stop here.
 3. **Guide coverage.** Find that behaviour in `setup/ARCHITECTURE/` or in the folder
@@ -160,8 +156,8 @@ A section that does not serve it belongs in another guide, or nowhere.
 - **Content.** State the highest-level input and the highest-level output. Then say, in plain
   words, what the one or two essential functions do to turn the input into the output, never
   their code names. Leave out every function that only supports those.
-- **Word cap.** App purpose: 60 words or fewer. Guide purpose: 40 words or fewer. One paragraph,
-  no list. A statement over the cap holds the *how*: cut until it is intent only.
+- **Word cap.** App purpose: 60 words or fewer. Every other doc, guides included: 40 words or
+  fewer. One paragraph, no list. A statement over the cap holds the *how*: cut until it is intent only.
 - **Never.** No file, function, process or table names, no counts, and no history. Those are
   navigation or cross-boundary behaviour (CORE-3), and they change when the code changes. The
   purpose changes only when the intent changes.
@@ -180,8 +176,8 @@ plan, or a reference. Two kinds of file keep their own format: `CLAUDE.md`, whic
 this file, and a `SKILL.md`, whose frontmatter `description` is its purpose statement.
 
 **DOC-1 — Every doc opens with a purpose statement.**
-The first paragraph under the title says why the doc exists, in 40 words or fewer: what a reader
-brings to it and what they leave with. CORE-6 sets the content and the *never* list. A new doc
+The first paragraph under the title says why the doc exists: what a reader brings to it and
+what they leave with. CORE-6 sets the content, the word cap and the *never* list. A new doc
 has one from its first commit. An existing doc gets one when you next touch it (Touch rule).
 
 **DOC-2 — Clear headings, numbered.**
@@ -210,7 +206,7 @@ How an agent behaves while it writes code.
 **AG-1 — Change only what the task names.**
 No drive-by refactors, renames, reformatting, import reordering or "while I was here" fixes. If
 you see another defect, name it in your reply and leave the code alone. The one exception is a
-Core Rule breach, which you fix when you see it.
+Core Rule breach in a file you are already editing, which you fix (Touch rule).
 
 **AG-2 — Done means you ran it.**
 Before you report a change as done, run the script, the tests or the page, and show the result.
@@ -241,22 +237,25 @@ only for the background of that feature.
 
 ## Setup Rules
 
-**SR-1** — One file per function
-Only combine functions in the same file if they form a single linear sequence **or** are tightly related by type/purpose.
+**SR-1 — One file per function.**
+Only combine functions in the same file if they form a single linear sequence (parse, then
+validate, then save) **or** share one type or job (the read and write helpers of one table).
 
-**SR-2** — Dependencies Are Case-by-Case, Never Default
-Write it yourself unless the case is already approved. Approved: visual/display libraries. Anything else needs explicit sign-off before it enters the repo — and never for something the stdlib or a short module already does.
+**SR-2 — Dependencies are case-by-case, never default.**
+Write it yourself. No library is pre-approved: each one needs Luke's explicit sign-off before it
+enters the repo, and never for something the stdlib or a short module already does.
 
-**SR-3** — Performance First
-Loading speed is non-negotiable. Ship no blocking script, no unused CSS, no unbounded query. If a change adds bytes to `frontend/`, it must justify them.
+**SR-3 — Performance first.**
+Ship no blocking script, no unused CSS, no unbounded query. If a change adds bytes to
+`frontend/`, say why in the commit message.
 
-**SR-4** — Share, Don't Copy-Paste
+**SR-4 — Share, don't copy-paste.**
 Before adding logic to an `admin/<type>/` editor, grep the other editors for it — if it exists, extract to `admin/assets/js/` and have all of them call it. Fixing a bug in one editor means grepping the rest for the same pattern before closing it.
 
-**SR-5** — Secrets Never Enter the Repo
+**SR-5 — Secrets never enter the repo.**
 Credentials, tokens, and keys live in `.env` and are read at runtime — never hardcoded, never in a test fixture, never in a comment, never in a log. Confirm `.gitignore` covers a new secret file before writing to it.
 
-**SR-7** — Screen Text Serves Only the Person Using the Page
+**SR-7 — Screen text serves only the person using the page.**
 Text for whoever builds or maintains the code — a validation rule, an invariant, a "this is
 required because…" reason — goes in a code comment (CORE-2), never in the interface. An error
 message that shows after an action fails is UI. A permanent caption that restates the rule is
@@ -265,7 +264,7 @@ record cannot be saved without one" under the heading is a comment that escaped.
 direction, real user guidance (what a control does, what a state means) belongs in the UI, not
 only in a comment. This applies to `admin/` editors as much as to `frontend/`.
 
-**SR-8** — Match the Neighbours Before You Invent
+**SR-8 — Match the neighbours before you invent.**
 Read the closest existing sibling file before you write a new one, and use its conventions:
 naming, argument handling, error handling, logging format. For an admin editor, read another
 `admin/<type>/` editor. For a route, read another `api/routes/` file and its model. A new file
@@ -276,12 +275,10 @@ that looks nothing like the file next to it is a defect, even if it runs.
 Browser JavaScript targets current Safari and Chrome. `api/`, tests and tools target the
 installed Node (26).
 
-**JS-2** — Robust & Predictable > Clever
-Validate inputs, handle errors explicitly, prefer early returns. Never fail silently: a guard against a "shouldn't happen" state must `console.warn` with enough context to locate the call site. Only genuinely optional absences may return quietly.
+**JS-2 — Robust and predictable over clever.**
+Never fail silently: a guard against a "shouldn't happen" state must `console.warn` with enough context to locate the call site. Only genuinely optional absences may return quietly.
 
-**JS-3** — Modern & Simple > Over-engineered
-Use current JS features. Keep functions small and focused. Avoid unnecessary classes, abstractions, or layers.
-
+**JS-3 — Modern and simple over over-engineered.**
 In new files in `frontend/` and `admin/`:
 
 - ES modules only: `import` / `export`, loaded with `<script type="module">`. Put nothing on
@@ -295,10 +292,12 @@ In new files in `frontend/` and `admin/`:
 Many older files use `var` and `window` globals. That is not a Core Rule breach. Leave them
 alone unless the task names them (AG-1).
 
-**JS-5** — Async/Await by Default
-Use `async/await` + `try/catch` for all async code. Show loading states before fetch and error states on failure. Centralize all raw `fetch()` calls in `api.js`.
+**JS-5 — Async/await by default.**
+Use `async/await` + `try/catch` for all async code. Show loading states before fetch and error
+states on failure. Every raw `fetch()` call lives in one file per area:
+`frontend/assets/js/api.js` or `admin/assets/js/admin-http.js`.
 
-**JS-6** — Safe DOM Handling
+**JS-6 — Safe DOM handling.**
 Put text on the page in this order of preference:
 
 1. `textContent`, or `document.createElement` / `createElementNS` with properties set.
@@ -311,11 +310,11 @@ is safe for text and quoted attributes only — never for a URL, an inline scrip
 event delegation for dynamic elements. Remove listeners when elements are removed. Cache
 repeated DOM queries.
 
-**JS-7** — Types on Exports
+**JS-7 — Types on exports.**
 Every exported function carries JSDoc `@param {Type}` and `@returns {Type}`, so that a later
 agent can call it correctly without reading the body.
 
-**JS-8** — No Build Step, No Framework, No Bundler
+**JS-8 — No build step, no framework, no bundler.**
 `frontend/` and `admin/` are vanilla JavaScript, served directly. A framework, a transpiler or a
 bundler is a dependency decision that needs sign-off (SR-2), not a default. Scripts that rewrite
 files at deploy time (`npm run pages`, `npm run version-assets`) are not a build step in this
@@ -323,28 +322,28 @@ sense: the source files still run as they are.
 
 ## Python Rules
 
-**PY-1** — Standard Library Only
+**PY-1 — Standard library only.**
 Python is for local scripts and tooling, never for anything the site serves. Stdlib only (`pathlib`, `json`, `csv`, `sqlite3`, `argparse`) — no `pip install`, no venv, no `requirements.txt` (SR-2). If a script needs a third-party package, write it in Node instead.
 
 Exception: a Python service may serve the site, with third-party dependencies and its own `requirements.txt`, when it is the most effective, robust, and safe solution available — not merely convenient. This means: no Node equivalent exists at comparable maturity for the problem (e.g. FAISS/ONNX-based approximate nearest-neighbor search and local embedding inference), the service is isolated as its own process (own venv, own pm2 process) rather than imported into the main app, and callers degrade gracefully if it's unavailable (timeout + fallback, never a hard dependency). Each exception must be named explicitly here, not inferred:
 
-- `Wikipedia algorithm/vector-sidecar/` — FastAPI/uvicorn, pm2-managed as `thejesuswebsite-vector-sidecar` on `127.0.0.1:8901`, synced via `scripts/sync-vector-sidecar.sh`. Called from `api/lib/vector-sidecar-client.js` with a 2s timeout and graceful degradation on failure. No Node-native equivalent for FAISS-based ANN search + local embedding inference exists at comparable maturity.
+- `Wikipedia algorithm/vector-sidecar/` — FastAPI/uvicorn, pm2-managed as `thejesuswebsite-vector-sidecar` on `127.0.0.1:8901`, synced via `scripts/sync-vector-sidecar.sh`. Called from `api/lib/vector-sidecar-client.js` with a 2s timeout and graceful degradation on failure.
 
 Offline tooling (`Wikipedia algorithm/classifier/`, `families/`, `scripts/`, `setup/scripts/`) that `deploy.sh` never invokes may also carry a `requirements.txt` for the same reason — it never serves a live request, so SR-2 doesn't apply to it the way it applies to anything in the request path.
 
-**PY-2** — One Script, One Job
+**PY-2 — One script, one job.**
 A script does one thing, named by its filename. Shared logic goes in a plain importable module beside it — never copy-pasted between scripts (SR-4).
 
-**PY-3** — Import Is Free
+**PY-3 — Import is free.**
 Real work lives in named functions behind `if __name__ == "__main__":`. Importing a script must never read files, write, hit the database, or take measurable time.
 
-**PY-4** — Typed Signatures
+**PY-4 — Typed signatures.**
 Annotate every parameter and return. Modern generics only: `list[str]`, `dict[str, int]`, `str | None` — never `typing.List` or `Optional`. No `from __future__ import annotations` in new files (PY-11).
 
-**PY-5** — `pathlib`, Never String Paths
+**PY-5 — `pathlib`, never string paths.**
 Join with `Path` and `/`. Never `os.path.join` or manual separators. Anchor project paths to `Path(__file__).resolve().parents[n]`, never the working directory.
 
-**PY-6** — Explicit Exceptions, Non-Zero Exit
+**PY-6 — Explicit exceptions, non-zero exit.**
 Catch the specific exception you expect. Never a bare `except:` or a silent `except Exception:`. Raise with context and exit non-zero so callers and CI see the failure (JS-2).
 
 Fail loudly, but only where it can fail. No `try` around code that cannot fail in a way you
@@ -353,27 +352,27 @@ would handle differently. Let an unexpected error rise to the one top-level hand
 - ✅ `except FileNotFoundError: sys.exit(f"no store at {path}")`
 - ❌ `try: total = a + b` / `except Exception: total = 0`
 
-**PY-8** — `sqlite3`: `?` Placeholders, `mode=ro` by Default
+**PY-8 — `sqlite3`: `?` placeholders, `mode=ro` by default.**
 The SQL Rules apply: `cursor.execute(sql, (value,))`, never f-string or `%` interpolation. Scripts that only read open read-only: `sqlite3.connect("file:...?mode=ro", uri=True)`.
 
-**PY-9** — Stream and Batch, Don't Load Everything
+**PY-9 — Stream and batch, don't load everything.**
 Iterate the cursor or file handle; avoid `.fetchall()` and `.read()` on anything unbounded. Wrap bulk writes in one transaction with `executemany` — never a loop of single `execute` + commit.
 
-**PY-10** — PEP 8 by Hand
+**PY-10 — PEP 8 by hand.**
 No Black, Ruff, or linter config in the repo.
 
-**PY-11** — Target the Installed Python, 3.14
+**PY-11 — Target the installed Python, 3.14.**
 Use what 3.14 gives you: `match`, `@dataclass(frozen=True, slots=True)`, `tomllib`,
 `itertools.batched`, `Path.walk`. No compatibility shims for older versions.
 
 ## Test Rules
-**TEST-1** — Built-in Runners Only, No External Runners
+**TEST-1 — Built-in runners only, no external runners.**
 JavaScript: `node:test` + `node:assert/strict`, nothing else (SR-2). No Jest, Mocha, Vitest, Sinon, or mocking libraries — hand-build fakes, as `admin/tests/admin-editor-utils.test.js` does.
 
 Python: stdlib scripts use `unittest`. Offline tooling under PY-1's exception
 (`Wikipedia algorithm/`) uses `pytest` from its own venv, as its `README.md` shows.
 
-**TEST-2** — Smoke, Not Exhaustive
+**TEST-2 — Smoke, not exhaustive.**
 Assert three things per module: it imports cleanly, the happy path produces the right output, one guard or failure path behaves. Stop there — full branch coverage belongs in a suite this project doesn't run. Do not add tests for code that the task did not change (AG-1).
 
 Exception: a guide test (TEST-10) scans every file that its guide rule covers, including files
@@ -383,7 +382,7 @@ Exception: a model test (`api/tests/<name>.model.test.js`) may go past three ass
 data-loss guard, such as a save that must keep the rows whose keys it omits. Each extra test
 names the loss it prevents. Smoke depth still applies to everything else in the file (D-061).
 
-**TEST-2a** — Run the Suite Before You Report
+**TEST-2a — Run the suite before you report.**
 Run the tests for each area you changed, and show the pass/fail summary (AG-2). A red test is
 reported, never hidden (AG-4).
 
@@ -391,37 +390,37 @@ reported, never hidden (AG-4).
 - `admin/` and `frontend/`: `node --test <area>/tests/<module>.test.js`
 - `Wikipedia algorithm/`: `python -m pytest <package>/tests/`
 
-**TEST-3** — File Naming & Location
+**TEST-3 — File naming and location.**
 One test file per source module, named after the module, not the feature. Put it in `<area>/tests/<module>.test.js` — or beside nested modules, mirroring the source tree (`frontend/assets/js/arbor/tests/arbor-render.test.js`).
 
 Exception: a guide test (TEST-10) is named after its guide, not a module.
 
-**TEST-4** — Isolated, In-Memory, No Network
+**TEST-4 — Isolated, in-memory, no network.**
 API tests build a fresh in-memory database with `createTestDb()` (`api/tests/helpers/db.js`) — never touch the real `database/thejesuswebsite.db`. No real network requests. Reset shared module state (e.g. `clearSessions()`) in `afterEach`.
 
-**TEST-5** — Deterministic, No Sleeps
-Await the real operation — a promise, a response, a write — never a guessed `setTimeout` delay. `npm test` runs in seconds; a slow test is usually doing more than a smoke test needs.
+**TEST-5 — Deterministic, no sleeps.**
+Await the real operation — a promise, a response, a write — never a guessed `setTimeout` delay.
 
-**TEST-6** — Assert on Behavior, Not Absence of a Throw
+**TEST-6 — Assert on behaviour, not on the absence of a throw.**
 "It didn't crash" is not coverage. Assert the actual output, return value, HTTP status, or state change (JS-2).
 
-**TEST-7** — Anything With a Gate Gets a Gate Test
+**TEST-7 — Anything with a gate gets a gate test.**
 Every route behind `middleware/auth` needs two tests: 401 without a session cookie, pass-through with a valid one (see `api/tests/auth-guard.test.js`). The route isn't done until both exist.
 
 The same applies to any other gate: a permission, a read-only mode, a rate limit, or a
 published-only filter. Write two tests. The blocked path is really blocked, and the permitted
 path passes through.
 
-**TEST-8** — DOM-Dependent Modules: Fake DOM, Not a DOM Library
+**TEST-8 — DOM-dependent modules: fake DOM, not a DOM library.**
 Run the real source against a small hand-built fake DOM exposing only what the module uses, as `admin/tests/admin-editor-utils.test.js` does. No `jsdom` or similar (SR-2).
 
-**TEST-9** — Mirror the Logic, Don't Duplicate the Bug
+**TEST-9 — Mirror the logic, don't duplicate the bug.**
 Import the real module whenever possible. If a test must recreate source logic (e.g. `announce.test.js`'s `arborAriaLabel`), comment which file/function it mirrors — a passing test against a stale copy proves nothing.
 
-**TEST-10** — Guide Tests Guard the Text Rules of a Guide
+**TEST-10 — Guide tests guard the text rules of a guide.**
 A guide test reads source files as text and fails when code breaks a rule that a guide in
-`setup/ARCHITECTURE/` states. It does not test behaviour. It catches the drift that the path
-checker cannot see: one file changes, and another file that depends on it silently breaks. See
+`setup/ARCHITECTURE/` states. It does not test behaviour. It catches the drift where one file
+changes and another file that depends on it silently breaks. See
 `api/tests/guide-error-notification.test.js`.
 
 - When you add or edit a guide row whose rule a text search can check, add or update its guide
@@ -441,14 +440,14 @@ checker cannot see: one file changes, and another file that depends on it silent
 Visual values and design choices come from `setup/STYLE_GUIDE/`. These rules govern how the CSS
 is written.
 
-**CSS-1** — One File, One Component
+**CSS-1 — One file, one component.**
 Each CSS file styles exactly one component, layout, or page. Split a file when it starts to
 style a second, unrelated thing, not at a line count.
 
 Exception: `variables.css` holds every token, however long. Its one job is to be the single
 place to look (CSS-2), so do not split it.
 
-**CSS-2** — Custom Properties Only
+**CSS-2 — Custom properties only.**
 Every colour, space, size, font and duration is a custom property from the area's one
 `variables.css` (`frontend/assets/css/base/variables.css`, `admin/assets/css/admin-base/variables.css`),
 including any print block. Component files reference `var(--…)` only.
@@ -459,15 +458,17 @@ literal values of the frontend-named tokens that only the timeline and maps edit
 public site's token names so that an editor draws what the public page draws. Component files in
 `admin-diagrams/` still reference `var(--…)` only.
 
-**CSS-3** — Mobile Inside Component Files
+**CSS-3 — Mobile inside component files.**
 Put all `@media (max-width)` rules in the same file as the component. Use breakpoints from `variables.css`. No separate mobile files.
 
-Accepted trade-off: "use breakpoints from `variables.css`" means match their documented pixel values, not reference them via `var()` — CSS custom properties cannot be read inside an `@media` condition without a build step, and this project deliberately has none (SR-2, JS-8, `setup/ARCHITECTURE/Website_guide.md`). The ~60 `@media` rules across the codebase each hardcode the literal breakpoint number as a result; this is accepted as a permanent consequence of the no-build-step architecture, not a defect to chase. If a component's breakpoint drifts from `variables.css`'s documented value, that's the real bug — not the duplication itself.
+Exception: an `@media` condition writes the pixel value that `variables.css` documents, because
+`var()` cannot be read there without a build step (JS-8). The duplication is accepted. A value
+that drifts from the documented breakpoint is the bug.
 
-**CSS-4** — Semantic Class Names
+**CSS-4 — Semantic class names.**
 Class names describe *what* something is (`.card-grid`, `.popular-challenges`), never *how* it looks. Use kebab-case, consistent with filenames.
 
-**CSS-5** — Low Specificity; Modern CSS Welcome
+**CSS-5 — Low specificity; modern CSS welcome.**
 Prefer single classes. Avoid IDs. Never use `!important`. Native nesting is allowed one level
 deep for states and pseudo-elements (`&:hover`, `&::before`, `&[aria-expanded="true"]`), never
 for descendant chains. Use current CSS instead of JavaScript or extra markup where it does the
@@ -478,14 +479,14 @@ Exception: the global `@media (prefers-reduced-motion: reduce)` rule in
 must beat every component-level duration, or a new component can bring back motion for a reader
 who turned it off. No other rule gets this exception.
 
-**CSS-6** — CSS Comments
+**CSS-6 — CSS comments.**
 Use large clear section headings and subheadings. Any other comment follows CORE-2.
 
 ## HTML Rules
 
 HTML-1 to HTML-5 are general practice. See *IDs Without a Rule Here*.
 
-**HTML-6** — Escape Everything Interpolated
+**HTML-6 — Escape everything interpolated.**
 Text from the database that goes into a page is escaped before insertion. In the browser, follow
 JS-6. In `api/`, HTML built as strings (static pages in `api/services/page-generator.js`, map SVGs
 in `api/scripts/generate-maps/`) escapes every value with the shared server-side `escapeHTML()`.
@@ -494,96 +495,99 @@ in `api/scripts/generate-maps/`) escapes every value with the shared server-side
 
 SVG-2 to SVG-5 are general practice. See *IDs Without a Rule Here*.
 
-**SVG-1** — Always Define `viewBox`
+**SVG-1 — Always define `viewBox`.**
 Every `<svg>` defines `viewBox`. Case-sensitive: `viewBox`, never `viewbox`.
 
-Exception: `admin/assets/js/admin-arbor/arbor-canvas.js`'s `<svg>` is exempt. Arbor's zoom/pan is a deliberate, working, `viewBox`-free architecture — CSS `transform` on a `<g>`, screen-pixel math throughout — chosen instead of `viewBox`-based scaling. Adding a `viewBox` now would mean reworking that coordinate math end-to-end for a system that already works and has nothing visibly broken; not worth the rewrite. Named here so this doesn't keep getting re-flagged as a violation.
+Exception: the `<svg>` in `admin/assets/js/admin-arbor/arbor-canvas.js` has no `viewBox`. Its
+zoom and pan use a CSS `transform` on a `<g>` with screen-pixel math throughout, and a `viewBox`
+would break that math.
 
-**SVG-6** — Icons Take the Text Colour
+**SVG-6 — Icons take the text colour.**
 An interface icon uses `fill="currentColor"` or `stroke="currentColor"`, so that it follows
 the text colour around it. Any other colour comes from a token by class, never inline. A decorative icon carries
 `aria-hidden="true"`. An icon that is the only label of a control carries a `<title>`, or the
 control carries `aria-label`.
 
 ## API Rules
-**API-1** — Routes Are a Thin Layer
+**API-1 — Routes are a thin layer.**
 A handler parses input, calls a model, shapes the response. No SQL and no business logic in `routes/` — all SQL lives in `models/<type>.model.js`.
 
-**API-2** — One Route File Per Resource
+**API-2 — One route file per resource.**
 `routes/<resource>.js` serves one mounted path and one model. Never add an endpoint for one resource to another resource's file (SR-1).
 
-**API-3** — Errors Come From the Registry
+**API-3 — Errors come from the registry.**
 Every failure response goes through `sendError()` / `sendValidationError()` with a code from `lib/error-codes.js`. No inline `res.status(500).json({...})`. A new failure mode earns a new registry entry in the right category, not a one-off message.
 
-**API-4** — Validate Before the Model
+**API-4 — Validate before the model.**
 Check required fields, types, and enums in the handler and return 400 naming the offending field. Models assume valid input; they are not the validation layer.
 
-**API-5** — Write Routes Require Auth
+**API-5 — Write routes require auth.**
 Every POST, PUT, PATCH, and DELETE mounts `requireAuth`, as does any GET exposing unpublished content (`/admin*`). Public GETs return published rows only, and the model decides that — never a flag from the query string. Not done until TEST-7's two tests exist.
 
-**API-6** — Catch, Log, Respond
+**API-6 — Catch, log, respond.**
 Every handler wraps its work in `try/catch`. Log the cause with method and path (`console.error("GET /resources failed:", error)`), then send a registry error. No raw exception or stack trace ever reaches the client.
 
-**API-7** — Static Route Paths Before Dynamic
+**API-7 — Static route paths before dynamic.**
 Register `/admin/holding-pen` before `/admin/:list_key` — Express matches in order, so the parameter would swallow it. Comment the constraint where it's load-bearing.
 
-**API-8** — Bounded Responses
-List endpoints return named columns with a `LIMIT`, never an unbounded table dump (SR-3, SQL-9). Paginate anything that grows without limit.
+**API-8 — Bounded responses.**
+List endpoints follow SQL-9 and never dump a whole table (SR-3). Paginate anything that grows
+without limit.
 
 ## SQL Rules
-**SQL-1** — Prepared Statements Always
+**SQL-1 — Prepared statements always.**
 Every query goes through `db.prepare(sql)` then `.get()`, `.all()`, or `.run()`. Never execute a raw SQL string. Cache statements in module scope — better-sqlite3 compiles on every `prepare` call.
 
-**SQL-2** — User Input Only via `?`
+**SQL-2 — User input only via `?`.**
 All user-supplied data — params, filters, search terms — goes in as a `?` placeholder with values passed after the query. Never interpolate or concatenate it into SQL, even partially.
 
-**SQL-3** — Named Parameters for Clarity
+**SQL-3 — Named parameters for clarity.**
 Multi-column INSERT/UPDATE built from an object uses named parameters (`@column`), with keys filtered through a whitelist so stray fields can't reach the database (JS-2).
 
-**SQL-4** — Identifiers from Whitelists Only
+**SQL-4 — Identifiers from whitelists only.**
 Table, column, and index names come from hardcoded constants or validated enums — never user input. Derive filters from a list like `VALID_FILTERS = ["gospel_category", "timeline_era"]`, then `conditions.push(key + " = ?")`.
 
-**SQL-5** — FTS Queries: Sanitize User Search
+**SQL-5 — FTS queries: sanitize user search.**
 Never pass raw input to `MATCH ?`. Tokenize and double-quote first (`toMatchExpression()`) so FTS operators (`AND`, `OR`, `NOT`, `*`) can't throw or change the query.
 
-**SQL-6** — UPDATE Triggers: WHEN Guard Required
+**SQL-6 — UPDATE triggers: WHEN guard required.**
 Every `AFTER UPDATE` trigger needs a `WHEN` clause, or its own write re-fires it. `WHEN NEW.updated_at = OLD.updated_at` fires only when the caller didn't set a timestamp.
 
-**SQL-7** — FTS Triggers: WHEN Guard & Index Sync
+**SQL-7 — FTS triggers: WHEN guard and index sync.**
 FTS sync triggers list the exact content columns in their `WHEN` clause, so unrelated updates don't reindex. Remove stale rows with the `'delete'` directive: `INSERT INTO fts_table(fts_table, rowid, ...) VALUES ('delete', old.id, ...)`.
 
-**SQL-8** — Foreign Key Pragmas
+**SQL-8 — Foreign key pragmas.**
 `db.pragma('foreign_keys = ON')` on every connection (done in `api/config.js`) — SQLite disables it by default. Verify it in tests and on deploy.
 
-**SQL-9** — Query in Sets, Not Loops
+**SQL-9 — Query in sets, not loops.**
 One query returns what a request needs; never run a query per row of a previous result. Select named columns, not `SELECT *`, and bound anything user-facing with `LIMIT`.
 
-**SQL-10** — Every Filter and Join Has an Index
+**SQL-10 — Every filter and join has an index.**
 Columns used in `WHERE`, `JOIN`, or `ORDER BY` are indexed in `schema.sql`. Check new queries against the schema, and confirm with `EXPLAIN QUERY PLAN` that a hot query isn't scanning the table.
 
 ## Migration Rules
-**MIG-1** — Numbered, Sequential, One Per Number
+**MIG-1 — Numbered, sequential, one per number.**
 `NNN_short_description.sql`, zero-padded, next number up. Never a suffix like `004b`, never two files sharing a number — the runner applies them in `sort` order, so duplicates make that order ambiguous.
 
-**MIG-2** — Applied Migrations Are Immutable
+**MIG-2 — Applied migrations are immutable.**
 Never edit a migration once it's pushed. `schema_migrations` keys on filename, so the VPS has already recorded it and your edit will never run there — local and production silently diverge. Fix a bad migration with a new one (042 fixes 032).
 
-**MIG-3** — Idempotent and Re-runnable
+**MIG-3 — Idempotent and re-runnable.**
 `IF EXISTS` / `IF NOT EXISTS` on every drop and create. Running a migration twice must not error.
 
-**MIG-4** — `schema.sql` Updated in the Same Commit
+**MIG-4 — `schema.sql` updated in the same commit.**
 `database/schema.sql` is authoritative and builds fresh databases. A structural change that skips it leaves new and migrated databases out of sync.
 
-**MIG-5** — Header Comment: Why, What, How to Run
-Open with the bug or need, the fix, and the run command — the style of `042_restore_fts_news_resource_triggers.sql`. It's the only place a schema decision gets explained.
+**MIG-5 — Header comment: why, what, how to run.**
+Open with the bug or need, the fix, and the run command — the style of `042_restore_fts_news_resource_triggers.sql`. The header explains the change. An important schema decision also goes in the decisions log (CORE-4).
 
-**MIG-6** — Verify Before You Drop
-Check `schema.sql` and the migration history for what actually exists before dropping a table, trigger, or column. Migration 032 dropped two FTS triggers that were still in use, silently breaking search re-indexing until 042 restored them.
+**MIG-6 — Verify before you drop.**
+Check `schema.sql` and the migration history for what actually exists before dropping a table, trigger, or column. A dropped trigger that is still in use breaks search re-indexing with no error (032 did this; 042 repaired it).
 
-**MIG-7** — Destructive Changes Need Explicit Confirmation
-`DROP TABLE`, `DROP COLUMN`, and bulk `DELETE`/`UPDATE` reach real production content on the next push. Confirm with the user first — the empty local database is no guide to what's there.
+**MIG-7 — Destructive changes need explicit confirmation.**
+`DROP TABLE`, `DROP COLUMN`, and bulk `DELETE`/`UPDATE` reach real production content on the next push. Confirm with Luke first — the empty local database is no guide to what's there.
 
-**MIG-8** — Never Special-Case the Runner
+**MIG-8 — Never special-case the runner.**
 Don't fix a broken migration by adding a skip to `deploy.sh`. The `001_`/`005_` skips are legacy, not a pattern — new exceptions make deploy behavior unreproducible locally.
 
 ---
