@@ -5,8 +5,8 @@
 // loads the script, reads its imports, loads those, and so on. The page data
 // is requested only after the last import has run. This script writes a
 // <link rel="modulepreload"> for every file in that import chain into the
-// <head> of each HTML file under frontend/, so the browser fetches the whole
-// chain at once.
+// <head> of the pages that PRELOAD_PAGES names, so the browser fetches the
+// whole chain at once.
 //
 // Run order matters. deploy.sh runs this after `npm run pages` (so generated
 // pages get the block) and before `npm run version-assets`. The stamp then
@@ -14,6 +14,14 @@
 // the JS files, so every preload address equals the address that the browser
 // imports. A link written after the stamp would carry no version and the
 // browser would fetch each module twice (setup/ARCHITECTURE/deployment.md).
+//
+// Only some pages get the block (PRELOAD_PAGES). The links share the network
+// with the render-blocking stylesheets, so on a page that paints without
+// waiting for scripts they delay the first paint and gain nothing. A page that
+// no entry matches gets no block, and an old block is removed from it.
+// setup/ARCHITECTURE/performance-and-caching.md (row 9) holds the rule for
+// adding an entry, and api/tests/guide-performance-and-caching.test.js checks
+// the list against the real pages.
 //
 // The block sits between two comment markers and is replaced on every run, so
 // the script is idempotent. It runs on the VPS working copy only, like the
@@ -32,6 +40,17 @@ const JS_URL_PREFIX = "/assets/js/";
 const BLOCK_START = "<!-- modulepreload -->";
 const BLOCK_END = "<!-- /modulepreload -->";
 const BLOCK_RE = new RegExp(`[ \\t]*${BLOCK_START}[\\s\\S]*?${BLOCK_END}\\n?`);
+
+// Pages whose first content is rendered by their module scripts after an API
+// read, so the import chain gates what the visitor sees. `test` is matched
+// against the page path from the repository root, with forward slashes. It
+// matches the templates and the pages that page-generator.js writes from them.
+const PRELOAD_PAGES = [
+  {
+    test: /^frontend\/(contextual-essays|debate\/(responses|historiography|popular-challenges|academic-challenges)|news-and-blog\/(blog|news))\/(?!index\.html$)[^/]+\.html$/,
+    reason: "Detail pages render their text from an API read after the script chain has loaded.",
+  },
+];
 
 const MODULE_SCRIPT_RE = /<script\b[^>]*\btype="module"[^>]*>/g;
 const SCRIPT_SRC_RE = /\bsrc="(\/assets\/js\/[^"?]+\.js)(?:\?[^"]*)?"/;
@@ -90,7 +109,8 @@ function injectPreloads(html, urls) {
 }
 
 /**
- * Write the preload block into every HTML file under `frontend/`.
+ * Write the preload block into every page under `frontend/` that PRELOAD_PAGES
+ * names, and remove it from every other page.
  * Exits the process non-zero when a page names a file that does not exist
  * (JS-2: a broken page must stop the deploy and say which one).
  *
@@ -105,10 +125,11 @@ function run(rootDir) {
 
   for (const pagePath of pages) {
     const html = fs.readFileSync(pagePath, "utf8");
-    const relative = path.relative(rootDir, pagePath);
+    const relative = path.relative(rootDir, pagePath).split(path.sep).join("/");
 
     const urls = [];
-    for (const tag of html.matchAll(MODULE_SCRIPT_RE)) {
+    const wanted = PRELOAD_PAGES.some((rule) => rule.test.test(relative));
+    for (const tag of wanted ? html.matchAll(MODULE_SCRIPT_RE) : []) {
       const entry = SCRIPT_SRC_RE.exec(tag[0])?.[1];
       if (!entry) continue;
       if (!closures.has(entry)) {
@@ -142,4 +163,4 @@ if (require.main === module) {
   run(ROOT_DIR);
 }
 
-module.exports = { findModuleClosure, injectPreloads, run };
+module.exports = { PRELOAD_PAGES, findModuleClosure, injectPreloads, run };

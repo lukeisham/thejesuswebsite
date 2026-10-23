@@ -66,3 +66,23 @@
 - [ ] Touch rule + CORE-5 — `setup/ARCHITECTURE/deployment.md`, `publishing-pipeline.md`, `performance-and-caching.md`: purpose statement 40 words or fewer, numbered headings, citations of old headings fixed
 - [ ] TEST-10 — the three guide test files fail with the rule, file, line and guide path; exceptions are named with a reason
 - [ ] CORE-4 — row D-073 exists in `setup/Decisions_log.md`, one table row
+
+## Validation: Module preload scope
+**Plan:** module-preload-scope.md
+**Date:** 2026-10-23
+
+### Manual checks
+- [ ] The measurement table has a median LCP, FCP and score, with and without the preload, for each of the nine pages of `PAGES`.
+- [ ] `curl -s https://thejesuswebsite.org/evidence/timeline/` shows no `<!-- modulepreload -->` block.
+- [ ] `curl -s https://thejesuswebsite.org/contextual-essays/census-of-quirinius` still shows the block and the `rel="preload" as="fetch"` tag.
+- [ ] The `Performance check` run after the deploy: timeline score is 90 or more, no page is more than 150 ms of LCP worse than run `39893165161`, and the essay LCP is not above 2794 ms.
+- [ ] The essay, evidence detail and list pages look and behave the same as before.
+
+### Code-review checks
+- [ ] CORE-4 — the new row amends D-073, and the D-073 Status cell uses the set wording.
+- [ ] TEST-9 — the guide test reads `PRELOAD_PAGES` from the script, and keeps no copy of it.
+- [ ] AG-1 — no HTML page was edited.
+- [ ] Touch rule + CORE-5 — `api/scripts/preload-modules.js`: comments give the why and the links, the guide matches the file
+- [ ] Touch rule + CORE-5 — `api/tests/preload-modules.test.js`: comments give the why and the links
+- [ ] Touch rule + CORE-5 — `setup/ARCHITECTURE/performance-and-caching.md`: purpose statement 40 words or fewer, numbered headings, the rows from other plans kept
+- [ ] TEST-10 — `api/tests/guide-performance-and-caching.test.js`: fails with the rule, file, line and guide path; exceptions are named with a reason
