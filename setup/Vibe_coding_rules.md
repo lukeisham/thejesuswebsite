@@ -168,7 +168,7 @@ A section that does not serve it belongs in another guide, or nowhere.
 Exception: the purpose statement of `setup/ARCHITECTURE/performance-and-caching.md` may have
 50 words. Its last two sentences say that new code or new backend data shows within a minute, and
 that everything else stays cached. Without them the statement hides half of the intent of the
-guide (D-070).
+guide (D-076).
 
 When you touch a guide, bring its purpose statement into line with this rule (Touch rule).
 Every other doc has a purpose statement too (DOC-1).
