@@ -21,6 +21,9 @@
 // version defaults to `git rev-parse --short HEAD`, overridable via
 // ASSET_VERSION (useful for local testing without a git commit).
 //
+// deploy.sh runs preload-modules.js before this script, so the modulepreload
+// links that it writes are stamped here like any other <link href="...js">.
+//
 // Idempotent: an existing `?v=...` query string on a reference is replaced,
 // never doubled. External (http(s)://, protocol-relative //, data:)
 // references and non-JS/CSS attributes are left untouched.
@@ -71,6 +74,8 @@ function stampHtml(html, version) {
 // Matches `from "path.js"` / `from 'path.js'` in `import ... from "..."`
 // and `export ... from "..."` statements — the only import form used in
 // this codebase (no bare side-effect imports, no bundler-style specifiers).
+// preload-modules.js reads the same pattern to find a page's import chain, so
+// the links it writes name exactly the files that this stamp versions.
 const JS_IMPORT_RE = /\bfrom\s+(['"])([^'"]+\.js)(?:\?[^'"]*)?\1/g;
 
 /**
@@ -200,4 +205,5 @@ module.exports = {
   listFiles,
   stampDirectory,
   run,
+  JS_IMPORT_RE,
 };

@@ -169,6 +169,13 @@ cd "$API_DIR" && npm run stamp-about-dates
 echo "[deploy] Embedding initial data for list/visual pages..."
 npm run embed-data
 
+# Written before the stamp, so that the stamp adds the version to each preload
+# link. A link written after it would name an unversioned file, and the browser
+# would fetch every module twice. It also runs after `npm run pages`, so
+# generated pages get the block.
+echo "[deploy] Writing module preload links..."
+npm run preload-modules
+
 echo "[deploy] Stamping asset references with deploy version..."
 npm run version-assets
 

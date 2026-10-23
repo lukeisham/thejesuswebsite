@@ -68,16 +68,13 @@ function renderSeoBlock(config, row) {
 
   let html = "";
 
-  // <title>
   html += `  <title>${escapeHTML(title)} — ${escapeHTML(config.sectionLabel)} — ${escapeHTML(siteName)}</title>\n`;
 
-  // Meta description
   if (description) {
     html += `  <meta name="description" content="${escapeHTML(truncate(description, 160))}">\n`;
   }
   html += `  <meta name="robots" content="index, follow">\n`;
 
-  // Open Graph
   html += `  <meta property="og:title" content="${escapeHTML(title)} — ${escapeHTML(config.sectionLabel)} — ${escapeHTML(siteName)}">\n`;
   if (description) {
     html += `  <meta property="og:description" content="${escapeHTML(truncate(description, 160))}">\n`;
@@ -89,16 +86,20 @@ function renderSeoBlock(config, row) {
     html += `  <meta property="og:image" content="${escapeHTML(ogImage)}">\n`;
   }
 
-  // Twitter Card
   html += `  <meta name="twitter:card" content="summary_large_image">\n`;
   if (ogImage) {
     html += `  <meta name="twitter:image" content="${escapeHTML(ogImage)}">\n`;
   }
 
-  // Canonical
   html += `  <link rel="canonical" href="${escapeHTML(canonicalUrl)}">\n`;
 
-  // JSON-LD
+  // The page script reads this row from the API once its imports have loaded.
+  // Preloading it here starts that request when the HTML arrives. The address
+  // and `crossorigin` must match the fetch in frontend/assets/js/api.js, or
+  // the browser sends a second request. config.type is also the API path
+  // (api/tests/guide-publishing-pipeline.test.js checks it for every type).
+  html += `  <link rel="preload" as="fetch" crossorigin href="${escapeHTML(`/api/${config.type}/${encodeURIComponent(row.slug)}`)}">\n`;
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": config.jsonLdType,
@@ -142,7 +143,6 @@ function generatePage(type, slug) {
     return { ok: false, error: "A slug is required." };
   }
 
-  // 1. Read the template.
   if (!fs.existsSync(config.templatePath)) {
     return {
       ok: false,
@@ -158,7 +158,7 @@ function generatePage(type, slug) {
   }
   const template = readResult.data;
 
-  // 2. Check the placeholder exists (fail loudly if missing — JS-2).
+  // A template without the placeholder would ship pages with no SEO head (JS-2).
   if (!template.includes("<!-- SEO -->")) {
     return {
       ok: false,
@@ -166,7 +166,6 @@ function generatePage(type, slug) {
     };
   }
 
-  // 3. Load the published row from the DB.
   const row = db
     .prepare(
       `SELECT * FROM ${config.table}
@@ -183,14 +182,11 @@ function generatePage(type, slug) {
     };
   }
 
-  // 4. Render the SEO block.
   const seoBlock = renderSeoBlock(config, row);
 
-  // 5. Replace the placeholder and write the output file.
   const output = template.replace("<!-- SEO -->", seoBlock);
   const outputPath = path.join(config.outputDir, `${slug}.html`);
 
-  // Ensure the output directory exists.
   if (!fs.existsSync(config.outputDir)) {
     const mkdirResult = safeMkdir(config.outputDir);
     if (!mkdirResult.ok) {
@@ -266,7 +262,6 @@ function generateAll() {
   for (const type of Object.keys(CONTENT_PAGES)) {
     const config = CONTENT_PAGES[type];
 
-    // Query all published slugs for this type.
     const rows = db
       .prepare(
         `SELECT ${config.slugColumn} AS slug

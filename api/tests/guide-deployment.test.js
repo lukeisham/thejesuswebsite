@@ -85,6 +85,22 @@ describe(`${GUIDE} row 4: deploy order`, () => {
     );
   });
 
+  test(`${DEPLOY_SH} writes the module preload links after the pages and before the stamp`, () => {
+    const text = withoutHashComments(read(DEPLOY_SH));
+    const pages = text.indexOf("npm run pages");
+    const preload = text.indexOf("npm run preload-modules");
+    const stamp = text.indexOf("npm run version-assets");
+    assert.ok(preload >= 0, `${DEPLOY_SH} has no "npm run preload-modules" step. Rule: ${GUIDE}, Invariants row 4.`);
+    assert.ok(
+      pages >= 0 && pages < preload,
+      `${DEPLOY_SH}:${lineOf(text, preload)} writes the preload links before "npm run pages", so generated pages get none. Rule: ${GUIDE}, Invariants row 4.`
+    );
+    assert.ok(
+      preload < stamp,
+      `${DEPLOY_SH}:${lineOf(text, preload)} writes the preload links after the stamp at line ${lineOf(text, stamp)}, so each link has no version and the browser fetches every module twice. Rule: ${GUIDE}, Invariants row 4.`
+    );
+  });
+
   test(`${WORKFLOW} runs the webhook, the health check, the purge and the warm-up in that order, and the warm-up is last`, () => {
     const names = stepNames(read(WORKFLOW));
     const at = (name) => names.findIndex((n) => n.includes(name));

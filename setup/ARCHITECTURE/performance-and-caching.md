@@ -4,7 +4,7 @@ Pages load fast and stay fresh. Static files are cached for a long time at addre
 content changes, and visitors see a first-paint snapshot that live data then confirms.
 
 **Source of truth:** `deploy/nginx.conf`, `api/middleware/security-headers.js` and `api/middleware/auth.js` — win any disagreement with this doc.
-**Spans:** `deploy/nginx.conf`, `.github/workflows/deploy.yml`, `api/middleware/security-headers.js`, `api/middleware/auth.js`, `api/scripts/version-assets.js`, `api/scripts/generate-maps/index.js`, `api/scripts/embed-initial-data.js`, `frontend/assets/js/utils/lazy-load.js`, `frontend/assets/js/utils/data-revalidation.js`, `api/scripts/run-lighthouse.js`, `.github/workflows/performance-check.yml`.
+**Spans:** `deploy/nginx.conf`, `.github/workflows/deploy.yml`, `api/scripts/preload-modules.js`, `api/middleware/security-headers.js`, `api/middleware/auth.js`, `api/scripts/version-assets.js`, `api/scripts/generate-maps/index.js`, `api/scripts/embed-initial-data.js`, `frontend/assets/js/utils/lazy-load.js`, `frontend/assets/js/utils/data-revalidation.js`, `api/scripts/run-lighthouse.js`, `.github/workflows/performance-check.yml`.
 
 ## 1. Invariants
 
@@ -18,6 +18,7 @@ content changes, and visitors see a first-paint snapshot that live data then con
 | Every `Cache-Control` value is read where it is set: `deploy/nginx.conf` for static files and HTML, `api/middleware/security-headers.js` for public `/api/` reads, `api/middleware/auth.js` for authenticated responses | This doc states the shape of the policy, not the values | A value copied into a doc or a second file drifts |
 | List and visual pages carry an embedded snapshot, and `utils/data-revalidation.js` re-renders only if the live data differs | The first paint needs no fetch | A change to the renderer that skips the snapshot makes the page flash or jump (`publishing-pipeline.md`) |
 | ES modules stay `defer`red at the bottom of `<body>` (HTML-4). Images use native `loading="lazy"` or `data-src`, which `utils/lazy-load.js` swaps in (`image-display.md`) | A blocking script or an eager image delays the first paint | The page loads slower and no test fails |
+| Module preload links (`<link rel="modulepreload">`, one per file of the static import chain of each page's scripts) are written at deploy by `api/scripts/preload-modules.js`, after the page generation and before the asset stamp. No committed file holds them (D-073) | The stamp must see the links, so that each link names the versioned file that the page imports | A link with no version, or a committed block with an old one, names a file that the page does not import. The browser fetches every module twice and no other test fails. Guide tests: `api/tests/guide-performance-and-caching.test.js` (no committed block) and `api/tests/guide-deployment.test.js` (order) |
 
 ## 2. Performance budget
 
@@ -67,6 +68,7 @@ The check is opt-in. `npm test` never runs it, and no deploy step calls it. The 
 - **Static files and HTML:** `deploy/nginx.conf`.
 - **Public API reads:** `api/middleware/security-headers.js`.
 - **Authenticated responses:** `api/middleware/auth.js`.
+- **Page load:** `api/scripts/preload-modules.js` writes the module preloads at deploy (row 9). The page generator writes the preload of the page data (`publishing-pipeline.md`).
 - **Edge:** a Cloudflare Cache Rule (one day for a 200 page) and Smart Tiered Cache, purged by the deploy workflow (`deployment.md`).
 - **Measurement:**
 

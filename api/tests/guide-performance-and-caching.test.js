@@ -68,3 +68,36 @@ describe(`${GUIDE} row 4: the HTML Cache-Control stays ${HTML_CACHE_CONTROL}`, (
     );
   });
 });
+
+// Row 9: module preload links are written at deploy by api/scripts/preload-modules.js.
+// A block that was committed carries the stamps of an old deploy, so the links
+// would name files that the page no longer imports.
+const PRELOAD_MARKER = "<!-- modulepreload -->";
+
+/** Every .html file below `relDir`, as repo-relative paths. */
+function htmlFilesUnder(relDir) {
+  const found = [];
+  for (const entry of fs.readdirSync(path.join(REPO, relDir), { withFileTypes: true })) {
+    const rel = path.posix.join(relDir, entry.name);
+    if (entry.isDirectory()) {
+      if (entry.name !== "node_modules") found.push(...htmlFilesUnder(rel));
+    } else if (entry.name.endsWith(".html")) {
+      found.push(rel);
+    }
+  }
+  return found;
+}
+
+describe(`${GUIDE} row 9: no committed file holds the module preload block`, () => {
+  test(`no .html file under frontend/ contains ${PRELOAD_MARKER}`, () => {
+    for (const file of htmlFilesUnder("frontend")) {
+      const text = read(file);
+      const at = text.indexOf(PRELOAD_MARKER);
+      assert.equal(
+        at,
+        -1,
+        `${file}:${at === -1 ? 0 : lineOf(text, at)} holds a committed ${PRELOAD_MARKER} block. deploy.sh writes it with api/scripts/preload-modules.js, and a committed block carries old version stamps. Remove it. Rule: ${GUIDE}, Invariants row 9.`
+      );
+    }
+  });
+});

@@ -207,6 +207,38 @@ describe("generatePage", () => {
     assert.ok(output.includes('"headline":"Test Item"'));
   });
 
+  // The address mirrors the fetch in frontend/assets/js/api.js, which
+  // api/tests/guide-publishing-pipeline.test.js checks for every type.
+  test("preloads the API read of the row, with crossorigin", () => {
+    seedEvidence({ slug: "test-item", title: "Test Item" });
+
+    const output = fs.readFileSync(generatePage("evidence", "test-item").path, "utf8");
+
+    assert.ok(
+      output.includes('<link rel="preload" as="fetch" crossorigin href="/api/evidence/test-item">'),
+    );
+  });
+
+  test("the preload path follows the content type, not the page URL", () => {
+    db.prepare(
+      `INSERT INTO blog_posts (slug, blog_title, published_draft)
+       VALUES (?, ?, ?)`,
+    ).run("test-blog", "Blog Title", 1);
+
+    const output = fs.readFileSync(generatePage("blog-posts", "test-blog").path, "utf8");
+
+    assert.ok(output.includes('href="/api/blog-posts/test-blog"'));
+  });
+
+  test("the preload encodes a slug that has special characters", () => {
+    seedEvidence({ slug: "odd slug&more", title: "Odd" });
+
+    const output = fs.readFileSync(generatePage("evidence", "odd slug&more").path, "utf8");
+
+    assert.ok(output.includes('href="/api/evidence/odd%20slug%26more"'));
+    assert.ok(!output.includes('href="/api/evidence/odd slug'));
+  });
+
   test("rejects an unpublished slug", () => {
     seedEvidence({
       slug: "draft-item",

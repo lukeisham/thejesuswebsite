@@ -1,4 +1,4 @@
-// Guide test for setup/ARCHITECTURE/publishing-pipeline.md (the blog registration row and the paged public lists row).
+// Guide test for setup/ARCHITECTURE/publishing-pipeline.md (the blog registration row, the paged public lists row and the API preload row).
 //
 // This file does not test behaviour. It reads source files as text and fails
 // when a blog post is missing from one of the lists that the guide names.
@@ -61,6 +61,30 @@ describe(`${GUIDE}: public lists return list columns and are read page by page`,
         read(model),
         /const itemsSql =[^;]*SELECT \$\{LIST_COLUMNS\} FROM/,
         `CORE-3, TEST-10: paged lists row: the getAllPublished itemsSql in ${model} no longer selects LIST_COLUMNS. See ${GUIDE}.`,
+      );
+    });
+  }
+});
+
+// The generated page head preloads the API read of its row at /api/<type>/<slug>.
+// The page script fetches the same address through api.js, so the two must
+// agree for every content type. A different address makes the browser fetch twice.
+const { CONTENT_PAGES } = require("../config/content-pages");
+
+describe(`${GUIDE}: the page head preloads the API read that api.js fetches`, () => {
+  test("page-generator.js writes the preload from config.type", () => {
+    assert.match(
+      read("api/services/page-generator.js"),
+      /rel="preload" as="fetch" crossorigin href="\$\{escapeHTML\(`\/api\/\$\{config\.type\}\/\$\{encodeURIComponent\(row\.slug\)\}`\)\}"/,
+      `CORE-3, TEST-10: API preload row: page-generator.js no longer writes <link rel="preload" as="fetch" crossorigin href="/api/\${config.type}/<slug>">. See ${GUIDE}.`,
+    );
+  });
+
+  for (const type of Object.keys(CONTENT_PAGES)) {
+    test(`api.js fetches /${type}/<slug> for the ${type} page`, () => {
+      assert.ok(
+        read("frontend/assets/js/api.js").includes("request(`/" + type + "/${encodeURIComponent(slug)}`)"),
+        `CORE-3, TEST-10: API preload row: frontend/assets/js/api.js has no request(\`/${type}/\${encodeURIComponent(slug)}\`). The preload for ${type} pages names an address that no fetch uses, so the browser fetches twice. See ${GUIDE}.`,
       );
     });
   }

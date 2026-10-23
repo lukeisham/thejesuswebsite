@@ -16,6 +16,7 @@
     "embed-data": "node scripts/embed-initial-data.js",
     "import-geoip": "node scripts/import-geoip.js",
     "import-wikipedia-scoring": "node scripts/import-wikipedia-scoring.js",
+    "preload-modules": "node scripts/preload-modules.js",
     "version-assets": "node scripts/version-assets.js",
     "stamp-about-dates": "node scripts/stamp-about-dates.js",
     "standardize-uploads": "node scripts/standardize-existing-uploads.js",
