@@ -17,12 +17,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Deploy over HTTPS, not SSH: GitHub-hosted Actions runners live on
-      # Azure datacenter IP ranges that get silently dropped by this VPS
-      # host's network-edge protection on port 22, even
-      # though SSH works fine from every other network. HTTPS/443 does not
-      # have this problem. This endpoint runs the identical git-reset +
-      # deploy.sh sequence the old SSH step ran (api/routes/deploy-webhook.js),
-      # synchronously, so this step still fails the job when the deploy fails.
+      # Azure datacenter IP ranges that this VPS host's network-edge
+      # protection silently drops on port 22. HTTPS on port 443 is not
+      # dropped. The endpoint runs git reset and deploy.sh synchronously
+      # (api/routes/deploy-webhook.js), so this step fails the job when the
+      # deploy fails.
       - name: Deploy via webhook
         id: webhook
         run: |
@@ -96,67 +95,110 @@ jobs:
           } | tee -a "$GITHUB_STEP_SUMMARY"
           exit 1
 
-      # Purge Cloudflare's edge cache so the deploy is visible immediately,
-      # instead of waiting out the HTML edge cache's max-age=60 window. Must
-      # run after the SSH deploy step succeeds — purging before origin serves
-      # the new content would just re-cache stale bytes.
+      # Purge the HTML that a deploy can change, so a deploy is visible at
+      # once. Cloudflare keeps an HTML page for a long time (a Cache Rule in
+      # the dashboard, D-070), so a page that this list misses stays old.
+      # api/tests/guide-deployment.test.js fails when a folder or page file of
+      # frontend/ is in neither list.
+      #
+      # /assets/ is never purged. JS and CSS URLs carry a ?v= stamp that
+      # changes every deploy, and a replaced image gets a new filename, so
+      # nothing there goes stale. A purge of everything would empty those
+      # copies too, and the next visitor would wait for the VPS.
+      #
+      # Cloudflare takes one field per purge request, and a prefix has no
+      # scheme. Run this step after the origin serves the new content, or the
+      # purge lets the edge cache the old bytes again.
       #
       # A purge failure is EXPECTED AND INTENDED to turn the job red and
-      # trigger GitHub's failure notification. The SSH deploy step above has
+      # trigger GitHub's failure notification. The webhook step above has
       # already completed and is unaffected. Do NOT add `continue-on-error:
-      # true` here — that would silently swallow purge failures, and visitors
-      # would get stale pages from the edge with no signal that the purge failed.
+      # true` here: it would hide a failed purge, and visitors would get old
+      # pages from the edge for a day with no signal.
       - name: Purge Cloudflare cache
         id: purge
         run: |
           set -euo pipefail
 
-          http_code=$(curl -sS -w '%{http_code}' -o response.json -X POST \
-            "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/purge_cache" \
-            -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_PURGE_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            --data '{"purge_everything":true}')
+          purge() {
+            local label="$1" data="$2" http_code body
 
-          body=$(cat response.json)
-          echo "$body"
+            http_code=$(curl -sS -w '%{http_code}' -o response.json -X POST \
+              "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/purge_cache" \
+              -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_PURGE_TOKEN }}" \
+              -H "Content-Type: application/json" \
+              --data "$data")
 
-          # Fail visibly on non-2xx HTTP status (auth errors, rate limiting,
-          # network failures, etc.).
-          if [[ ! "$http_code" =~ ^2[0-9][0-9]$ ]]; then
-            {
-              echo "❌ Cloudflare cache purge FAILED — HTTP $http_code"
-              echo "Response body: $body"
-            } | tee -a "$GITHUB_STEP_SUMMARY"
-            exit 1
+            body=$(cat response.json)
+            echo "$body"
+
+            # Fail visibly on non-2xx HTTP status (auth errors, rate limiting,
+            # network failures, etc.).
+            if [[ ! "$http_code" =~ ^2[0-9][0-9]$ ]]; then
+              {
+                echo "❌ Cloudflare cache purge $label FAILED — HTTP $http_code"
+                echo "Response body: $body"
+              } | tee -a "$GITHUB_STEP_SUMMARY"
+              exit 1
+            fi
+
+            # Parse the JSON success field explicitly. Cloudflare sometimes
+            # returns HTTP 200 with {"success":false,"errors":[...]} — curl's
+            # exit code alone cannot catch that case.
+            if command -v jq &>/dev/null; then
+              if echo "$body" | jq -e '.success == true' >/dev/null 2>&1; then
+                echo "✅ Cloudflare cache purge $label succeeded" | tee -a "$GITHUB_STEP_SUMMARY"
+              else
+                error_detail=$(echo "$body" | jq -c '.errors // "no errors array"' 2>/dev/null || echo "(unable to parse errors)")
+                {
+                  echo "❌ Cloudflare cache purge $label FAILED — HTTP $http_code, success:false"
+                  echo "Cloudflare errors: $error_detail"
+                  echo "Full response: $body"
+                } | tee -a "$GITHUB_STEP_SUMMARY"
+                exit 1
+              fi
+            else
+              # jq unavailable (should never happen on ubuntu-latest). Fall back
+              # to a stricter grep: require "success":true present AND
+              # "success":false absent.
+              if echo "$body" | grep -q '"success"[[:space:]]*:[[:space:]]*true' && \
+                 ! echo "$body" | grep -q '"success"[[:space:]]*:[[:space:]]*false'; then
+                echo "✅ Cloudflare cache purge $label succeeded (grep fallback)" | tee -a "$GITHUB_STEP_SUMMARY"
+              else
+                {
+                  echo "❌ Cloudflare cache purge $label FAILED — HTTP $http_code, success check failed"
+                  echo "Full response: $body"
+                } | tee -a "$GITHUB_STEP_SUMMARY"
+                exit 1
+              fi
+            fi
+          }
+
+          purge "by URL" '{"files":["https://thejesuswebsite.org/","https://thejesuswebsite.org/about.html","https://thejesuswebsite.org/sitemap.xml","https://thejesuswebsite.org/llms.txt","https://thejesuswebsite.org/robots.txt"]}'
+          purge "by prefix" '{"prefixes":["thejesuswebsite.org/.well-known/","thejesuswebsite.org/contextual-essays/","thejesuswebsite.org/debate/","thejesuswebsite.org/evidence/","thejesuswebsite.org/news-and-blog/","thejesuswebsite.org/resources/"]}'
+
+      # Fetch every page of the sitemap once, so the first visitor to a page
+      # does not wait for the VPS. It only reads: it never changes the origin
+      # or the edge content, so it may run after the purge. It warns and never
+      # fails the job, because a slow page is not a failed deploy. With Tiered
+      # Cache on (D-071), the fetch from this runner also fills the upper tier
+      # that the other Cloudflare locations ask first.
+      - name: Warm Cloudflare cache
+        run: |
+          set -uo pipefail
+
+          urls=$(curl -sS --max-time 30 https://thejesuswebsite.org/sitemap.xml | grep -o '<loc>[^<]*</loc>' | sed -e 's/<loc>//' -e 's/<\/loc>//')
+          if [[ -z "$urls" ]]; then
+            echo "::warning::Warm step found no URLs in https://thejesuswebsite.org/sitemap.xml"
+            exit 0
           fi
 
-          # Parse the JSON success field explicitly. Cloudflare sometimes
-          # returns HTTP 200 with {"success":false,"errors":[...]} — curl's
-          # exit code alone cannot catch that case.
-          if command -v jq &>/dev/null; then
-            if echo "$body" | jq -e '.success == true' >/dev/null 2>&1; then
-              echo "✅ Cloudflare cache purge succeeded" | tee -a "$GITHUB_STEP_SUMMARY"
-            else
-              error_detail=$(echo "$body" | jq -c '.errors // "no errors array"' 2>/dev/null || echo "(unable to parse errors)")
-              {
-                echo "❌ Cloudflare cache purge FAILED — HTTP $http_code, success:false"
-                echo "Cloudflare errors: $error_detail"
-                echo "Full response: $body"
-              } | tee -a "$GITHUB_STEP_SUMMARY"
-              exit 1
-            fi
+          failed=$(echo "$urls" | xargs -P 8 -n 1 sh -c 'code=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 20 "$1" || true); [ "$code" = 200 ] || echo "$code $1"' _)
+
+          total=$(echo "$urls" | wc -l | tr -d " ")
+          if [[ -n "$failed" ]]; then
+            count=$(echo "$failed" | wc -l | tr -d " ")
+            echo "::warning::Warm step: $count of $total pages did not return 200. First: $(echo "$failed" | head -1)"
           else
-            # jq unavailable (should never happen on ubuntu-latest). Fall back
-            # to a stricter grep: require "success":true present AND
-            # "success":false absent.
-            if echo "$body" | grep -q '"success"[[:space:]]*:[[:space:]]*true' && \
-               ! echo "$body" | grep -q '"success"[[:space:]]*:[[:space:]]*false'; then
-              echo "✅ Cloudflare cache purge succeeded (grep fallback)" | tee -a "$GITHUB_STEP_SUMMARY"
-            else
-              {
-                echo "❌ Cloudflare cache purge FAILED — HTTP $http_code, success check failed"
-                echo "Full response: $body"
-              } | tee -a "$GITHUB_STEP_SUMMARY"
-              exit 1
-            fi
+            echo "✅ Warmed $total pages" | tee -a "$GITHUB_STEP_SUMMARY"
           fi

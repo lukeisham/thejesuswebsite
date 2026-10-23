@@ -4,7 +4,7 @@ Pages load fast and stay fresh. Static files are cached for a long time at addre
 content changes, and visitors see a first-paint snapshot that live data then confirms.
 
 **Source of truth:** `deploy/nginx.conf`, `api/middleware/security-headers.js` and `api/middleware/auth.js` — win any disagreement with this doc.
-**Spans:** `deploy/nginx.conf`, `api/middleware/security-headers.js`, `api/middleware/auth.js`, `api/scripts/version-assets.js`, `api/scripts/generate-maps/index.js`, `api/scripts/embed-initial-data.js`, `frontend/assets/js/utils/lazy-load.js`, `frontend/assets/js/utils/data-revalidation.js`, `api/scripts/run-lighthouse.js`, `.github/workflows/performance-check.yml`.
+**Spans:** `deploy/nginx.conf`, `.github/workflows/deploy.yml`, `api/middleware/security-headers.js`, `api/middleware/auth.js`, `api/scripts/version-assets.js`, `api/scripts/generate-maps/index.js`, `api/scripts/embed-initial-data.js`, `frontend/assets/js/utils/lazy-load.js`, `frontend/assets/js/utils/data-revalidation.js`, `api/scripts/run-lighthouse.js`, `.github/workflows/performance-check.yml`.
 
 ## 1. Invariants
 
@@ -13,7 +13,7 @@ content changes, and visitors see a first-paint snapshot that live data then con
 | Versioned JS and CSS (`/assets/js/`, `/assets/css/`) are cached immutable for a year, and their URLs change at every deploy | `api/scripts/version-assets.js` stamps the URLs (`deployment.md`) | A deploy that skips the stamp serves old code from the browser cache for a year |
 | Other `/assets/` files, such as images, are cached immutable for a year at stable URLs. A replaced image gets a new filename | The URL is the cache key | The old image stays in browsers and at the edge |
 | `/assets/images/maps/` is the exception: it revalidates and uses `?v=`. After `api/scripts/generate-maps/` rewrites an SVG, a new migration bumps `?v=` on `maps.image_path` | The map files keep their filenames | Returning browsers keep the old map artwork |
-| HTML is `max-age=60` (D-013). A Cloudflare Cache Rule honours that value for everything except `/api/*` and `/admin/*`. Each deploy purges the edge | The origin header is the edge-cache contract with Cloudflare (see the comment in `deploy/nginx.conf`) | The edge keeps HTML longer than 60 seconds, or does not cache it at all |
+| HTML is `max-age=60` for browsers (D-013). A Cloudflare Cache Rule keeps a 200 page at the edge for one day and leaves the browser time to the origin header (D-070), for everything except `/api/*` and `/admin/*`. Each deploy purges the HTML at the edge and never `/assets/` (`deployment.md`). Smart Tiered Cache is on (D-071) | A browser copy cannot be purged, so the browser time stays short. The deploy purges the edge copy. An edit shows through the public API within 60 seconds, because the HTML holds only the page head and the snapshot from the last deploy, so a long edge time hides no content | A longer origin `max-age` keeps old HTML in browsers after a deploy, and old markup runs against new scripts. The guide test `api/tests/guide-performance-and-caching.test.js` pins the header. The Cache Rule and Tiered Cache are in the Cloudflare dashboard, so no test sees them |
 | `/admin/` always revalidates, and authenticated API responses are `no-store` | Admin pages and private data must never come from a cache | An editor sees an old admin page, or a shared cache holds private data |
 | Every `Cache-Control` value is read where it is set: `deploy/nginx.conf` for static files and HTML, `api/middleware/security-headers.js` for public `/api/` reads, `api/middleware/auth.js` for authenticated responses | This doc states the shape of the policy, not the values | A value copied into a doc or a second file drifts |
 | List and visual pages carry an embedded snapshot, and `utils/data-revalidation.js` re-renders only if the live data differs | The first paint needs no fetch | A change to the renderer that skips the snapshot makes the page flash or jump (`publishing-pipeline.md`) |
@@ -48,7 +48,7 @@ One representative page stands for each page type, and each page is checked agai
 | `debate` | `/debate/` | Debate |
 | `resources` | `/resources/` | Resources |
 
-A page that returns an error status fails the check, so a removed page cannot pass quietly. Each deploy purges the Cloudflare cache, so a page measured right after a deploy loads cold from the VPS. The warm-up run fills the cache first, so the result shows the page as a returning visitor sees it. Pick a new representative page and update both lists when a page is removed.
+A page that returns an error status fails the check, so a removed page cannot pass quietly. Each deploy purges the HTML at the edge and then warms it, but a page that Cloudflare dropped still loads cold from the VPS. The warm-up run fills the cache first, so the result shows the page as a returning visitor sees it. Pick a new representative page and update both lists when a page is removed.
 
 ### 2.2 Running the check
 
@@ -67,7 +67,7 @@ The check is opt-in. `npm test` never runs it, and no deploy step calls it. The 
 - **Static files and HTML:** `deploy/nginx.conf`.
 - **Public API reads:** `api/middleware/security-headers.js`.
 - **Authenticated responses:** `api/middleware/auth.js`.
-- **Edge:** a Cloudflare Cache Rule, purged by the deploy workflow (`deployment.md`).
+- **Edge:** a Cloudflare Cache Rule (one day for a 200 page) and Smart Tiered Cache, purged by the deploy workflow (`deployment.md`).
 - **Measurement:**
 
 ```

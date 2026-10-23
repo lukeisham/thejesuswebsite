@@ -33,11 +33,12 @@ function withoutHashComments(text) {
     .join("\n");
 }
 
-// Names of the workflow steps, in file order. The three below are the steps
+// Names of the workflow steps, in file order. The four below are the steps
 // that the guide's order rule is about.
 const STEP_WEBHOOK = "Deploy via webhook";
 const STEP_HEALTH = "Check restart and health";
 const STEP_PURGE = "Purge Cloudflare cache";
+const STEP_WARM = "Warm Cloudflare cache";
 
 function stepNames(workflowText) {
   return [...workflowText.matchAll(/^\s*-\s*name:\s*(.+?)\s*$/gm)].map((m) => m[1]);
@@ -69,7 +70,7 @@ describe(`${GUIDE} row 3: the webhook runs deploy.sh with SKIP_RESTART=1`, () =>
   });
 });
 
-// ── Row 4: the stamp comes before the nginx reload, the purge comes last ──────
+// ── Row 4: the stamp comes before the nginx reload, the warm-up comes last ────
 
 describe(`${GUIDE} row 4: deploy order`, () => {
   test(`${DEPLOY_SH} stamps the assets before it reloads nginx`, () => {
@@ -84,21 +85,21 @@ describe(`${GUIDE} row 4: deploy order`, () => {
     );
   });
 
-  test(`${WORKFLOW} runs the webhook, then the health check, then the purge, and the purge is last`, () => {
+  test(`${WORKFLOW} runs the webhook, the health check, the purge and the warm-up in that order, and the warm-up is last`, () => {
     const names = stepNames(read(WORKFLOW));
     const at = (name) => names.findIndex((n) => n.includes(name));
     assert.ok(
-      at(STEP_WEBHOOK) >= 0 && at(STEP_HEALTH) >= 0 && at(STEP_PURGE) >= 0,
-      `${WORKFLOW} must have the steps "${STEP_WEBHOOK}", "${STEP_HEALTH}" and "${STEP_PURGE}". Found: ${names.join(" | ")}. If you renamed a step, update this test and ${GUIDE}.`
+      at(STEP_WEBHOOK) >= 0 && at(STEP_HEALTH) >= 0 && at(STEP_PURGE) >= 0 && at(STEP_WARM) >= 0,
+      `${WORKFLOW} must have the steps "${STEP_WEBHOOK}", "${STEP_HEALTH}", "${STEP_PURGE}" and "${STEP_WARM}". Found: ${names.join(" | ")}. If you renamed a step, update this test and ${GUIDE}.`
     );
     assert.ok(
-      at(STEP_WEBHOOK) < at(STEP_HEALTH) && at(STEP_HEALTH) < at(STEP_PURGE),
-      `${WORKFLOW} must run "${STEP_WEBHOOK}", then "${STEP_HEALTH}", then "${STEP_PURGE}". Found: ${names.join(" | ")}. Rule: ${GUIDE}, Invariants row 4.`
+      at(STEP_WEBHOOK) < at(STEP_HEALTH) && at(STEP_HEALTH) < at(STEP_PURGE) && at(STEP_PURGE) < at(STEP_WARM),
+      `${WORKFLOW} must run "${STEP_WEBHOOK}", "${STEP_HEALTH}", "${STEP_PURGE}", then "${STEP_WARM}". Found: ${names.join(" | ")}. Rule: ${GUIDE}, Invariants row 4.`
     );
     assert.equal(
-      at(STEP_PURGE),
+      at(STEP_WARM),
       names.length - 1,
-      `${WORKFLOW}: "${STEP_PURGE}" must be the last step. A step after it can change the origin after the purge. Rule: ${GUIDE}, Invariants row 4.`
+      `${WORKFLOW}: "${STEP_WARM}" must be the last step. It only reads. Any step after the purge that can change the origin would run after the purge. Rule: ${GUIDE}, Invariants row 4.`
     );
   });
 });
@@ -114,6 +115,76 @@ describe(`${GUIDE} row 5: no continue-on-error in the workflow`, () => {
       null,
       `${WORKFLOW}:${hit ? lineOf(text, hit.index) : 0} sets continue-on-error. A failed purge, restart or health check must turn the job red. Rule: ${GUIDE}, Invariants row 5.`
     );
+  });
+});
+
+// ── Row 12: the purge lists HTML only, and covers every section ───────────────
+
+// Top-level entries of frontend/ that the purge lists need not name. A new
+// folder or page file that is in neither list fails the test below.
+const PURGE_FOLDER_EXCEPTIONS = {
+  assets: "JS and CSS URLs change every deploy and a replaced image gets a new filename, so nothing there goes stale.",
+  tests: "Not served by nginx.",
+};
+const PURGE_FILE_EXCEPTIONS = {
+  "404.html": "An error page. The Cloudflare Cache Rule keeps only status 200 for a day.",
+};
+const ORIGIN_HOST = "thejesuswebsite.org";
+
+/** The text of the purge step: from its name line to the next step. */
+function purgeStepText() {
+  const text = withoutHashComments(read(WORKFLOW));
+  const start = text.indexOf(`name: ${STEP_PURGE}`);
+  const end = text.indexOf("- name:", start + 1);
+  return { text: text.slice(start, end === -1 ? undefined : end), start: lineOf(text, start) };
+}
+
+describe(`${GUIDE} row 12: the purge lists HTML only`, () => {
+  test(`the "${STEP_PURGE}" step never purges everything and never lists /assets/`, () => {
+    const { text, start } = purgeStepText();
+    assert.ok(text.length > 0, `${WORKFLOW} has no "${STEP_PURGE}" step.`);
+    assert.doesNotMatch(
+      text,
+      /purge_everything/,
+      `${WORKFLOW}:${start} purges everything. That empties the JS, CSS and image copies that never go stale. Rule: ${GUIDE}, Invariants row 12.`
+    );
+    assert.doesNotMatch(
+      text,
+      /\/assets\//,
+      `${WORKFLOW}:${start} lists /assets/. Those files never go stale, so a purge only makes the next visitor wait. Rule: ${GUIDE}, Invariants row 12.`
+    );
+    assert.match(text, /"files"/, `${WORKFLOW}:${start} has no purge by "files". Rule: ${GUIDE}, Invariants row 12.`);
+    assert.match(text, /"prefixes"/, `${WORKFLOW}:${start} has no purge by "prefixes". Rule: ${GUIDE}, Invariants row 12.`);
+  });
+
+  test("every top-level folder and page file of frontend/ is purged or named as an exception", () => {
+    const { text, start } = purgeStepText();
+    const entries = fs.readdirSync(path.join(REPO, "frontend"), { withFileTypes: true });
+    for (const entry of entries) {
+      if (entry.isDirectory()) {
+        if (entry.name in PURGE_FOLDER_EXCEPTIONS) continue;
+        assert.ok(
+          text.includes(`"${ORIGIN_HOST}/${entry.name}/"`),
+          `${WORKFLOW}:${start} does not purge the prefix ${ORIGIN_HOST}/${entry.name}/. Its pages keep their old HTML at the edge for a day after a deploy. Add the prefix, or name the folder in PURGE_FOLDER_EXCEPTIONS with a reason. Rule: ${GUIDE}, Invariants row 12.`
+        );
+      } else if (/\.(html|txt|xml)$/.test(entry.name)) {
+        if (entry.name in PURGE_FILE_EXCEPTIONS) continue;
+        const url = entry.name === "index.html" ? `https://${ORIGIN_HOST}/` : `https://${ORIGIN_HOST}/${entry.name}`;
+        assert.ok(
+          text.includes(`"${url}"`),
+          `${WORKFLOW}:${start} does not purge ${url}. It keeps its old HTML at the edge for a day after a deploy. Add the URL, or name the file in PURGE_FILE_EXCEPTIONS with a reason. Rule: ${GUIDE}, Invariants row 12.`
+        );
+      }
+    }
+  });
+
+  test("every purge exception names an entry that still exists", () => {
+    for (const name of Object.keys(PURGE_FOLDER_EXCEPTIONS)) {
+      assert.ok(fs.existsSync(path.join(REPO, "frontend", name)), `PURGE_FOLDER_EXCEPTIONS names frontend/${name}, which is missing. Remove the exception.`);
+    }
+    for (const name of Object.keys(PURGE_FILE_EXCEPTIONS)) {
+      assert.ok(fs.existsSync(path.join(REPO, "frontend", name)), `PURGE_FILE_EXCEPTIONS names frontend/${name}, which is missing. Remove the exception.`);
+    }
   });
 });
 

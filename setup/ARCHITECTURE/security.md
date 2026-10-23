@@ -22,7 +22,7 @@ Rows 1, 2, 7 and 8 are enforced by `api/tests/guide-security.test.js` (TEST-10).
 
 ## 2. Shape
 
-The page policy reaches the browser from nginx. `dev-proxy.js` sends no page policy, so a local check cannot show a policy fault. Cloudflare caches each HTML page for 60 seconds (D-013), so a nonce would repeat for every visitor and cannot work.
+The page policy reaches the browser from nginx. `dev-proxy.js` sends no page policy, so a local check cannot show a policy fault. Cloudflare keeps each HTML page at the edge for a day (D-070), so a nonce would repeat for every visitor and cannot work.
 
 Requests to the public agent endpoint are logged in `/var/log/nginx/thejesuswebsite-mcp.access.log` on the VPS. To look for abuse, read the busiest client addresses and the status codes in that file.
 

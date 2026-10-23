@@ -54,3 +54,28 @@
 ### Code-review checks
 - [ ] SR-5 — no secrets, tokens or visitor IP addresses in the plan or the issue log.
 - [ ] Issue-log edits were made by script, and only the intended cells changed.
+
+## Validation: Cold cache fix
+**Plan:** cold-cache-fix.md
+**Date:** 2026-10-23
+
+### Manual checks
+- [ ] After a deploy, `curl -sI` on an image under `/assets/images/` still shows `cf-cache-status: HIT` with an `age` larger than the deploy age.
+- [ ] After a deploy, `curl -s -o /dev/null -w "%{time_starttransfer}\n" https://thejesuswebsite.org/` is well below 0.6 s.
+- [ ] The `Warm Cloudflare cache` step of the deploy run shows no `::warning::`.
+- [ ] After Luke sets the Cache Rule, a second `curl -sI` of the home page 70 seconds after the first shows `HIT` with an `age` above 60, never `EXPIRED`.
+- [ ] The home page response still has `cache-control: public, max-age=60`.
+- [ ] Luke has turned on Smart Tiered Cache and set the HTML Cache Rule to a one-day edge time for status 200, with the browser time respecting the origin.
+- [ ] After an edit and a publish in the admin, the live page shows the new content within about 60 seconds, even though the HTML is cached for a day.
+- [ ] The `Performance check` workflow, run right after a deploy, reports its result in chat.
+
+### Code-review checks
+- [ ] SR-5 — no token, zone ID or secret in `deploy.yml`, a comment or a log line.
+- [ ] JS-2 — a failed warm request prints the URL in a `::warning::` line.
+- [ ] CORE-4 — rows D-069 to D-071 exist in `setup/Decisions_log.md`, one table row each.
+- [ ] Touch rule + CORE-5 — `.github/workflows/deploy.yml`: comments give the why and the links, the guide matches the file
+- [ ] Touch rule + CORE-5 — `deploy/nginx.conf`: comments give the why and the links, the guide matches the file
+- [ ] Touch rule + CORE-5 — `api/tests/guide-deployment.test.js`: comments give the why and the links, the guide matches the file
+- [ ] Touch rule + CORE-5 — `setup/ARCHITECTURE/deployment.md`: purpose statement 40 words or fewer, numbered headings, citations of old headings fixed
+- [ ] Touch rule + CORE-5 — `setup/ARCHITECTURE/performance-and-caching.md`: purpose statement 40 words or fewer, the warm-up and median text from the performance-check commit kept
+- [ ] TEST-10 — `api/tests/guide-deployment.test.js` and `api/tests/guide-performance-and-caching.test.js`: fail with the rule, file, line and guide path; exceptions are named with a reason
