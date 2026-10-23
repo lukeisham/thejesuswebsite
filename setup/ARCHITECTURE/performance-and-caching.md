@@ -48,7 +48,7 @@ One representative page stands for each page type, and each page is checked agai
 | `debate` | `/debate/` | Debate |
 | `resources` | `/resources/` | Resources |
 
-A page that returns an error status fails the check, so a removed page cannot pass quietly. Pick a new representative page and update both lists when a page is removed.
+A page that returns an error status fails the check, so a removed page cannot pass quietly. Each deploy purges the Cloudflare cache, so a page measured right after a deploy loads cold from the VPS. The warm-up run fills the cache first, so the result shows the page as a returning visitor sees it. Pick a new representative page and update both lists when a page is removed.
 
 ### 2.2 Running the check
 
@@ -56,7 +56,7 @@ The check is opt-in. `npm test` never runs it, and no deploy step calls it. The 
 
 | Step | Command or action |
 | :-- | :--- |
-| Measure with Lighthouse | `cd api && npm run perf:lighthouse` saves one report per page in `api/perf-results/` |
+| Measure with Lighthouse | `cd api && npm run perf:lighthouse` warms each page with one discarded run, measures it three times, and saves the middle run by score as one report per page in `api/perf-results/` |
 | Measure with WebPageTest | Save its JSON result as `api/perf-results/webpagetest-<name>-<date>.json`, with the page name from section 2.1 |
 | Check the newest result for each page and tool | `cd api && npm run test:perf` |
 | Run both on GitHub | Actions tab, "Performance check", Run workflow. GitHub emails a failed run |

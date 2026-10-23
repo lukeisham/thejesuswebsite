@@ -5,6 +5,13 @@
 // `npm run test:perf` (api/tests/perf/). The workflow
 // .github/workflows/performance-check.yml runs both.
 //
+// Each page gets one warm-up run that is thrown away, then MEASURED_RUNS real
+// runs, and the middle run by performance score is saved. The warm-up fills the
+// Cloudflare cache, which each deploy purges, so the first visitor to a cold
+// page would otherwise make the page fail. The middle run keeps one noisy run
+// from deciding the result, and it is still one real run, so its metrics agree
+// with each other.
+//
 // PAGES is read by api/tests/perf/guide-performance-and-caching.test.js to find
 // each page's newest report, and api/tests/performance-budget.test.js makes
 // sure that the "Pages covered" table in the performance guide lists the same
@@ -18,12 +25,14 @@
 // setup/ARCHITECTURE/performance-and-caching.md.
 
 const fs = require("fs");
+const os = require("os");
 const path = require("path");
 const { spawnSync } = require("child_process");
 
 const LIGHTHOUSE_VERSION = "13.5.0";
 const SITE_ORIGIN = "https://thejesuswebsite.org";
 const RESULTS_DIR = path.resolve(__dirname, "..", "perf-results");
+const MEASURED_RUNS = 3;
 
 // One page for each page type. A detail page is chosen by slug, so the test
 // treats an error status as a failure (a removed slug must not pass quietly).
@@ -44,13 +53,22 @@ const PAGES = [
 const CHROME_FLAGS = "--headless=new --no-sandbox";
 
 /**
- * Run Lighthouse on one page and save its JSON report.
+ * Pick the middle run by performance score.
+ * @param {number[]} scores - Performance score of each measured run.
+ * @returns {number} Index into `scores` of the median run.
+ */
+function medianIndex(scores) {
+  const order = scores.map((score, index) => ({ score, index })).sort((a, b) => a.score - b.score);
+  return order[Math.floor(order.length / 2)].index;
+}
+
+/**
+ * Run Lighthouse once and write its JSON report.
  * @param {{name: string, path: string}} page - Entry of PAGES.
- * @param {string} stamp - Timestamp shared by every report of this run.
+ * @param {string} outputPath - Where Lighthouse writes the report.
  * @returns {boolean} True when the report file exists.
  */
-function runPage(page, stamp) {
-  const outputPath = path.join(RESULTS_DIR, `lighthouse-${page.name}-${stamp}.json`);
+function runLighthouse(page, outputPath) {
   const run = spawnSync(
     "npx",
     [
@@ -68,8 +86,36 @@ function runPage(page, stamp) {
     console.error(`Lighthouse did not produce a report for ${page.name} ${page.path} (exit ${run.status}).`);
     return false;
   }
-  console.log(`Saved ${outputPath}`);
   return true;
+}
+
+/**
+ * Warm the page, measure it MEASURED_RUNS times, and save the median report.
+ * @param {{name: string, path: string}} page - Entry of PAGES.
+ * @param {string} stamp - Timestamp shared by every report of this run.
+ * @returns {boolean} True when the median report was saved.
+ */
+function runPage(page, stamp) {
+  const workDir = fs.mkdtempSync(path.join(os.tmpdir(), `lighthouse-${page.name}-`));
+  try {
+    if (!runLighthouse(page, path.join(workDir, "warm-up.json"))) return false;
+
+    const reports = [];
+    for (let run = 1; run <= MEASURED_RUNS; run++) {
+      const reportPath = path.join(workDir, `run-${run}.json`);
+      if (!runLighthouse(page, reportPath)) return false;
+      reports.push(reportPath);
+    }
+
+    const scores = reports.map((reportPath) => JSON.parse(fs.readFileSync(reportPath, "utf8")).categories.performance.score);
+    const median = medianIndex(scores);
+    const outputPath = path.join(RESULTS_DIR, `lighthouse-${page.name}-${stamp}.json`);
+    fs.copyFileSync(reports[median], outputPath);
+    console.log(`Saved ${outputPath} (run ${median + 1} of scores ${scores.join(", ")})`);
+    return true;
+  } finally {
+    fs.rmSync(workDir, { recursive: true, force: true });
+  }
 }
 
 function main() {
@@ -85,4 +131,4 @@ function main() {
 
 if (require.main === module) main();
 
-module.exports = { PAGES };
+module.exports = { PAGES, medianIndex };

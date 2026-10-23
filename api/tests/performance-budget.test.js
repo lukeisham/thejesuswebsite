@@ -13,7 +13,7 @@ const {
   metricsFromWebPageTest,
   findViolations,
 } = require("./helpers/performance-budget");
-const { PAGES } = require("../scripts/run-lighthouse");
+const { PAGES, medianIndex } = require("../scripts/run-lighthouse");
 
 const GUIDE_PATH = "setup/ARCHITECTURE/performance-and-caching.md";
 
@@ -65,6 +65,11 @@ describe("performance budget helper", () => {
     const problems = lighthousePageProblems({ audits: { "http-status-code": { score: 0, displayValue: "404" } } });
     assert.equal(problems.length, 1);
     assert.match(problems[0], /404/);
+  });
+
+  test("the median run is the middle run by score", () => {
+    assert.equal(medianIndex([0.6, 0.9, 0.7]), 2);
+    assert.equal(medianIndex([0.5, 0.5, 0.9]), 1);
   });
 
   test("a result with a missing metric is a violation, not a pass", () => {
