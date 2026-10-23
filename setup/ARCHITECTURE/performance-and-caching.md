@@ -1,10 +1,9 @@
 # Performance and caching
 
-Pages load fast and stay fresh. Static files are cached for a long time at addresses that change when
-content changes, and visitors see a first-paint snapshot that live data then confirms.
+Pages load fast and stay fresh. Visitors get cached copies, with a first view from a stored snapshot that live data then confirms. New code or backend data reaches visitors within a minute. Without such a change, cached copies last a long time.
 
 **Source of truth:** `deploy/nginx.conf`, `api/middleware/security-headers.js` and `api/middleware/auth.js` — win any disagreement with this doc.
-**Spans:** `deploy/nginx.conf`, `.github/workflows/deploy.yml`, `api/scripts/preload-modules.js`, `api/middleware/security-headers.js`, `api/middleware/auth.js`, `api/scripts/version-assets.js`, `api/scripts/generate-maps/index.js`, `api/scripts/embed-initial-data.js`, `frontend/assets/js/utils/lazy-load.js`, `frontend/assets/js/utils/data-revalidation.js`, `api/scripts/run-lighthouse.js`, `.github/workflows/performance-check.yml`.
+**Spans:** `deploy/nginx.conf`, `.github/workflows/deploy.yml`, `api/scripts/preload-modules.js`, `api/middleware/security-headers.js`, `api/middleware/auth.js`, `api/scripts/version-assets.js`, `api/scripts/generate-maps/index.js`, `api/scripts/check-live-headers.js`, `api/scripts/embed-initial-data.js`, `frontend/assets/js/utils/lazy-load.js`, `frontend/assets/js/utils/data-revalidation.js`, `api/scripts/run-lighthouse.js`, `.github/workflows/performance-check.yml`.
 
 ## 1. Invariants
 
@@ -13,12 +12,16 @@ content changes, and visitors see a first-paint snapshot that live data then con
 | Versioned JS and CSS (`/assets/js/`, `/assets/css/`) are cached immutable for a year, and their URLs change at every deploy | `api/scripts/version-assets.js` stamps the URLs (`deployment.md`) | A deploy that skips the stamp serves old code from the browser cache for a year |
 | Other `/assets/` files, such as images, are cached immutable for a year at stable URLs. A replaced image gets a new filename | The URL is the cache key | The old image stays in browsers and at the edge |
 | `/assets/images/maps/` is the exception: it revalidates and uses `?v=`. After `api/scripts/generate-maps/` rewrites an SVG, a new migration bumps `?v=` on `maps.image_path` | The map files keep their filenames | Returning browsers keep the old map artwork |
-| HTML is `max-age=60` for browsers (D-013). A Cloudflare Cache Rule keeps a 200 page at the edge for one day and leaves the browser time to the origin header (D-070), for everything except `/api/*` and `/admin/*`. Each deploy purges the HTML at the edge and never `/assets/` (`deployment.md`). Smart Tiered Cache is on (D-071) | A browser copy cannot be purged, so the browser time stays short. The deploy purges the edge copy. An edit shows through the public API within 60 seconds, because the HTML holds only the page head and the snapshot from the last deploy, so a long edge time hides no content | A longer origin `max-age` keeps old HTML in browsers after a deploy, and old markup runs against new scripts. The guide test `api/tests/guide-performance-and-caching.test.js` pins the header. The Cache Rule and Tiered Cache are in the Cloudflare dashboard, so no test sees them |
+| HTML is `max-age=60` for browsers (D-013). A Cloudflare Cache Rule keeps a 200 page at the edge for one day and leaves the browser time to the origin header (D-070), for everything except `/api/*` and `/admin/*`. Each deploy purges the HTML at the edge and never `/assets/` (`deployment.md`). Smart Tiered Cache is on (D-071) | A browser copy cannot be purged, so the browser time stays short. The deploy purges the edge copy. An edit shows through the public API within 60 seconds, because the HTML holds only the page head and the snapshot from the last deploy, so a long edge time hides no content | A longer origin `max-age` keeps old HTML in browsers after a deploy, and old markup runs against new scripts. The guide test `api/tests/guide-performance-and-caching.test.js` pins the header. The Cache Rule and Tiered Cache are in the Cloudflare dashboard, so no repo test sees them. After each deploy, `api/scripts/check-live-headers.js` fails the job if a repeat request for a page is not an edge HIT, which shows that the Cache Rule is off. Tiered Cache leaves no header, so nothing sees it |
 | `/admin/` always revalidates, and authenticated API responses are `no-store` | Admin pages and private data must never come from a cache | An editor sees an old admin page, or a shared cache holds private data |
 | Every `Cache-Control` value is read where it is set: `deploy/nginx.conf` for static files and HTML, `api/middleware/security-headers.js` for public `/api/` reads, `api/middleware/auth.js` for authenticated responses | This doc states the shape of the policy, not the values | A value copied into a doc or a second file drifts |
 | List and visual pages carry an embedded snapshot, and `utils/data-revalidation.js` re-renders only if the live data differs | The first paint needs no fetch | A change to the renderer that skips the snapshot makes the page flash or jump (`publishing-pipeline.md`) |
 | ES modules stay `defer`red at the bottom of `<body>` (HTML-4). Images use native `loading="lazy"` or `data-src`, which `utils/lazy-load.js` swaps in (`image-display.md`) | A blocking script or an eager image delays the first paint | The page loads slower and no test fails |
 | Module preload links (`<link rel="modulepreload">`, one per file of the static import chain of the page's scripts) are written at deploy by `api/scripts/preload-modules.js`, after the page generation and before the asset stamp, and only into the pages that `PRELOAD_PAGES` names: the detail pages whose text comes from an API read. Other pages get none. No committed file holds a block (D-073, D-074) | The stamp must see the links, so that each link names the versioned file that the page imports. The links share the network with the render-blocking stylesheets, so on a page that paints without waiting for scripts they delay the first paint and gain nothing | A link with no version, or a committed block with an old one, names a file that the page does not import, and the browser fetches every module twice. A page with static first content becomes slower, and no other test fails. Guide tests: `api/tests/guide-performance-and-caching.test.js` (no committed block, and the list against the real pages) and `api/tests/guide-deployment.test.js` (order) |
+
+The guide test `api/tests/guide-performance-and-caching.test.js` (TEST-10) also pins rows 1 to 5: each nginx location keeps its `Cache-Control`, and `/assets/` has no `^~` modifier. For row 3 it holds a hash and a `?v=` for each map SVG (`MAP_STAMPS`). A changed SVG fails the test until a migration bumps `?v=` and the table is updated.
+
+Rows 1 to 5, and the `?v=` stamp, are also read from the live public site after each deploy by `api/scripts/check-live-headers.js`. It takes the expected values from `deploy/nginx.conf`, so nothing is copied. It never reads `/admin/`, which sits behind a login, so row 5 is checked as text only.
 
 ## 2. Performance budget
 
@@ -70,6 +73,7 @@ The check is opt-in. `npm test` never runs it, and no deploy step calls it. The 
 - **Authenticated responses:** `api/middleware/auth.js`.
 - **Page load:** `api/scripts/preload-modules.js` writes the module preloads at deploy (row 9). The page generator writes the preload of the page data (`publishing-pipeline.md`).
 - **Edge:** a Cloudflare Cache Rule (one day for a 200 page) and Smart Tiered Cache, purged by the deploy workflow (`deployment.md`).
+- **Live headers:** `api/scripts/check-live-headers.js`, run by the `Check live cache headers` step of `deploy.yml` after the purge (`deployment.md`).
 - **Measurement:**
 
 ```
@@ -83,7 +87,7 @@ Budget table in this guide ─────────────────�
 ## 4. Extending it
 
 - **A new page or component:** reuse the shared CSS and JS. Do not add per-page files that repeat a shared component (SR-3).
-- **A new cache rule:** change `deploy/nginx.conf` or the middleware, then check the deployed response headers on the VPS. A change in `deploy/nginx.conf` also needs the symlink in `deployment.md`.
+- **A new cache rule:** change `deploy/nginx.conf` or the middleware, then check the deployed response headers on the VPS. A change in `deploy/nginx.conf` also needs the symlink in `deployment.md`, and an update of `LOCATION_RULES` in the guide test. A new cache class also needs a check in `api/scripts/check-live-headers.js`.
 - **A new page type with a module preload:** build a caching proxy that serves the live page from memory, with and without the `<!-- modulepreload -->` block, and run Lighthouse with one warm-up and three runs per variant. Add a `PRELOAD_PAGES` entry in `api/scripts/preload-modules.js` only if the median LCP is at least 150 ms lower with the block, and the gain shows again in at least three runs of the `Performance check` workflow for each variant, because one run varies by about 200 ms. Otherwise name the page in `NOT_PRELOADED` in the guide test, with the numbers.
 - **A performance change:** measure the deployed VPS, not local, with Lighthouse or WebPageTest (section 2). A change that does not move a measured number is not done.
 - **A new limit or a new metric:** edit the table in section 2, and add the reader for the metric in `api/tests/helpers/performance-budget.js`.

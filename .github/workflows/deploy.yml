@@ -177,6 +177,23 @@ jobs:
           purge "by URL" '{"files":["https://thejesuswebsite.org/","https://thejesuswebsite.org/about.html","https://thejesuswebsite.org/sitemap.xml","https://thejesuswebsite.org/llms.txt","https://thejesuswebsite.org/robots.txt"]}'
           purge "by prefix" '{"prefixes":["thejesuswebsite.org/.well-known/","thejesuswebsite.org/contextual-essays/","thejesuswebsite.org/debate/","thejesuswebsite.org/evidence/","thejesuswebsite.org/news-and-blog/","thejesuswebsite.org/resources/"]}'
 
+      # Read the cache headers that the live public site sends, and turn the job
+      # red when one breaks the policy in performance-and-caching.md. This is
+      # the only check that sees the Cloudflare Cache Rule (D-070): a repeat
+      # request for a page must be an edge HIT. It sends anonymous GET requests
+      # and never reads /admin/. It runs after the purge, so the edge holds no
+      # old copy, and it needs deploy/nginx.conf because the expected values are
+      # read from that file, not copied. It checks out main, not the pushed
+      # commit: a deploy that waited in the queue deploys the newest main.
+      - name: Check out the repository
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Check live cache headers
+        working-directory: api
+        run: node scripts/check-live-headers.js
+
       # Fetch every page of the sitemap once, so the first visitor to a page
       # does not wait for the VPS. It only reads: it never changes the origin
       # or the edge content, so it may run after the purge. It warns and never

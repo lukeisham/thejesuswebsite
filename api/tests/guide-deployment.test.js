@@ -38,6 +38,7 @@ function withoutHashComments(text) {
 const STEP_WEBHOOK = "Deploy via webhook";
 const STEP_HEALTH = "Check restart and health";
 const STEP_PURGE = "Purge Cloudflare cache";
+const STEP_HEADERS = "Check live cache headers";
 const STEP_WARM = "Warm Cloudflare cache";
 
 function stepNames(workflowText) {
@@ -101,16 +102,16 @@ describe(`${GUIDE} row 4: deploy order`, () => {
     );
   });
 
-  test(`${WORKFLOW} runs the webhook, the health check, the purge and the warm-up in that order, and the warm-up is last`, () => {
+  test(`${WORKFLOW} runs the webhook, the health check, the purge, the header check and the warm-up in that order, and the warm-up is last`, () => {
     const names = stepNames(read(WORKFLOW));
     const at = (name) => names.findIndex((n) => n.includes(name));
     assert.ok(
-      at(STEP_WEBHOOK) >= 0 && at(STEP_HEALTH) >= 0 && at(STEP_PURGE) >= 0 && at(STEP_WARM) >= 0,
-      `${WORKFLOW} must have the steps "${STEP_WEBHOOK}", "${STEP_HEALTH}", "${STEP_PURGE}" and "${STEP_WARM}". Found: ${names.join(" | ")}. If you renamed a step, update this test and ${GUIDE}.`
+      at(STEP_WEBHOOK) >= 0 && at(STEP_HEALTH) >= 0 && at(STEP_PURGE) >= 0 && at(STEP_HEADERS) >= 0 && at(STEP_WARM) >= 0,
+      `${WORKFLOW} must have the steps "${STEP_WEBHOOK}", "${STEP_HEALTH}", "${STEP_PURGE}", "${STEP_HEADERS}" and "${STEP_WARM}". Found: ${names.join(" | ")}. If you renamed a step, update this test and ${GUIDE}.`
     );
     assert.ok(
-      at(STEP_WEBHOOK) < at(STEP_HEALTH) && at(STEP_HEALTH) < at(STEP_PURGE) && at(STEP_PURGE) < at(STEP_WARM),
-      `${WORKFLOW} must run "${STEP_WEBHOOK}", "${STEP_HEALTH}", "${STEP_PURGE}", then "${STEP_WARM}". Found: ${names.join(" | ")}. Rule: ${GUIDE}, Invariants row 4.`
+      at(STEP_WEBHOOK) < at(STEP_HEALTH) && at(STEP_HEALTH) < at(STEP_PURGE) && at(STEP_PURGE) < at(STEP_HEADERS) && at(STEP_HEADERS) < at(STEP_WARM),
+      `${WORKFLOW} must run "${STEP_WEBHOOK}", "${STEP_HEALTH}", "${STEP_PURGE}", "${STEP_HEADERS}", then "${STEP_WARM}". The header check before the purge would read old edge copies. Found: ${names.join(" | ")}. Rule: ${GUIDE}, Invariants row 4.`
     );
     assert.equal(
       at(STEP_WARM),
