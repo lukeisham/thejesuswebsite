@@ -50,6 +50,10 @@ const PRELOAD_PAGES = [
     test: /^frontend\/(contextual-essays|debate\/(responses|historiography|popular-challenges|academic-challenges)|news-and-blog\/(blog|news))\/(?!index\.html$)[^/]+\.html$/,
     reason: "Detail pages render their text from an API read after the script chain has loaded.",
   },
+  {
+    test: /^frontend\/(contextual-essays|evidence|news-and-blog(\/blog|\/news)?|debate\/(historiography|responses))\/index\.html$/,
+    reason: "List pages render their rows from an API read after the script chain has loaded.",
+  },
 ];
 
 const MODULE_SCRIPT_RE = /<script\b[^>]*\btype="module"[^>]*>/g;

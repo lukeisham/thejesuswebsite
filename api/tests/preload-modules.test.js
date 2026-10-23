@@ -87,12 +87,14 @@ describe("preload-modules", () => {
     assert.equal(read("frontend/contextual-essays/plain.html"), before);
   });
 
-  test("PRELOAD_PAGES names the detail pages, and not the evidence, list or timeline pages", () => {
+  test("PRELOAD_PAGES names the detail and list pages, and not the evidence detail, search or timeline pages", () => {
     const named = (page) => PRELOAD_PAGES.some((rule) => rule.test.test(page));
     assert.ok(named("frontend/news-and-blog/blog/[slug].html"));
     assert.ok(named("frontend/debate/popular-challenges/my-slug.html"));
-    assert.ok(!named("frontend/news-and-blog/blog/index.html"));
+    assert.ok(named("frontend/news-and-blog/blog/index.html"));
+    assert.ok(named("frontend/evidence/index.html"));
     assert.ok(!named("frontend/evidence/[slug].html"));
+    assert.ok(!named("frontend/evidence/search.html"));
     assert.ok(!named("frontend/evidence/timeline/index.html"));
   });
 

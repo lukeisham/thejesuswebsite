@@ -111,7 +111,6 @@ describe(`${GUIDE} row 9: no committed file holds the module preload block`, () 
 // check. Measured as median LCP with against without the preload.
 const NOT_PRELOADED = {
   "frontend/index.html": "Home: 2406 against 2405 ms.",
-  "frontend/news-and-blog/news/index.html": "List page: 2709 against 2557 ms, so it is slower with the preload.",
   "frontend/evidence/[slug].html": "Evidence detail: 3232 against 3239 ms. Its LCP waits for a picture. Measure again after the picture work.",
   "frontend/evidence/timeline/index.html": "Timeline: 3757 against 3766 ms, and first paint 600 ms later.",
   "frontend/evidence/arbor.html": "Arbor: 2258 against 2409 ms. The gain is at the noise floor and first paint is 375 ms later.",
