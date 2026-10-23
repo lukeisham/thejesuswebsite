@@ -41,7 +41,6 @@ These rules apply without exception. A breach is a defect.
 **Touch rule.** When you edit a file (code, guide, style guide or README), bring that whole file
 into line with the Core Rules in the same change. A Markdown doc also meets the Documentation
 Rules (DOC-1 to DOC-3). Do not open or edit a file only to clean it.
-This is the one exception to AG-1.
 
 In a touched doc, keep only purpose, navigation and cross-module behaviour. Delete history,
 dates, status notes and permissions. Move a decision to `setup/Decisions_log.md` and an open
@@ -206,8 +205,7 @@ How an agent behaves while it writes code.
 
 **AG-1 — Change only what the task names.**
 No drive-by refactors, renames, reformatting, import reordering or "while I was here" fixes. If
-you see another defect, name it in your reply and leave the code alone. The one exception is a
-Core Rule breach in a file you are already editing, which you fix (Touch rule).
+you see another defect, name it in your reply and leave the code alone.
 
 **AG-2 — Done means you ran it.**
 Before you report a change as done, run the script, the tests or the page, and show the result.
@@ -283,8 +281,7 @@ Never fail silently: a guard against a "shouldn't happen" state must `console.wa
 In new files in `frontend/` and `admin/`:
 
 - ES modules only: `import` / `export`, loaded with `<script type="module">`. Put nothing on
-  `window`, and use no IIFE wrappers. Exception: `admin/` keeps its shared `window.Admin`
-  namespace from `admin.js`, and a new admin file follows that pattern (D-009, SR-8).
+  `window`, and use no IIFE wrappers.
 - `const` by default, `let` when the value changes, never `var`.
 - A `class` only when it holds both state and behaviour that change together.
 - Current features are welcome: `?.`, `??`, `structuredClone`, `Array.prototype.at`,
@@ -326,12 +323,6 @@ sense: the source files still run as they are.
 **PY-1 — Standard library only.**
 Python is for local scripts and tooling, never for anything the site serves. Stdlib only (`pathlib`, `json`, `csv`, `sqlite3`, `argparse`) — no `pip install`, no venv, no `requirements.txt` (SR-2). If a script needs a third-party package, write it in Node instead.
 
-Exception: a Python service may serve the site, with third-party dependencies and its own `requirements.txt`, when it is the most effective, robust, and safe solution available — not merely convenient. This means: no Node equivalent exists at comparable maturity for the problem (e.g. FAISS/ONNX-based approximate nearest-neighbor search and local embedding inference), the service is isolated as its own process (own venv, own pm2 process) rather than imported into the main app, and callers degrade gracefully if it's unavailable (timeout + fallback, never a hard dependency). Each exception must be named explicitly here, not inferred:
-
-- `Wikipedia algorithm/vector-sidecar/` — FastAPI/uvicorn, pm2-managed as `thejesuswebsite-vector-sidecar` on `127.0.0.1:8901`, synced via `scripts/sync-vector-sidecar.sh`. Called from `api/lib/vector-sidecar-client.js` with a 2s timeout and graceful degradation on failure.
-
-Offline tooling (`Wikipedia algorithm/classifier/`, `families/`, `scripts/`, `setup/scripts/`) that `deploy.sh` never invokes may also carry a `requirements.txt` for the same reason — it never serves a live request, so SR-2 doesn't apply to it the way it applies to anything in the request path.
-
 **PY-2 — One script, one job.**
 A script does one thing, named by its filename. Shared logic goes in a plain importable module beside it — never copy-pasted between scripts (SR-4).
 
@@ -370,18 +361,10 @@ Use what 3.14 gives you: `match`, `@dataclass(frozen=True, slots=True)`, `tomlli
 **TEST-1 — Built-in runners only, no external runners.**
 JavaScript: `node:test` + `node:assert/strict`, nothing else (SR-2). No Jest, Mocha, Vitest, Sinon, or mocking libraries — hand-build fakes, as `admin/tests/admin-editor-utils.test.js` does.
 
-Python: stdlib scripts use `unittest`. Offline tooling under PY-1's exception
-(`Wikipedia algorithm/`) uses `pytest` from its own venv, as its `README.md` shows.
+Python: stdlib scripts use `unittest`.
 
 **TEST-2 — Smoke, not exhaustive.**
 Assert three things per module: it imports cleanly, the happy path produces the right output, one guard or failure path behaves. Stop there — full branch coverage belongs in a suite this project doesn't run. Do not add tests for code that the task did not change (AG-1).
-
-Exception: a guide test (TEST-10) scans every file that its guide rule covers, including files
-that the task did not change. That scan is its purpose.
-
-Exception: a model test (`api/tests/<name>.model.test.js`) may go past three assertions to pin a
-data-loss guard, such as a save that must keep the rows whose keys it omits. Each extra test
-names the loss it prevents. Smoke depth still applies to everything else in the file (D-061).
 
 **TEST-2a — Run the suite before you report.**
 Run the tests for each area you changed, and show the pass/fail summary (AG-2). A red test is
@@ -393,8 +376,6 @@ reported, never hidden (AG-4).
 
 **TEST-3 — File naming and location.**
 One test file per source module, named after the module, not the feature. Put it in `<area>/tests/<module>.test.js` — or beside nested modules, mirroring the source tree (`frontend/assets/js/arbor/tests/arbor-render.test.js`).
-
-Exception: a guide test (TEST-10) is named after its guide, not a module.
 
 **TEST-4 — Isolated, in-memory, no network.**
 API tests build a fresh in-memory database with `createTestDb()` (`api/tests/helpers/db.js`) — never touch the real `database/thejesuswebsite.db`. No real network requests. Reset shared module state (e.g. `clearSessions()`) in `afterEach`.
@@ -445,26 +426,13 @@ is written.
 Each CSS file styles exactly one component, layout, or page. Split a file when it starts to
 style a second, unrelated thing, not at a line count.
 
-Exception: `variables.css` holds every token, however long. Its one job is to be the single
-place to look (CSS-2), so do not split it.
-
 **CSS-2 — Custom properties only.**
 Every colour, space, size, font and duration is a custom property from the area's one
 `variables.css` (`frontend/assets/css/base/variables.css`, `admin/assets/css/admin-base/variables.css`),
 including any print block. Component files reference `var(--…)` only.
 
-Exception: `admin/assets/css/admin-diagrams/timeline-tokens.css` and `maps-tokens.css` keep the
-literal values of the frontend-named tokens that only the timeline and maps editors use. The admin
-`variables.css` holds the `--admin-*` and `--era-*` tokens, and the diagram stylesheets reuse the
-public site's token names so that an editor draws what the public page draws. Component files in
-`admin-diagrams/` still reference `var(--…)` only.
-
 **CSS-3 — Mobile inside component files.**
 Put all `@media (max-width)` rules in the same file as the component. Use breakpoints from `variables.css`. No separate mobile files.
-
-Exception: an `@media` condition writes the pixel value that `variables.css` documents, because
-`var()` cannot be read there without a build step (JS-8). The duplication is accepted. A value
-that drifts from the documented breakpoint is the bug.
 
 **CSS-4 — Semantic class names.**
 Class names describe *what* something is (`.card-grid`, `.popular-challenges`), never *how* it looks. Use kebab-case, consistent with filenames.
@@ -474,11 +442,6 @@ Prefer single classes. Avoid IDs. Never use `!important`. Native nesting is allo
 deep for states and pseudo-elements (`&:hover`, `&::before`, `&[aria-expanded="true"]`), never
 for descendant chains. Use current CSS instead of JavaScript or extra markup where it does the
 job: `:has()`, container queries, `color-mix()`, logical properties, `clamp()`.
-
-Exception: the global `@media (prefers-reduced-motion: reduce)` rule in
-`frontend/assets/css/base/animations.css` uses `!important` on the two duration properties. It
-must beat every component-level duration, or a new component can bring back motion for a reader
-who turned it off. No other rule gets this exception.
 
 **CSS-6 — CSS comments.**
 Use large clear section headings and subheadings. Any other comment follows CORE-2.
@@ -498,10 +461,6 @@ SVG-2 to SVG-5 are general practice. See *IDs Without a Rule Here*.
 
 **SVG-1 — Always define `viewBox`.**
 Every `<svg>` defines `viewBox`. Case-sensitive: `viewBox`, never `viewbox`.
-
-Exception: the `<svg>` in `admin/assets/js/admin-arbor/arbor-canvas.js` has no `viewBox`. Its
-zoom and pan use a CSS `transform` on a `<g>` with screen-pixel math throughout, and a `viewBox`
-would break that math.
 
 **SVG-6 — Icons take the text colour.**
 An interface icon uses `fill="currentColor"` or `stroke="currentColor"`, so that it follows
