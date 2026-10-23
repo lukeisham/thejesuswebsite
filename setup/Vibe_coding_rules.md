@@ -55,7 +55,7 @@ Each kind of information has exactly one home:
 | **The code** | What it does and how, through names and structure (CORE-1). Comments: the non-obvious *why* and the connections (CORE-2). | History, decisions, permissions, or a restatement of a line. |
 | **`setup/ARCHITECTURE/` guides** (`Website_guide.md` first) | Purpose, navigation, and every behaviour that crosses a module, process or file boundary (CORE-3). Present tense, edited in place. | History, status, or anything the code already says. |
 | **`setup/STYLE_GUIDE/`** | Visual conventions that apply across the site, and navigation to them. | History, status, or decisions. |
-| **This file** | Each rule exception, named under its rule (CORE-4). | Exceptions that nobody granted. |
+| **This file** | The rules. | Permissions to break a rule (CORE-4). |
 | **`setup/Decisions_log.md`** (classifier rulings: `Wikipedia algorithm/Classifier_decisions.md`) | The dated record of each important decision and standing permission: who, when, why, and what was rejected (CORE-4). One table row per entry. Append only. | Routine edits, how the code works, secrets. |
 | **`setup/ISSUES/issues.md`, `setup/PLANS/`** | Open problems and planned work. | How the current code works. |
 | **`setup/DEPENDENCIES/Dependency_log.md`** (local-only, D-065) | Dependencies that need an update: package, installed and fixed version, severity, status. | Version lists in guides, or decisions. |
@@ -117,15 +117,15 @@ definition of a standing permission.
 - An entry is one row in a table, as in `setup/ISSUES/issues.md`, never a prose block. One
   column per field: ID, title, type, date, by, applies to, rule, status, decision, why,
   rejected, where it lives. A cell holds a short phrase. Escape a literal `|` as `\|`.
-- A rule exception is also named in this file, under its rule, with where it applies and why.
-  See PY-1, CSS-1, CSS-3 and SVG-1 for the pattern.
+- A permission to break a rule lives only in the decisions log, as a `Permission` row. Its
+  `rule` column names the rule it breaks. Do not write the exception into this file.
 - The guide for the area in `setup/ARCHITECTURE/` describes the resulting design, in the
   present tense.
 - A minor or easily guessed choice is not logged. It lives in the commit message.
 
 A rule exception or a permission needs Luke's explicit sign-off. Until it is granted and logged,
 a break from a rule is a defect. After it is logged, code that matches it is intentional. Before
-you "fix" a rule break, read the rule's exceptions and search the decisions log.
+you "fix" a rule break, search the decisions log for a `Permission` row that names the rule.
 
 **CORE-5 — Bring each file you edit up to the comment and guide rules.**
 Each file that you edit for a task must meet CORE-2 and CORE-3 when the change is complete.
@@ -164,11 +164,6 @@ A section that does not serve it belongs in another guide, or nowhere.
   purpose changes only when the intent changes.
 - **Test.** A refactor that keeps the intent must not force an edit to the statement. If it
   does, the statement holds the *how*.
-
-Exception: the purpose statement of `setup/ARCHITECTURE/performance-and-caching.md` may have
-50 words. Its last two sentences say that new code or new backend data shows within a minute, and
-that everything else stays cached. Without them the statement hides half of the intent of the
-guide (D-076).
 
 When you touch a guide, bring its purpose statement into line with this rule (Touch rule).
 Every other doc has a purpose statement too (DOC-1).
