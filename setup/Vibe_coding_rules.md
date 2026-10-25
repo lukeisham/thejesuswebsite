@@ -12,7 +12,7 @@ Here* at the end.
 
 | # | Check | Rule |
 | :-- | :--- | :--- |
-| 0 | Clean the whole of each file you edit, and only those files. | Touch rule |
+| 0 | Bring the whole of each file you edit into line with the Core Rules, and check it against its guide. Do this for those files only. | Touch rule, CORE-5 |
 | 1 | Code explains itself. Comments hold only the *why*, for a future AI. | CORE-1, CORE-2 |
 | 2 | No history, dates, names, decisions or issue numbers in a comment. | CORE-2 |
 | 3 | Behaviour that crosses modules is in the right guide. | CORE-3 |
@@ -41,6 +41,14 @@ These rules apply without exception. A breach is a defect.
 **Touch rule.** When you edit a file (code, guide, style guide or README), bring that whole file
 into line with the Core Rules in the same change. A Markdown doc also meets the Documentation
 Rules (DOC-1 to DOC-3). Do not open or edit a file only to clean it.
+
+- **Check, then fix.** Bringing a file into line means two steps. First check the file against
+  CORE-1 to CORE-6, and against its guide or README (CORE-5, step 4). Then fix each breach you
+  find in the same change.
+- **Scope.** The Touch rule covers the Core Rules only. The other rule sections (JS, CSS, HTML,
+  SQL and the rest) apply to the lines you write, not to the rest of the file.
+- **Precedence.** For a Core Rule breach in a file you edit, the Touch rule wins over AG-1.
+  Every other defect stays under AG-1.
 
 In a touched doc, keep only purpose, navigation and cross-module behaviour. Delete history,
 dates, status notes and permissions. Move a decision to `setup/Decisions_log.md` and an open
@@ -206,6 +214,9 @@ How an agent behaves while it writes code.
 **AG-1 — Change only what the task names.**
 No drive-by refactors, renames, reformatting, import reordering or "while I was here" fixes. If
 you see another defect, name it in your reply and leave the code alone.
+
+The one exception is the Touch rule. In a file you edit, fix each Core Rule breach in the same
+change.
 
 **AG-2 — Done means you ran it.**
 Before you report a change as done, run the script, the tests or the page, and show the result.
