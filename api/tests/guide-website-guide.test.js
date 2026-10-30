@@ -218,3 +218,38 @@ describe(`${GUIDE} bridge rule (exports): readers use only what a bridge exports
     });
   }
 });
+
+// ── Modules rule: every public page script has a module ──────────────────────────
+
+const PAGE_SCRIPT_DIR = "frontend/assets/js";
+
+/** The text of the Modules section of the guide, up to the next `## ` heading. */
+function modulesSection() {
+  const guide = read(GUIDE);
+  const start = guide.indexOf("## 2. Modules");
+  const end = guide.indexOf("\n## ", start + 1);
+  return guide.slice(start, end);
+}
+
+describe(`${GUIDE} modules rule: each script in ${PAGE_SCRIPT_DIR} is assigned to a module`, () => {
+  const section = modulesSection();
+  const scripts = fs
+    .readdirSync(path.join(REPO, PAGE_SCRIPT_DIR), { withFileTypes: true })
+    .filter((e) => e.isFile() && e.name.endsWith(".js") && !e.name.endsWith(".test.js"))
+    .map((e) => e.name);
+
+  test("finds the Modules section and the page scripts", () => {
+    assert.ok(section.length > 0, `${GUIDE} has no "## 2. Modules" section.`);
+    assert.ok(scripts.length > 0, `${PAGE_SCRIPT_DIR} holds no scripts.`);
+  });
+
+  for (const name of scripts) {
+    test(`${name} is named in the Modules table`, () => {
+      assert.ok(
+        new RegExp(`[\`/]${name.replace(".", "\\.")}\``).test(section),
+        `${GUIDE} modules rule: ${PAGE_SCRIPT_DIR}/${name} is in no row of the Modules table. ` +
+          `Add it to the module that owns it.`,
+      );
+    });
+  }
+});

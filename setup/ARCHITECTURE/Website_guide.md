@@ -4,7 +4,7 @@ The site turns historical evidence about Jesus, entered by an admin, into public
 
 ---
 
-## Project Map
+## 1. Project Map
 
 ```
 thejesuswebsite/
@@ -36,13 +36,39 @@ thejesuswebsite/
 └── dev-proxy.js            # Local-only static server and /api proxy
 ```
 
-### How the parts connect
+### 1.1 How the parts connect
 
 Both frontends fetch **relative** `/api/...` URLs. In production, nginx (`deploy/nginx.conf`) serves the static files and proxies `/api/` to Express. nginx strips the `/api` prefix, so Express mounts its routes without it. `dev-proxy.js` does the same locally.
 
 In the API, routes call models, and models run prepared SQL against one SQLite file, with no ORM. The MCP server does **not** touch the database. Its tools call the same public HTTP API (`API_BASE_URL`), so they obey the API's publishing rules. On the VPS the default `http://localhost:3000` reaches Express directly, with no `/api` prefix. A client that goes through nginx or `dev-proxy.js` must add `/api` itself.
 
-### Cross-module patterns
+---
+
+## 2. Modules
+
+A module is a named group of files that one guide governs. Its files can sit in several top-level folders. The table below is the owner list: it assigns each file to one module and does not move any code. A module guide holds the detail, and this guide holds the links between modules (section 3).
+
+| Module | Owns | Guide |
+|---|---|---|
+| Arbor | `frontend/assets/js/arbor/`, `admin/assets/js/admin-arbor/`, `api/routes/arbor.js`, `api/models/arbor.model.js` | `arbor.md` |
+| Timeline | `frontend/assets/js/timeline/`, `admin/assets/js/admin-timeline/`, `admin/assets/js/admin-timeline-taxonomy.js`, `admin/assets/js/admin-era-utils.js`, `api/routes/timeline.js`, `api/models/timeline.model.js` | `timeline.md` |
+| Maps | `frontend/assets/js/maps/`, `admin/assets/js/admin-maps/`, `api/routes/maps.js`, `api/models/map.model.js`, `api/lib/map-geo.js`, `api/scripts/generate-maps/`, `api/scripts/check-maps/` | `maps.md` |
+| Wikipedia algorithm | Everything that fetches, classifies, scores and ranks Wikipedia articles, and hands the result to the server: `Wikipedia algorithm/`, `setup/SKILLS/!TheJesusWebsite-Wikipedia/`, `database/scoring-export.json`, `api/scripts/import-wikipedia-scoring.js`, `api/lib/vector-sidecar-client.js`, `scripts/sync-vector-stores.sh`, `scripts/sync-vector-sidecar.sh` | `wikipedia-ranking-pipeline.md` |
+| Wikipedia list | The ranking as the site shows it: `frontend/assets/js/wikipedia.js`, `frontend/assets/js/utils/wikipedia-signals.js`, `frontend/debate/wikipedia.html`, `admin/wikipedia/`, `api/routes/wikipedia.js`, `api/models/wikipedia.model.js` | `wikipedia-quality-grid.md` |
+| Public page scripts | One script for each public page, plus the files they all import. Pages: `about.js`, `blog-detail.js`, `blog-list.js`, `challenge-detail.js`, `debate.js`, `essay-detail.js`, `essays-list.js`, `evidence-detail.js`, `evidence-list.js`, `historiography-detail.js`, `historiography-list.js`, `news-and-blog.js`, `news-detail.js`, `news-list.js`, `resources.js`, `response-detail.js`, `responses-list.js`, `search.js`. Shared by every page: `api.js`, `cookies.js`, `donation.js`, `footer.js`, `main.js`, `seo.js`, `sidebar.js`, `sidebar_hamburger.js`, `utils/`. All sit in `frontend/assets/js/` | `publishing-pipeline.md`, `journal-article-fields.md`, `image-display.md`, `error-notification.md`, `accessibility.md`, `performance-and-caching.md` |
+| ESV verses | `frontend/assets/js/esv_verse.js`, `api/routes/esv.js` | `esv-api.md` |
+| Analytics | `admin/analytics.html`, `admin/assets/js/analytics.js`, `api/routes/analytics.js`, `api/models/analytics.model.js` | `analytics.md` |
+| Content records | The record types (evidence, essays, responses, challenges, historiography, blog, news, resources, identifiers): their `api/routes/` and `api/models/` files and their `admin/<type>/` editors | `publishing-pipeline.md` |
+| MCP server | `mcp-server/` | `mcp-server/README.md` |
+| Deploy and server | `deploy.sh`, `deploy/`, `ecosystem.config.js`, `.github/workflows/`, `scripts/`, `dev-proxy.js` | `deployment.md`, `dependencies.md` |
+
+**Collections is a future module.** Its route, model and admin folder exist (`api/routes/collections.js`, `api/models/collection.model.js`, `admin/collections/`), but it has no public page and no guide. When it is built, write its guide on the template in `INDEX.md` first, then add its row to this table.
+
+The shared files `frontend/assets/js/cluster-logic/` belong to Arbor, Timeline and Maps together. Guide test: `api/tests/guide-website-guide.test.js` fails when a script in `frontend/assets/js/` is in no row of this table.
+
+---
+
+## 3. Cross-module patterns
 
 Publishing (drafts, static pages, first-paint snapshots, partial saves) is in `publishing-pipeline.md`. The patterns below span the visuals, the admin and the server.
 
@@ -59,7 +85,7 @@ Publishing (drafts, static pages, first-paint snapshots, partial saves) is in `p
 - **Third-party keys stay on the server.** A new outside API follows the ESV pattern: an `api/routes/` proxy reads the key from `.env`, and the browser calls only the proxy (SR-5, `ARCHITECTURE/esv-api.md`).
 - **Uploads are files, never code.** Admin uploads go through `api/routes/uploads.js` (behind `requireAuth`) into `public/uploads/`, and nginx serves that folder as static files at `/uploads/`.
 
-### Running locally
+## 4. Running locally
 
 1. `cd api && npm install`
 2. Create `.env` at the repo root with `NODE_ENV=development`. The API refuses to boot without an explicit `NODE_ENV` (`api/config/load-env.js`).
@@ -70,7 +96,7 @@ Publishing (drafts, static pages, first-paint snapshots, partial saves) is in `p
 
 Useful scripts: `npm run sitemap` (regenerate sitemap.xml), `npm run pages` (regenerate all static SEO pages).
 
-### Binding documents
+## 5. Binding documents
 
 | File | What it governs |
 |---|---|
