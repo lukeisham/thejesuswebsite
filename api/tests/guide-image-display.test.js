@@ -147,6 +147,44 @@ describe(`${GUIDE} row 1: size exceptions are current`, () => {
   });
 });
 
+// ── Row 1: the tag's size reserves the evidence picture's box ────────────────
+
+describe(`${GUIDE} row 1: figures.css leaves the box to the tag`, () => {
+  test(".figure-standard img sets no width and no aspect-ratio", () => {
+    const css = read("frontend/assets/css/components/figures.css").replace(/\/\*[\s\S]*?\*\//g, "");
+    const rule = css.match(/\.figure-standard img\s*\{([^}]*)\}/);
+    assert.ok(rule, `frontend/assets/css/components/figures.css has no ".figure-standard img" rule. Rule: ${GUIDE}, Invariants row 1.`);
+    const banned = rule[1].match(/(^|[\s;])(width|aspect-ratio)\s*:/);
+    assert.equal(
+      banned,
+      null,
+      `frontend/assets/css/components/figures.css sets ${banned && banned[2]} on ".figure-standard img". It beats the tag size and the unloaded picture collapses. Rule: ${GUIDE}, Invariants row 1.`
+    );
+  });
+
+  test("evidence-detail.js marks a stored size and figure-orientation.js keeps it", () => {
+    assert.match(
+      read(`${JS_DIR}/evidence-detail.js`),
+      /data-stored-size/,
+      `${JS_DIR}/evidence-detail.js does not write data-stored-size on the primary picture. Rule: ${GUIDE}, Invariants row 1.`
+    );
+    assert.match(
+      read(`${JS_DIR}/utils/figure-orientation.js`),
+      /hasAttribute\(\s*["']data-stored-size["']\s*\)/,
+      `${JS_DIR}/utils/figure-orientation.js does not skip a picture with data-stored-size, so it overwrites the stored size. Rule: ${GUIDE}, Invariants row 1.`
+    );
+  });
+
+  test("the 720w descriptor equals DISPLAY_COPY_WIDTH", () => {
+    const { DISPLAY_COPY_WIDTH } = require("../lib/image-display-copy");
+    const source = read(`${JS_DIR}/evidence-detail.js`);
+    assert.ok(
+      source.includes(` ${DISPLAY_COPY_WIDTH}w,`),
+      `${JS_DIR}/evidence-detail.js has no "${DISPLAY_COPY_WIDTH}w" srcset descriptor, but api/lib/image-display-copy.js makes the copy ${DISPLAY_COPY_WIDTH} px wide. Rule: ${GUIDE}, Invariants row 1.`
+    );
+  });
+});
+
 // ── Row 2: lazy loading, and data-src needs main.js ──────────────────────────
 
 describe(`${GUIDE} row 2: images load lazily`, () => {
