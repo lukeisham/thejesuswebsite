@@ -5,6 +5,8 @@
 const db = require('../config');
 const { pickWritable, generateUniqueSlug, runUpdate, paginate, cachedStatement } = require('./model-helpers');
 
+// Named columns, not SELECT * (api-routes.md Invariants row 3). A new column in
+// database/schema.sql reaches a response only after it is added here.
 const ALL_COLUMNS = 'id, slug, title, description, published_draft, created_at, updated_at';
 const LINK_COLUMNS = 'id, collection_id, evidence_id, sort_order, created_at';
 

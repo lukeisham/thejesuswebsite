@@ -6,6 +6,8 @@
 const db = require("../../config");
 
 // Aliased lists for the joins below: the junction row `j` also has an `id`.
+// Named columns, not SELECT * (api-routes.md Invariants row 3). A new column in
+// database/schema.sql reaches a response only after it is added here.
 const MLA_COLUMNS = "m.id, m.mla_website_title, m.mla_website_url, m.mla_website_date, m.mla_website_author, m.mla_website_publisher, m.mla_book_title, m.mla_book_author, m.mla_book_publisher, m.mla_book_date, m.mla_book_page_reference, m.mla_journal_article_author, m.mla_journal_article_title, m.mla_journal_title, m.mla_journal_volume, m.mla_journal_issue, m.mla_journal_date, m.mla_journal_page_reference, m.published_draft";
 const IDENTIFIER_COLUMNS = "i.id, i.isbn, i.isbn_book_title, i.isbn_book_author, i.iaa_number, i.iaa_location, i.pleiades_number, i.pleiades_name, i.event_name, i.event_date, i.event_location, i.source_title, i.source_location, i.source_author, i.source_date, i.individual, i.individual_location, i.manuscript_number, i.manuscript_title, i.manuscript_location, i.title, i.external_url, i.published_draft";
 

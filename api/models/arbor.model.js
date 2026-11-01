@@ -7,6 +7,8 @@ const evidenceModel = require("./evidence.model");
 const { pickWritable, runUpdate, cachedStatement } = require("./model-helpers");
 const ERRORS = require("../lib/error-codes");
 
+// Named columns, not SELECT * (api-routes.md Invariants row 3). A new column in
+// database/schema.sql reaches a response only after it is added here.
 const NODE_COLUMNS = "id, evidence_id, x, y, created_at, updated_at";
 
 // Columns the admin is allowed to write for arbor edge creation/updates.

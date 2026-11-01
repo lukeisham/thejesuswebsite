@@ -18,6 +18,8 @@ const {
   cachedStatement,
 } = require("./model-helpers");
 
+// Named columns, not SELECT * (api-routes.md Invariants row 3). A new column in
+// database/schema.sql reaches a response only after it is added here.
 const ALL_COLUMNS = "id, slug, essay_title, essay_content, essay_author, essay_date, essay_publisher, essay_headings, published_draft, metadata_keywords, two_column, doi, author_bio, abstract, historiography_period, period_sort_order, created_at, updated_at";
 
 // Columns the admin is allowed to write. Listed explicitly so a stray field in

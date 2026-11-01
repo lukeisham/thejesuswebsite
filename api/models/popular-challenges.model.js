@@ -16,6 +16,8 @@ const {
   replaceLinks,
 } = require("./relations/junctions");
 
+// Named columns, not SELECT * (api-routes.md Invariants row 3). A new column in
+// database/schema.sql reaches a response only after it is added here.
 const ALL_COLUMNS = "id, slug, academic_popular, challenge_title, challenge_summary, challenge_body, challenge_picture, challenge_picture_alt, challenge_picture_caption, challenge_rank_number, challenge_rank_pluses, challenge_rank_minuses, published_draft, metadata_keywords";
 
 // Columns the admin is allowed to write. Listed explicitly so a stray field in

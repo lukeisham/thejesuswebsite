@@ -5,6 +5,8 @@
 const db = require('../config');
 const { pickWritable, generateUniqueSlug, runUpdate, paginate, cachedStatement } = require('./model-helpers');
 
+// Named columns, not SELECT * (api-routes.md Invariants row 3). A new column in
+// database/schema.sql reaches a response only after it is added here.
 const ALL_COLUMNS = 'id, slug, wikipedia_article_title, wikipedia_article_url, wikipedia_article_latest_revision_date, wikipedia_article_rank_number, wikipedia_rank_pluses, wikipedia_rank_minuses, published_draft, metadata_keywords, created_at, scored_at';
 
 // Columns the admin is allowed to write. Listed explicitly so a stray field in

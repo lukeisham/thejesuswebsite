@@ -18,6 +18,8 @@ const {
   cachedStatement,
 } = require("./model-helpers");
 
+// Named columns, not SELECT * (api-routes.md Invariants row 3). A new column in
+// database/schema.sql reaches a response only after it is added here.
 const ALL_COLUMNS = "id, title, slug, description, primary_verse, secondary_verse, image, image_alt, image_caption, thumbnail_path, gospel_category, timeline_era, timeline_period, map_location, map_x, map_y, timeline_offset_x, timeline_offset_y, metadata_keywords, published_draft, version_update, created_at, updated_at";
 
 /**

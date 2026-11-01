@@ -6,6 +6,8 @@
 const db = require("../config");
 const { pickWritable } = require("./model-helpers");
 
+// Named columns, not SELECT * (api-routes.md Invariants row 3). A new column in
+// database/schema.sql reaches a response only after it is added here.
 const ALL_COLUMNS = "id, credential_id, public_key, user_handle, sign_count, last_used_at, created_at, updated_at";
 
 // A credential is written once at registration; only `sign_count` changes after.

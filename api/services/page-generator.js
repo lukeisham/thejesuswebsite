@@ -15,6 +15,8 @@ const { CONTENT_PAGES } = require("../config/content-pages");
 const { safeReadFile, safeMkdir, safeWriteFile } = require("../lib/io-guard");
 const { escapeHTML } = require("../lib/escape-html");
 
+// Named columns, not SELECT * (api-routes.md Invariants row 3). A new column in
+// database/schema.sql reaches a response only after it is added here.
 const SETTINGS_COLUMNS = "id, title, description, og_image";
 
 const BASE_URL = "https://thejesuswebsite.org";

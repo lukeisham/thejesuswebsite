@@ -5,6 +5,8 @@
 const db = require('../config');
 const { pickWritable, runUpdate, paginate } = require('./model-helpers');
 
+// Named columns, not SELECT * (api-routes.md Invariants row 3). A new column in
+// database/schema.sql reaches a response only after it is added here.
 const ALL_COLUMNS = 'id, isbn, isbn_book_title, isbn_book_author, iaa_number, iaa_location, pleiades_number, pleiades_name, event_name, event_date, event_location, source_title, source_location, source_author, source_date, individual, individual_location, manuscript_number, manuscript_title, manuscript_location, title, external_url, published_draft';
 
 // Columns the admin is allowed to write. Listed explicitly so a stray field in

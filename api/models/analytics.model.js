@@ -7,6 +7,8 @@
 const db = require("../config");
 const { pickWritable } = require("./model-helpers");
 
+// Named columns, not SELECT * (api-routes.md Invariants row 3). A new column in
+// database/schema.sql reaches a response only after it is added here.
 const ALL_COLUMNS = "id, page, referrer, user_agent, session_id, visited_at, device_type, browser, os, country, is_bot, search_terms";
 
 // Only these fields are ever written; `visited_at` defaults in the schema.

@@ -7,6 +7,8 @@ const { pickWritable, runUpdate, cachedStatement } = require("./model-helpers");
 const evidenceModel = require("./evidence.model");
 
 // Columns the admin is allowed to write for map creation/updates.
+// Named columns, not SELECT * (api-routes.md Invariants row 3). A new column in
+// database/schema.sql reaches a response only after it is added here.
 const MAP_WRITABLE_COLUMNS = [
   "map_key",
   "map_name",

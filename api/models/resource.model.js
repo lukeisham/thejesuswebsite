@@ -6,6 +6,8 @@ const db = require('../config');
 const { pickWritable, runUpdate, paginate, cachedStatement } = require('./model-helpers');
 const ERRORS = require('../lib/error-codes');
 
+// Named columns, not SELECT * (api-routes.md Invariants row 3). A new column in
+// database/schema.sql reaches a response only after it is added here.
 const ALL_COLUMNS = 'id, list_key, resource_title, resource_url, resource_description, sort_order, published_draft, in_holding_pen, item_type';
 
 // Valid resource list keys as defined in schema.
