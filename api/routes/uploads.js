@@ -11,10 +11,11 @@ const { safeMkdir, safeWriteFile } = require("../lib/io-guard");
 const ERRORS = require("../lib/error-codes");
 const { sendError } = require("../lib/error-handler");
 const { standardizeImage } = require("../lib/image-standardize");
+const { createDisplayCopy } = require("../lib/image-display-copy");
 
 // Sharp is optional at runtime (SR-2/JS-2): if it's missing or a resize
 // throws, the upload still succeeds with the full-size image and
-// thumb_path is null — never fail an upload over a thumbnail.
+// thumb_path and display_path are null — never fail an upload over a derived copy.
 let sharp;
 try {
   sharp = require("sharp");
@@ -140,9 +141,24 @@ router.post("/", requireAuth, async (req, res) => {
       }
     }
 
+    // Display copy is best-effort like the thumbnail: any failure returns
+    // display_path: null and the page uses the storage copy.
+    let displayPath = null;
+    const displayCopy = await createDisplayCopy(buffer, ext);
+    if (displayCopy) {
+      const displayName = `${uuid}_720.${ext}`;
+      const displayWrite = safeWriteFile(path.join(destDir, displayName), displayCopy.buffer);
+      if (displayWrite.ok) {
+        displayPath = `/uploads/${year}/${month}/${displayName}`;
+      } else {
+        console.warn("Display copy write failed for", displayName);
+      }
+    }
+
     res.status(201).json({
       image_path: imagePath,
       thumb_path: thumbPath,
+      display_path: displayPath,
       width: standardizedResult.width,
       height: standardizedResult.height,
     });

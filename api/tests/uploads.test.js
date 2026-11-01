@@ -82,6 +82,9 @@ function request(method, reqPath, body, headers = {}) {
           if (parsed && parsed.thumb_path) {
             writtenPaths.push(path.join(UPLOADS_ROOT, parsed.thumb_path.replace(/^\/uploads\//, "")));
           }
+          if (parsed && parsed.display_path) {
+            writtenPaths.push(path.join(UPLOADS_ROOT, parsed.display_path.replace(/^\/uploads\//, "")));
+          }
           resolve({ status: res.statusCode, headers: res.headers, body: parsed });
         });
       },
@@ -264,5 +267,23 @@ describe("POST /uploads", () => {
     );
 
     assert.equal(status, 401);
+  });
+});
+
+describe("POST /uploads display copy", () => {
+  test("a wide JPEG returns display_path, a file 720 px wide on disk", async () => {
+    const data = (await makeOversizedJpeg()).toString("base64");
+    const res = await request("POST", "/uploads", { filename: "wide.jpg", data });
+    assert.equal(res.status, 201);
+    assert.match(res.body.display_path, /^\/uploads\/\d{4}\/\d{2}\/.+_720\.jpg$/);
+    const onDisk = path.join(UPLOADS_ROOT, res.body.display_path.replace(/^\/uploads\//, ""));
+    assert.equal((await sharp(onDisk).metadata()).width, 720);
+  });
+
+  test("a small PNG returns display_path null", async () => {
+    const data = (await makeSmallPng()).toString("base64");
+    const res = await request("POST", "/uploads", { filename: "small.png", data });
+    assert.equal(res.status, 201);
+    assert.equal(res.body.display_path, null);
   });
 });

@@ -235,3 +235,46 @@ describe("AdminImagePicker: captionField: true", () => {
     assert.equal(picker.getValue().caption, "");
   });
 });
+
+// ── Picture size and display copy ──────────────────────────────────────────
+
+describe("AdminImagePicker: picture size", () => {
+  test("setValue size appears in getValue(), Remove clears it", () => {
+    var { AdminImagePicker, document } = makeSandbox();
+    var container = makeContainer(document);
+    var picker = AdminImagePicker.mount(container, { initialPath: "/a.jpg" });
+    picker.setValue("/b.jpg", "", "", "", { width: 1200, height: 800, display: "/b_720.jpg" });
+    var value = picker.getValue();
+    assert.equal(value.image_width, 1200);
+    assert.equal(value.image_height, 800);
+    assert.equal(value.display_path, "/b_720.jpg");
+
+    var root = container.children[0];
+    var removeBtn = root.children.find(function (c) {
+      return c.className && c.className.indexOf("aimg-picker__remove-btn") !== -1;
+    });
+    removeBtn.fireEvent("click");
+    value = picker.getValue();
+    assert.equal(value.image_width, null);
+    assert.equal(value.image_height, null);
+    assert.equal(value.display_path, null);
+  });
+
+  test("initial size options are returned, and an editor that passes none gets undefined", () => {
+    var { AdminImagePicker, document } = makeSandbox();
+    var withSize = AdminImagePicker.mount(makeContainer(document), {
+      initialPath: "/a.jpg",
+      initialWidth: 900,
+      initialHeight: 600,
+      initialDisplay: "/a_720.jpg",
+    }).getValue();
+    assert.equal(withSize.image_width, 900);
+    assert.equal(withSize.display_path, "/a_720.jpg");
+
+    var without = AdminImagePicker.mount(makeContainer(document), { initialPath: "/a.jpg" }).getValue();
+    assert.equal(without.image_width, undefined);
+    assert.equal(without.image_height, undefined);
+    assert.equal(without.display_path, undefined);
+  });
+});
+

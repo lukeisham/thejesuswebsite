@@ -792,6 +792,10 @@
                             imagePicker.getValue().caption || undefined,
                         thumbnail_path:
                             imagePicker.getValue().thumb_path || undefined,
+                        image_width: imagePicker.getValue().image_width ?? undefined,
+                        image_height: imagePicker.getValue().image_height ?? undefined,
+                        image_display_path:
+                            imagePicker.getValue().display_path ?? undefined,
                         gospel_category:
                             document.getElementById("evidence-gospel-category")
                                 .value || undefined,

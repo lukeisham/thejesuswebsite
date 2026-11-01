@@ -151,13 +151,13 @@ describe(`${GUIDE} row 1: size exceptions are current`, () => {
 
 describe(`${GUIDE} row 2: images load lazily`, () => {
   for (const file of filesWithImages) {
-    test(`${file}: each <img> has loading="lazy" or data-src`, () => {
+    test(`${file}: each <img> has loading="lazy", data-src or fetchpriority="high"`, () => {
       if (file in EAGER_IMAGE_EXCEPTIONS) return;
       for (const { tag, line } of imgTags(file)) {
         if (SITE_MARK.test(tag)) continue;
         assert.ok(
-          /loading="lazy"|\sdata-src=/.test(tag),
-          `${file}:${line} has an <img> without loading="lazy" or data-src. Rule: ${GUIDE}, Invariants row 2.`
+          /loading="lazy"|\sdata-src=|\sfetchpriority="high"/.test(tag),
+          `${file}:${line} has an <img> without loading="lazy", data-src or fetchpriority="high". Rule: ${GUIDE}, Invariants row 2.`
         );
       }
     });

@@ -146,7 +146,7 @@ function renderDescription(item) {
   }
 }
 
-function renderPictures(description, primaryImage, primaryImageAlt, primaryImageCaption) {
+function renderPictures(description, primaryImage, primaryImageAlt, primaryImageCaption, primarySize = {}) {
   // Pictures are now [figure] shortcodes in body text (migration 006 dropped
   // evidence_pictures). Extract them from the description for the dedicated
   // pictures section, and return the cleaned description for renderDescription.
@@ -170,9 +170,23 @@ function renderPictures(description, primaryImage, primaryImageAlt, primaryImage
   // image_alt regardless — alt and caption are different jobs (HTML-2) and
   // must not be conflated going forward.
   const primaryCaption = primaryImageCaption || primaryImageAlt || "";
+  const { width, height, displayPath, slug } = primarySize;
+  const hasSize = Boolean(width && height);
+  if (primaryImage && !hasSize) {
+    console.warn(`evidence-detail: no stored picture size for "${slug}", reserving 720x480.`);
+  }
+  // 720w repeats DISPLAY_COPY_WIDTH in api/lib/image-display-copy.js. `sizes`
+  // mirrors the figure box in figures.css: 720px on desktop, the viewport minus
+  // the page padding below 768px.
+  const srcset =
+    displayPath && hasSize
+      ? ` srcset="${html`${displayPath}`} 720w, ${html`${primaryImage}`} ${Number(width)}w" sizes="(max-width: 767px) calc(100vw - 32px), 720px"`
+      : "";
+  // The primary picture is the likely LCP element, so it loads eagerly; inline
+  // [figure] pictures below stay lazy.
   const primaryHTML = primaryImage
     ? `<figure class="figure-standard">
-        <img src="${html`${primaryImage}`}" alt="${html`${primaryImageAlt || ""}`}" loading="lazy" width="720" height="480" />
+        <img src="${html`${primaryImage}`}"${srcset} alt="${html`${primaryImageAlt || ""}`}" fetchpriority="high" width="${hasSize ? Number(width) : 720}" height="${hasSize ? Number(height) : 480}" />
         ${primaryCaption ? `<figcaption>${html`${primaryCaption}`}</figcaption>` : ""}
       </figure>`
     : "";
@@ -368,6 +382,12 @@ async function init() {
     data.image,
     data.image_alt,
     data.image_caption,
+    {
+      width: data.image_width,
+      height: data.image_height,
+      displayPath: data.image_display_path,
+      slug: data.slug,
+    },
   );
   renderDescription({ ...data, description: cleanDescription });
   renderSources(data.mla_sources);

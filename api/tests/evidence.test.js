@@ -842,3 +842,42 @@ describe("evidence: timeline offset fields", () => {
     assert.equal(updated.title, "Updated Title");
   });
 });
+
+describe("evidence: picture size columns", () => {
+  test("createComposite and updateComposite write the size and display path", () => {
+    const created = evidenceModel.createComposite({
+      title: "Sized Picture",
+      slug: "sized-picture",
+      image: "/uploads/2026/01/a.jpg",
+      image_width: 1200,
+      image_height: 800,
+      image_display_path: "/uploads/2026/01/a_720.jpg",
+    });
+    assert.equal(created.image_width, 1200);
+    assert.equal(created.image_height, 800);
+    assert.equal(created.image_display_path, "/uploads/2026/01/a_720.jpg");
+
+    const updated = evidenceModel.updateComposite(created.id, { image_width: 900 });
+    assert.equal(updated.image_width, 900);
+    assert.equal(updated.image_height, 800);
+  });
+
+  test("a width of 0 or \"abc\" and a foreign display path are stored as null", () => {
+    const created = evidenceModel.createComposite({
+      title: "Bad Size",
+      slug: "bad-size",
+      image_width: 0,
+      image_height: "abc",
+      image_display_path: "https://example.com/x.jpg",
+    });
+    assert.equal(created.image_width, null);
+    assert.equal(created.image_height, null);
+    assert.equal(created.image_display_path, null);
+  });
+
+  test("a stray field is still rejected", () => {
+    const created = evidenceModel.createComposite({ title: "Stray", slug: "stray", bogus: 1 });
+    assert.equal(created.bogus, undefined);
+  });
+});
+

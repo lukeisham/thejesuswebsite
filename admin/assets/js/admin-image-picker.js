@@ -12,7 +12,7 @@ var AdminImagePicker = window.AdminImagePicker;
  * Build a picker and mount it into `container`.
  *
  * @param {Element} container
- * @param {{ initialPath?: string, initialAlt?: string, initialThumb?: string, captionField?: boolean, initialCaption?: string, onChange?: function }?} opts
+ * @param {{ initialPath?: string, initialAlt?: string, initialThumb?: string, captionField?: boolean, initialCaption?: string, initialWidth?: number, initialHeight?: number, initialDisplay?: string, onChange?: function }?} opts
  * @returns {{ getValue: function, setValue: function }}
  */
 AdminImagePicker.mount = function (container, opts) {
@@ -27,6 +27,11 @@ AdminImagePicker.mount = function (container, opts) {
   var currentAlt = opts.initialAlt || "";
   var currentThumb = opts.initialThumb || "";
   var currentCaption = opts.initialCaption || "";
+  // Picture size and 720 px copy: undefined until an editor passes them or an
+  // upload returns them, so editors that ignore them send nothing.
+  var currentWidth = opts.initialWidth;
+  var currentHeight = opts.initialHeight;
+  var currentDisplay = opts.initialDisplay;
 
   // ── Build DOM (JS-6: element factories, never innerHTML with user data) ──
 
@@ -155,6 +160,9 @@ AdminImagePicker.mount = function (container, opts) {
       thumb_path: currentThumb,
     };
     if (captionFieldEnabled) payload.caption = currentCaption;
+    if (currentWidth !== undefined) payload.image_width = currentWidth;
+    if (currentHeight !== undefined) payload.image_height = currentHeight;
+    if (currentDisplay !== undefined) payload.display_path = currentDisplay;
     return payload;
   }
 
@@ -181,6 +189,9 @@ AdminImagePicker.mount = function (container, opts) {
       var result = await Admin.uploadImage(file);
       currentPath = result.image_path;
       currentThumb = result.thumb_path || "";
+      currentWidth = result.width ?? null;
+      currentHeight = result.height ?? null;
+      currentDisplay = result.display_path ?? null;
       thumbnail.src = currentPath;
       thumbnail.hidden = false;
       removeBtn.hidden = false;
@@ -207,6 +218,9 @@ AdminImagePicker.mount = function (container, opts) {
     currentAlt = "";
     currentThumb = "";
     currentCaption = "";
+    currentWidth = null;
+    currentHeight = null;
+    currentDisplay = null;
     thumbnail.src = "";
     thumbnail.hidden = true;
     removeBtn.hidden = true;
@@ -236,11 +250,14 @@ AdminImagePicker.mount = function (container, opts) {
     getValue: function () {
       return changePayload();
     },
-    setValue: function (path, alt, thumb, caption) {
+    setValue: function (path, alt, thumb, caption, size) {
       currentPath = path || "";
       currentAlt = alt || "";
       currentThumb = thumb || "";
       currentCaption = caption || "";
+      currentWidth = size && size.width;
+      currentHeight = size && size.height;
+      currentDisplay = size && size.display;
       if (currentPath) {
         thumbnail.src = currentPath;
         thumbnail.hidden = false;

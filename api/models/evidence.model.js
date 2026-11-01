@@ -20,7 +20,7 @@ const {
 
 // Named columns, not SELECT * (api-routes.md Invariants row 3). A new column in
 // database/schema.sql reaches a response only after it is added here.
-const ALL_COLUMNS = "id, title, slug, description, primary_verse, secondary_verse, image, image_alt, image_caption, thumbnail_path, gospel_category, timeline_era, timeline_period, map_location, map_x, map_y, timeline_offset_x, timeline_offset_y, metadata_keywords, published_draft, version_update, created_at, updated_at";
+const ALL_COLUMNS = "id, title, slug, description, primary_verse, secondary_verse, image, image_alt, image_caption, image_width, image_height, image_display_path, thumbnail_path, gospel_category, timeline_era, timeline_period, map_location, map_x, map_y, timeline_offset_x, timeline_offset_y, metadata_keywords, published_draft, version_update, created_at, updated_at";
 
 /**
  * Validate numeric offset fields for timeline positioning.
@@ -62,6 +62,23 @@ function validateOffsets(row) {
   }
 }
 
+/**
+ * Turn a bad stored picture size into null, so the page falls back to its
+ * default box. Mutates the row: width and height must be positive integers,
+ * the display path must be an upload URL.
+ */
+function validateImageSize(row) {
+  for (const key of ["image_width", "image_height"]) {
+    if (row[key] !== undefined && row[key] !== null && !(Number.isInteger(row[key]) && row[key] > 0)) {
+      row[key] = null;
+    }
+  }
+  const display = row.image_display_path;
+  if (display !== undefined && display !== null && !(typeof display === "string" && display.startsWith("/uploads/"))) {
+    row.image_display_path = null;
+  }
+}
+
 // Columns the admin is allowed to write. Listed explicitly so a stray field in
 // the request body can never reach the database (JS-2: predictable, no surprises).
 const WRITABLE_COLUMNS = [
@@ -73,6 +90,9 @@ const WRITABLE_COLUMNS = [
   "image",
   "image_alt",
   "image_caption",
+  "image_width",
+  "image_height",
+  "image_display_path",
   "thumbnail_path",
   "gospel_category",
   "timeline_era",
@@ -223,6 +243,7 @@ function create(data) {
       .replace(/^-|-$/g, "");
   }
   row.slug = generateUniqueSlug(db, "evidence", row.slug);
+  validateImageSize(row);
 
   const columns = Object.keys(row);
   const placeholders = columns.map((column) => `@${column}`);
@@ -311,6 +332,7 @@ function update(id, data) {
   }
 
   validateOffsets(row);
+  validateImageSize(row);
 
   runUpdate(db, "evidence", row, id);
   return getById(id);

@@ -330,6 +330,9 @@
                                 initialThumb: data.thumbnail_path || "",
                                 captionField: true,
                                 initialCaption: data.image_caption || "",
+                                initialWidth: data.image_width,
+                                initialHeight: data.image_height,
+                                initialDisplay: data.image_display_path,
                             },
                         );
 
@@ -448,6 +451,12 @@
                                 thumbnail_path:
                                     imagePicker.getValue().thumb_path ||
                                     null,
+                                image_width:
+                                    imagePicker.getValue().image_width ?? null,
+                                image_height:
+                                    imagePicker.getValue().image_height ?? null,
+                                image_display_path:
+                                    imagePicker.getValue().display_path ?? null,
                                 gospel_category:
                                     document.getElementById("ev-gospel-cat")
                                         .value || null,

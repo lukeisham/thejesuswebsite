@@ -17,6 +17,9 @@ CREATE TABLE evidence (
     image               TEXT,
     image_alt           TEXT,
     image_caption       TEXT,
+    image_width         INTEGER,
+    image_height        INTEGER,
+    image_display_path  TEXT,
     thumbnail_path      TEXT,
 
     -- Categorization

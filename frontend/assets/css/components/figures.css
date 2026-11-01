@@ -115,9 +115,9 @@ figure.figure-standard {
   width: auto;
   max-width: var(--figure-standard-width);
   height: auto;
-  /* Prevents layout shift while the image loads. The `auto` prefix lets the
-     loaded image's own ratio win, so portraits and squares never distort. */
-  aspect-ratio: auto 720 / 480;
+  /* No aspect-ratio here: an author ratio would beat the browser's own ratio
+     from the tag's width and height, which evidence-detail.js sets to the
+     stored picture size so the reserved box matches the loaded picture. */
 }
 
 /* The caption's unwrapped width also feeds the figure's `fit-content`

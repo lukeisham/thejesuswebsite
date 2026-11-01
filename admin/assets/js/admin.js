@@ -284,10 +284,10 @@ Admin.mergeChallenges = mergeChallenges;
 /**
  * Upload an image file to the server. Client-side size guard (reject > 5 MB
  * before encoding), reads the File via FileReader to base64, POSTs to /uploads.
- * Returns { image_path, thumb_path } — thumb_path is null if thumbnail
- * generation failed server-side.
+ * Returns { image_path, thumb_path, display_path, width, height } — thumb_path
+ * and display_path are null if that copy failed server-side.
  * @param {File} file
- * @returns {Promise<{ image_path: string, thumb_path: string|null }>}
+ * @returns {Promise<{ image_path: string, thumb_path: string|null, display_path: string|null, width: number|null, height: number|null }>}
  */
 Admin.uploadImage = async function (file) {
   if (!(file instanceof File)) {
