@@ -6,6 +6,8 @@ const db = require('../config');
 const { pickWritable, runUpdate, paginate, cachedStatement } = require('./model-helpers');
 const ERRORS = require('../lib/error-codes');
 
+const ALL_COLUMNS = 'id, list_key, resource_title, resource_url, resource_description, sort_order, published_draft, in_holding_pen, item_type';
+
 // Valid resource list keys as defined in schema.
 const VALID_LIST_KEYS = [
     'sermons-and-sayings',
@@ -52,7 +54,7 @@ function getByListKey(listKey, filters = {}) {
 
     const { page, limit } = filters;
     const itemsSql =
-        'SELECT * FROM resources WHERE list_key = ? AND published_draft = 1 AND in_holding_pen = 0 ORDER BY sort_order, id';
+        'SELECT ' + ALL_COLUMNS + ' FROM resources WHERE list_key = ? AND published_draft = 1 AND in_holding_pen = 0 ORDER BY sort_order, id';
     const countSql =
         'SELECT COUNT(*) AS total FROM resources WHERE list_key = ? AND published_draft = 1 AND in_holding_pen = 0';
 
@@ -67,7 +69,7 @@ function getByListKeyAdmin(listKey) {
     if (!VALID_LIST_KEYS.includes(listKey)) return [];
 
     return db
-        .prepare('SELECT * FROM resources WHERE list_key = ? AND in_holding_pen = 0 ORDER BY sort_order, id')
+        .prepare('SELECT ' + ALL_COLUMNS + ' FROM resources WHERE list_key = ? AND in_holding_pen = 0 ORDER BY sort_order, id')
         .all(listKey);
 }
 
@@ -77,14 +79,14 @@ function getByListKeyAdmin(listKey) {
  * came from.
  */
 function getHoldingPen() {
-    return db.prepare('SELECT * FROM resources WHERE in_holding_pen = 1 ORDER BY resource_title').all();
+    return db.prepare('SELECT ' + ALL_COLUMNS + ' FROM resources WHERE in_holding_pen = 1 ORDER BY resource_title').all();
 }
 
 /**
  * Get a single resource by id, regardless of publish state.
  */
 function getById(id) {
-    return db.prepare('SELECT * FROM resources WHERE id = ?').get(id);
+    return db.prepare('SELECT ' + ALL_COLUMNS + ' FROM resources WHERE id = ?').get(id);
 }
 
 /**

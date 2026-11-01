@@ -7,6 +7,8 @@ const evidenceModel = require("./evidence.model");
 const { pickWritable, runUpdate, cachedStatement } = require("./model-helpers");
 const ERRORS = require("../lib/error-codes");
 
+const NODE_COLUMNS = "id, evidence_id, x, y, created_at, updated_at";
+
 // Columns the admin is allowed to write for arbor edge creation/updates.
 const WRITABLE_COLUMNS = [
   "source_id",
@@ -349,7 +351,7 @@ function upsertNodePosition(evidenceId, x, y) {
     `;
   db.prepare(sql).run(evidenceId, x, y);
   return db
-    .prepare("SELECT * FROM arbor_nodes WHERE evidence_id = ?")
+    .prepare("SELECT " + NODE_COLUMNS + " FROM arbor_nodes WHERE evidence_id = ?")
     .get(evidenceId);
 }
 

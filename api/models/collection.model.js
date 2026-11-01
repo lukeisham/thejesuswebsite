@@ -5,6 +5,9 @@
 const db = require('../config');
 const { pickWritable, generateUniqueSlug, runUpdate, paginate, cachedStatement } = require('./model-helpers');
 
+const ALL_COLUMNS = 'id, slug, title, description, published_draft, created_at, updated_at';
+const LINK_COLUMNS = 'id, collection_id, evidence_id, sort_order, created_at';
+
 // Columns the admin is allowed to write for collection creation/updates.
 const WRITABLE_COLUMNS = [
     'slug',
@@ -48,7 +51,7 @@ function getAllPublished(filters = {}) {
  * Single published collection by slug, with all evidence items, or undefined if not found.
  */
 function getBySlug(slug) {
-    const collection = cachedStatement(db, 'SELECT * FROM collections WHERE slug = ? AND published_draft = 1')
+    const collection = cachedStatement(db, 'SELECT ' + ALL_COLUMNS + ' FROM collections WHERE slug = ? AND published_draft = 1')
         .get(slug);
 
     if (!collection) return undefined;
@@ -80,7 +83,7 @@ function getBySlug(slug) {
  * Single collection by id regardless of publish state — for admin, with evidence.
  */
 function getById(id) {
-    const collection = db.prepare('SELECT * FROM collections WHERE id = ?').get(id);
+    const collection = db.prepare('SELECT ' + ALL_COLUMNS + ' FROM collections WHERE id = ?').get(id);
 
     if (!collection) return undefined;
 
@@ -158,7 +161,7 @@ function addEvidence(collectionId, evidenceId, sortOrder = 0) {
         .prepare('INSERT INTO collection_evidence (collection_id, evidence_id, sort_order) VALUES (?, ?, ?)')
         .run(collectionId, evidenceId, sortOrder);
 
-    return db.prepare('SELECT * FROM collection_evidence WHERE id = ?').get(result.lastInsertRowid);
+    return db.prepare('SELECT ' + LINK_COLUMNS + ' FROM collection_evidence WHERE id = ?').get(result.lastInsertRowid);
 }
 
 /**

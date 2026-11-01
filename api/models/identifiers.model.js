@@ -5,6 +5,8 @@
 const db = require('../config');
 const { pickWritable, runUpdate, paginate } = require('./model-helpers');
 
+const ALL_COLUMNS = 'id, isbn, isbn_book_title, isbn_book_author, iaa_number, iaa_location, pleiades_number, pleiades_name, event_name, event_date, event_location, source_title, source_location, source_author, source_date, individual, individual_location, manuscript_number, manuscript_title, manuscript_location, title, external_url, published_draft';
+
 // Columns the admin is allowed to write. Listed explicitly so a stray field in
 // the request body can never reach the database (JS-2: predictable, no surprises).
 const WRITABLE_COLUMNS = [
@@ -41,7 +43,7 @@ const WRITABLE_COLUMNS = [
  */
 function getAllPublished(filters = {}) {
     const { page, limit } = filters;
-    const itemsSql = 'SELECT * FROM identifiers WHERE published_draft = 1 ORDER BY id DESC';
+    const itemsSql = 'SELECT ' + ALL_COLUMNS + ' FROM identifiers WHERE published_draft = 1 ORDER BY id DESC';
     const countSql = 'SELECT COUNT(*) AS total FROM identifiers WHERE published_draft = 1';
     return paginate(db, itemsSql, countSql, [], { page, limit });
 }
@@ -50,14 +52,14 @@ function getAllPublished(filters = {}) {
  * Get all identifiers regardless of publish state — for the admin management page.
  */
 function getAllAdmin() {
-    return db.prepare('SELECT * FROM identifiers ORDER BY id DESC').all();
+    return db.prepare('SELECT ' + ALL_COLUMNS + ' FROM identifiers ORDER BY id DESC').all();
 }
 
 /**
  * Get a single identifier by id, regardless of publish state — for admin.
  */
 function getById(id) {
-    return db.prepare('SELECT * FROM identifiers WHERE id = ?').get(id);
+    return db.prepare('SELECT ' + ALL_COLUMNS + ' FROM identifiers WHERE id = ?').get(id);
 }
 
 /**

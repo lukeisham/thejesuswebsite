@@ -32,6 +32,8 @@ const {
   getBBox,
 } = require("../lib/map-geo");
 
+const ALL_COLUMNS = "id, map_key, map_name, description, image_path";
+
 /**
  * Get all maps with their pin counts for listing.
  */
@@ -63,7 +65,7 @@ function getAllMaps() {
  * @returns {Object|undefined}
  */
 function getMapById(id, { includeDrafts } = {}) {
-  const map = db.prepare("SELECT * FROM maps WHERE id = ?").get(id);
+  const map = db.prepare("SELECT " + ALL_COLUMNS + " FROM maps WHERE id = ?").get(id);
   if (!map) return undefined;
 
   return { ...map, pins: getPinsByMap(id, { includeDrafts }) };
@@ -80,7 +82,7 @@ function getMapById(id, { includeDrafts } = {}) {
  * @returns {Object|undefined}
  */
 function getMapByKey(mapKey, { includeDrafts } = {}) {
-  const map = cachedStatement(db, "SELECT * FROM maps WHERE map_key = ?").get(mapKey);
+  const map = cachedStatement(db, "SELECT " + ALL_COLUMNS + " FROM maps WHERE map_key = ?").get(mapKey);
   if (!map) return undefined;
 
   let pinsSql = `

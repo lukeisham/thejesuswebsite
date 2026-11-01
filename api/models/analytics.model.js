@@ -7,6 +7,8 @@
 const db = require("../config");
 const { pickWritable } = require("./model-helpers");
 
+const ALL_COLUMNS = "id, page, referrer, user_agent, session_id, visited_at, device_type, browser, os, country, is_bot, search_terms";
+
 // Only these fields are ever written; `visited_at` defaults in the schema.
 const WRITABLE_COLUMNS = [
   "page",
@@ -135,7 +137,7 @@ function getTopPagesWithTrend(days, limit = 5) {
 /** Most recent visits, bots included (is_bot is on each row), newest first. */
 function getRecent(limit = 50) {
   return db
-    .prepare("SELECT * FROM analytics ORDER BY visited_at DESC LIMIT ?")
+    .prepare("SELECT " + ALL_COLUMNS + " FROM analytics ORDER BY visited_at DESC LIMIT ?")
     .all(limit);
 }
 

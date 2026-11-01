@@ -143,6 +143,7 @@ git already is one.
 | [`arbor.md`](arbor.md) | Arbor: the edge route shared by the editor and the public page |
 | [`maps.md`](maps.md) | Maps: pin fanning shared by the editor and the public page, and the check of the maps against AD 30 |
 | [`security.md`](security.md) | Page policy shared by nginx and the API, inline-script limit, admin session and cookie, public agent endpoint limits, canonical origin |
+| [`api-routes.md`](api-routes.md) | Route rules: models own all SQL, writes require auth, reads name their columns |
 | [`error-notification.md`](error-notification.md) | Route error codes, the not-found code contract, and how pages show failures |
 | [`wikipedia-ranking-pipeline.md`](wikipedia-ranking-pipeline.md) | Scoring pipeline, deploy-time import, vector sidecar and store sync |
 | [`wikipedia-quality-grid.md`](wikipedia-quality-grid.md) | Signal grid, score panel, tooltip and copy button on the Wikipedia list |

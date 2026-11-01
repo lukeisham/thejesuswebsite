@@ -6,6 +6,7 @@
 // No HTTP concerns in this file: no req, no res, no status codes.
 
 const db = require("../config");
+const { ALL_COLUMNS: EVIDENCE_COLUMNS } = require("./evidence.model");
 
 // The eight granular eras, in narrative order.
 const ERA_ORDER = [
@@ -90,7 +91,7 @@ function getTimelineEvents({ timeline_era, includeDrafts } = {}) {
   }
 
   const rows = db
-    .prepare(`SELECT * FROM evidence WHERE ${conditions.join(" AND ")}`)
+    .prepare(`SELECT ${EVIDENCE_COLUMNS} FROM evidence WHERE ${conditions.join(" AND ")}`)
     .all(...params);
 
   return rows.sort((a, b) => {
@@ -120,7 +121,7 @@ function getUnplacedEvents() {
   // it has an era. This includes rows with timeline_era IS NULL (the admin may
   // assign an era later) as well as rows with an era already set.
   const rows = db
-    .prepare("SELECT * FROM evidence WHERE timeline_period IS NULL")
+    .prepare("SELECT " + EVIDENCE_COLUMNS + " FROM evidence WHERE timeline_period IS NULL")
     .all();
 
   return rows.sort(

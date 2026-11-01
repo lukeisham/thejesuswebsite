@@ -5,6 +5,8 @@
 const db = require('../config');
 const { pickWritable, generateUniqueSlug, runUpdate, paginate, cachedStatement } = require('./model-helpers');
 
+const ALL_COLUMNS = 'id, slug, wikipedia_article_title, wikipedia_article_url, wikipedia_article_latest_revision_date, wikipedia_article_rank_number, wikipedia_rank_pluses, wikipedia_rank_minuses, published_draft, metadata_keywords, created_at, scored_at';
+
 // Columns the admin is allowed to write. Listed explicitly so a stray field in
 // the request body can never reach the database (JS-2: predictable, no surprises).
 const WRITABLE_COLUMNS = [
@@ -71,7 +73,7 @@ function attachSignals(articles) {
 function getAllPublished(filters = {}) {
     const { page, limit } = filters;
     const itemsSql =
-        'SELECT * FROM wikipedia_articles WHERE published_draft = 1 ORDER BY wikipedia_article_rank_number ASC';
+        'SELECT ' + ALL_COLUMNS + ' FROM wikipedia_articles WHERE published_draft = 1 ORDER BY wikipedia_article_rank_number ASC';
     const countSql =
         'SELECT COUNT(*) AS total FROM wikipedia_articles WHERE published_draft = 1';
     const result = paginate(db, itemsSql, countSql, [], { page, limit });
@@ -87,7 +89,7 @@ function getAllPublished(filters = {}) {
 function getAllAdmin() {
     return db
         .prepare(
-            'SELECT * FROM wikipedia_articles ORDER BY wikipedia_article_rank_number ASC'
+            'SELECT ' + ALL_COLUMNS + ' FROM wikipedia_articles ORDER BY wikipedia_article_rank_number ASC'
         )
         .all();
 }
@@ -97,7 +99,7 @@ function getAllAdmin() {
  * Carries a `signals` array (see attachSignals).
  */
 function getBySlug(slug) {
-    const article = cachedStatement(db, 'SELECT * FROM wikipedia_articles WHERE slug = ? AND published_draft = 1')
+    const article = cachedStatement(db, 'SELECT ' + ALL_COLUMNS + ' FROM wikipedia_articles WHERE slug = ? AND published_draft = 1')
         .get(slug);
     if (!article) return undefined;
     return attachSignals([article])[0];
@@ -107,7 +109,7 @@ function getBySlug(slug) {
  * Single Wikipedia article by id regardless of publish state — for admin.
  */
 function getById(id) {
-    return db.prepare('SELECT * FROM wikipedia_articles WHERE id = ?').get(id);
+    return db.prepare('SELECT ' + ALL_COLUMNS + ' FROM wikipedia_articles WHERE id = ?').get(id);
 }
 
 /**

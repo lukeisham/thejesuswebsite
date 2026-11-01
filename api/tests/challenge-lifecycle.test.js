@@ -34,9 +34,16 @@ testDb.exec(`
 
   CREATE TABLE mla_sources (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    mla_website_title TEXT, mla_website_url TEXT, mla_website_date TEXT,
+    mla_website_author TEXT, mla_website_publisher TEXT,
     mla_book_title  TEXT,
     mla_book_author TEXT,
+    mla_book_publisher TEXT,
     mla_book_date   TEXT,
+    mla_book_page_reference TEXT,
+    mla_journal_article_author TEXT, mla_journal_article_title TEXT,
+    mla_journal_title TEXT, mla_journal_volume TEXT, mla_journal_issue TEXT,
+    mla_journal_date TEXT, mla_journal_page_reference TEXT,
     published_draft INTEGER DEFAULT 1
   );
 
@@ -44,6 +51,13 @@ testDb.exec(`
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
     isbn            TEXT,
     isbn_book_title TEXT,
+    isbn_book_author TEXT, iaa_number TEXT, iaa_location TEXT,
+    pleiades_number TEXT, pleiades_name TEXT,
+    event_name TEXT, event_date TEXT, event_location TEXT,
+    source_title TEXT, source_location TEXT, source_author TEXT, source_date TEXT,
+    individual TEXT, individual_location TEXT,
+    manuscript_number TEXT, manuscript_title TEXT, manuscript_location TEXT,
+    title TEXT, external_url TEXT,
     published_draft INTEGER DEFAULT 1
   );
 

@@ -5,6 +5,8 @@
 const db = require('../config');
 const { pickWritable, runUpdate } = require('./model-helpers');
 
+const ALL_COLUMNS = 'id, mla_website_title, mla_website_url, mla_website_date, mla_website_author, mla_website_publisher, mla_book_title, mla_book_author, mla_book_publisher, mla_book_date, mla_book_page_reference, mla_journal_article_author, mla_journal_article_title, mla_journal_title, mla_journal_volume, mla_journal_issue, mla_journal_date, mla_journal_page_reference, published_draft';
+
 // Columns the admin is allowed to write. Listed explicitly so a stray field in
 // the request body can never reach the database (JS-2: predictable, no surprises).
 const WRITABLE_COLUMNS = [
@@ -32,14 +34,14 @@ const WRITABLE_COLUMNS = [
  * All MLA sources, newest first.
  */
 function getAll() {
-  return db.prepare('SELECT * FROM mla_sources ORDER BY id DESC').all();
+  return db.prepare('SELECT ' + ALL_COLUMNS + ' FROM mla_sources ORDER BY id DESC').all();
 }
 
 /**
  * Single MLA source by id, or undefined if not found.
  */
 function getById(id) {
-  return db.prepare('SELECT * FROM mla_sources WHERE id = ?').get(id);
+  return db.prepare('SELECT ' + ALL_COLUMNS + ' FROM mla_sources WHERE id = ?').get(id);
 }
 
 /**

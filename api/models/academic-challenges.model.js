@@ -16,6 +16,8 @@ const {
   cachedStatement,
 } = require("./model-helpers");
 
+const ALL_COLUMNS = "id, slug, academic_popular, challenge_title, challenge_summary, challenge_body, challenge_picture, challenge_picture_alt, challenge_picture_caption, challenge_rank_number, challenge_rank_pluses, challenge_rank_minuses, published_draft, metadata_keywords";
+
 // Columns the admin is allowed to write. Listed explicitly so a stray field in
 // the request body can never reach the database (JS-2: predictable, no surprises).
 const WRITABLE_COLUMNS = [
@@ -135,7 +137,7 @@ function getAllPublished(filters = {}) {
 function getAllAdmin() {
   return db
     .prepare(
-      "SELECT * FROM challenges WHERE academic_popular = ? ORDER BY challenge_rank_number ASC",
+      "SELECT " + ALL_COLUMNS + " FROM challenges WHERE academic_popular = ? ORDER BY challenge_rank_number ASC",
     )
     .all("academic");
 }
@@ -145,7 +147,7 @@ function getAllAdmin() {
  */
 function getBySlug(slug) {
   return cachedStatement(db, 
-      "SELECT * FROM challenges WHERE slug = ? AND academic_popular = ? AND published_draft = 1",
+      "SELECT " + ALL_COLUMNS + " FROM challenges WHERE slug = ? AND academic_popular = ? AND published_draft = 1",
     )
     .get(slug, "academic");
 }
@@ -155,7 +157,7 @@ function getBySlug(slug) {
  */
 function getById(id) {
   return db
-    .prepare("SELECT * FROM challenges WHERE id = ? AND academic_popular = ?")
+    .prepare("SELECT " + ALL_COLUMNS + " FROM challenges WHERE id = ? AND academic_popular = ?")
     .get(id, "academic");
 }
 

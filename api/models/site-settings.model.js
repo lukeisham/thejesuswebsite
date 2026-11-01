@@ -5,6 +5,8 @@
 const db = require('../config');
 const { pickWritable, runUpdate } = require('./model-helpers');
 
+const ALL_COLUMNS = 'id, title, description, og_image';
+
 // Columns the admin is allowed to write. Listed explicitly so a stray field in
 // the request body can never reach the database (JS-2: predictable, no surprises).
 const WRITABLE_COLUMNS = ['title', 'description', 'og_image'];
@@ -13,7 +15,7 @@ const WRITABLE_COLUMNS = ['title', 'description', 'og_image'];
  * The singleton site-settings row (id = 1).
  */
 function get() {
-  return db.prepare('SELECT * FROM site_settings WHERE id = 1').get();
+  return db.prepare('SELECT ' + ALL_COLUMNS + ' FROM site_settings WHERE id = 1').get();
 }
 
 /**

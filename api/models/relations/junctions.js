@@ -5,6 +5,10 @@
 
 const db = require("../../config");
 
+// Aliased lists for the joins below: the junction row `j` also has an `id`.
+const MLA_COLUMNS = "m.id, m.mla_website_title, m.mla_website_url, m.mla_website_date, m.mla_website_author, m.mla_website_publisher, m.mla_book_title, m.mla_book_author, m.mla_book_publisher, m.mla_book_date, m.mla_book_page_reference, m.mla_journal_article_author, m.mla_journal_article_title, m.mla_journal_title, m.mla_journal_volume, m.mla_journal_issue, m.mla_journal_date, m.mla_journal_page_reference, m.published_draft";
+const IDENTIFIER_COLUMNS = "i.id, i.isbn, i.isbn_book_title, i.isbn_book_author, i.iaa_number, i.iaa_location, i.pleiades_number, i.pleiades_name, i.event_name, i.event_date, i.event_location, i.source_title, i.source_location, i.source_author, i.source_date, i.individual, i.individual_location, i.manuscript_number, i.manuscript_title, i.manuscript_location, i.title, i.external_url, i.published_draft";
+
 // SQL-4: identifiers interpolated into raw SQL below must come from these
 // hardcoded whitelists, never from caller-supplied variables, so a future
 // caller can never turn `table`/`sourceColumn`/etc. into an injection vector.
@@ -130,7 +134,7 @@ function getLinkedMlaSources(table, sourceColumn, orderColumn, sourceId) {
   let stmt = getLinkedMlaSourcesStatements.get(key);
   if (!stmt) {
     stmt = db.prepare(
-      `SELECT m.* FROM ${table} j JOIN mla_sources m ON j.mla_source_id = m.id WHERE j.${sourceColumn} = ? ORDER BY j.${orderColumn} ASC, j.id ASC`,
+      `SELECT ${MLA_COLUMNS} FROM ${table} j JOIN mla_sources m ON j.mla_source_id = m.id WHERE j.${sourceColumn} = ? ORDER BY j.${orderColumn} ASC, j.id ASC`,
     );
     getLinkedMlaSourcesStatements.set(key, stmt);
   }
@@ -162,7 +166,7 @@ function getLinkedIdentifiers(table, sourceColumn, orderColumn, sourceId) {
   let stmt = getLinkedIdentifiersStatements.get(key);
   if (!stmt) {
     stmt = db.prepare(
-      `SELECT i.* FROM ${table} j JOIN identifiers i ON j.identifier_id = i.id WHERE j.${sourceColumn} = ? ORDER BY j.${orderColumn} ASC, j.id ASC`,
+      `SELECT ${IDENTIFIER_COLUMNS} FROM ${table} j JOIN identifiers i ON j.identifier_id = i.id WHERE j.${sourceColumn} = ? ORDER BY j.${orderColumn} ASC, j.id ASC`,
     );
     getLinkedIdentifiersStatements.set(key, stmt);
   }

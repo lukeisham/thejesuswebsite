@@ -6,6 +6,8 @@
 const db = require("../config");
 const { pickWritable } = require("./model-helpers");
 
+const ALL_COLUMNS = "id, credential_id, public_key, user_handle, sign_count, last_used_at, created_at, updated_at";
+
 // A credential is written once at registration; only `sign_count` changes after.
 const WRITABLE_COLUMNS = [
   "credential_id",
@@ -17,14 +19,14 @@ const WRITABLE_COLUMNS = [
 /** Single credential by its WebAuthn credential id, or undefined if unknown. */
 function getByCredentialId(credentialId) {
   return db
-    .prepare("SELECT * FROM credentials WHERE credential_id = ?")
+    .prepare("SELECT " + ALL_COLUMNS + " FROM credentials WHERE credential_id = ?")
     .get(credentialId);
 }
 
 /** All credentials enrolled to a given user handle (a user may register several). */
 function getByUserHandle(userHandle) {
   return db
-    .prepare("SELECT * FROM credentials WHERE user_handle = ?")
+    .prepare("SELECT " + ALL_COLUMNS + " FROM credentials WHERE user_handle = ?")
     .all(userHandle);
 }
 
@@ -36,7 +38,7 @@ function getByUserHandle(userHandle) {
 function getByUserHandleForLogin(userHandle) {
   return db
     .prepare(
-      "SELECT * FROM credentials WHERE user_handle = ? ORDER BY last_used_at DESC LIMIT 64",
+      "SELECT " + ALL_COLUMNS + " FROM credentials WHERE user_handle = ? ORDER BY last_used_at DESC LIMIT 64",
     )
     .all(userHandle);
 }
@@ -70,7 +72,7 @@ function countByUserHandle(userHandle) {
 
 /** Single credential by primary key — used right after insert. */
 function getById(id) {
-  return db.prepare("SELECT * FROM credentials WHERE id = ?").get(id);
+  return db.prepare("SELECT " + ALL_COLUMNS + " FROM credentials WHERE id = ?").get(id);
 }
 
 /** Insert a freshly-registered credential. Returns the created row. */

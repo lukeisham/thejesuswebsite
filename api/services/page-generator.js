@@ -15,6 +15,8 @@ const { CONTENT_PAGES } = require("../config/content-pages");
 const { safeReadFile, safeMkdir, safeWriteFile } = require("../lib/io-guard");
 const { escapeHTML } = require("../lib/escape-html");
 
+const SETTINGS_COLUMNS = "id, title, description, og_image";
+
 const BASE_URL = "https://thejesuswebsite.org";
 
 // ── Site settings (cached after first read) ──────────────────────────────────
@@ -28,7 +30,7 @@ let cachedSettings = null;
  */
 function getSettings() {
   if (!cachedSettings) {
-    cachedSettings = db.prepare("SELECT * FROM site_settings WHERE id = 1").get();
+    cachedSettings = db.prepare("SELECT " + SETTINGS_COLUMNS + " FROM site_settings WHERE id = 1").get();
   }
   return cachedSettings;
 }

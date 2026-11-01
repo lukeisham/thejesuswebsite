@@ -18,6 +18,8 @@ const {
   cachedStatement,
 } = require("./model-helpers");
 
+const ALL_COLUMNS = "id, title, slug, description, primary_verse, secondary_verse, image, image_alt, image_caption, thumbnail_path, gospel_category, timeline_era, timeline_period, map_location, map_x, map_y, timeline_offset_x, timeline_offset_y, metadata_keywords, published_draft, version_update, created_at, updated_at";
+
 /**
  * Validate numeric offset fields for timeline positioning.
  * Mutates the row object: clamps valid numbers, sets invalid/out-of-range to null.
@@ -113,7 +115,7 @@ function getAllPublished(filters = {}) {
   const whereClause = conditions.join(" AND ");
 
   const itemsSql = `
-        SELECT e.*
+        SELECT ${ALL_COLUMNS}
         FROM evidence e
         WHERE ${whereClause}
         ORDER BY e.created_at DESC
@@ -125,13 +127,13 @@ function getAllPublished(filters = {}) {
 
 /** Single published item by its public slug, or undefined if not found. */
 function getBySlug(slug) {
-  return cachedStatement(db, "SELECT * FROM evidence WHERE slug = ? AND published_draft = 1")
+  return cachedStatement(db, "SELECT " + ALL_COLUMNS + " FROM evidence WHERE slug = ? AND published_draft = 1")
     .get(slug);
 }
 
 /** Single item by id regardless of publish state — for the admin panel. */
 function getById(id) {
-  return cachedStatement(db, "SELECT * FROM evidence WHERE id = ?").get(id);
+  return cachedStatement(db, "SELECT " + ALL_COLUMNS + " FROM evidence WHERE id = ?").get(id);
 }
 
 /**
@@ -394,7 +396,7 @@ function updateComposite(id, data) {
  * never leak accidentally.)
  */
 function getAllAdmin() {
-  return db.prepare("SELECT * FROM evidence ORDER BY title ASC").all();
+  return db.prepare("SELECT " + ALL_COLUMNS + " FROM evidence ORDER BY title ASC").all();
 }
 
 /** Delete by id. Returns true if a row was removed. */
@@ -404,6 +406,7 @@ function remove(id) {
 }
 
 module.exports = {
+  ALL_COLUMNS,
   getAllPublished,
   getBySlug,
   getById,
