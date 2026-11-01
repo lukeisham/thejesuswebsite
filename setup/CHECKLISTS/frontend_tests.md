@@ -86,3 +86,21 @@
 - [ ] Touch rule + CORE-5 — `api/tests/preload-modules.test.js`: comments give the why and the links
 - [ ] Touch rule + CORE-5 — `setup/ARCHITECTURE/performance-and-caching.md`: purpose statement 40 words or fewer, numbered headings, the rows from other plans kept
 - [ ] TEST-10 — `api/tests/guide-performance-and-caching.test.js`: fails with the rule, file, line and guide path; exceptions are named with a reason
+
+## Validation: Evidence picture layout shift
+**Plan:** evidence-picture-layout-shift.md
+**Date:** 2026-11-02
+
+### Manual checks
+- [ ] On `https://thejesuswebsite.org/evidence/the-logos` at 412 px, the layout shift entries add up to 0.1 or less, and the text below the picture does not move when the picture loads.
+- [ ] On `https://thejesuswebsite.org/evidence/protoevangelium` (portrait), the unloaded picture box equals the loaded box.
+- [ ] At desktop width the loaded picture has the same size and shape as before the change.
+
+### Code-review checks
+- [ ] CSS-2, CSS-5 — `figures.css`: no literal size, no `!important`, no extra specificity
+- [ ] JS-2 — `figure-orientation.js`: a picture with no stored size still gets its natural size
+- [ ] TEST-9 — `figure-orientation.test.js`: it imports the real `classify`
+- [ ] Touch rule + CORE-5 — `frontend/assets/css/components/figures.css`: comments give the why and the links, the guide matches the file
+- [ ] Touch rule + CORE-5 — `frontend/assets/js/utils/figure-orientation.js`: comments give the why and the links, the guide matches the file
+- [ ] Touch rule + CORE-5 — `api/tests/figure-orientation.test.js`: comments give the why, no issue number
+- [ ] Touch rule + CORE-5 — `setup/ARCHITECTURE/image-display.md`: purpose 40 words or fewer, matches the code
