@@ -112,12 +112,21 @@ figure.figure-standard {
 }
 
 .figure-standard img {
-  width: auto;
+  /* No `width` and no `aspect-ratio` here. An author `width: auto` would beat
+     the tag's width hint, and the unloaded picture would collapse to a few
+     pixels and push the text down when it loads. Left unset, the tag's width
+     and height reserve the box before load (the stored size on an evidence
+     page, set by evidence-detail.js and kept by figure-orientation.js). */
   max-width: var(--figure-standard-width);
   height: auto;
-  /* No aspect-ratio here: an author ratio would beat the browser's own ratio
-     from the tag's width and height, which evidence-detail.js sets to the
-     stored picture size so the reserved box matches the loaded picture. */
+}
+
+/* Height-bound pictures are clamped by max-height on phones. Their width must
+   then follow the ratio, so the hinted width is released once the orientation
+   class is known. */
+.figure-standard.figure--portrait img,
+.figure-standard.figure--square img {
+  width: auto;
 }
 
 /* The caption's unwrapped width also feeds the figure's `fit-content`

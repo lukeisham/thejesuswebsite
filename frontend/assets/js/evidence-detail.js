@@ -186,7 +186,7 @@ function renderPictures(description, primaryImage, primaryImageAlt, primaryImage
   // [figure] pictures below stay lazy.
   const primaryHTML = primaryImage
     ? `<figure class="figure-standard">
-        <img src="${html`${primaryImage}`}"${srcset} alt="${html`${primaryImageAlt || ""}`}" fetchpriority="high" width="${hasSize ? Number(width) : 720}" height="${hasSize ? Number(height) : 480}" />
+        <img src="${html`${primaryImage}`}"${srcset} alt="${html`${primaryImageAlt || ""}`}" fetchpriority="high"${hasSize ? " data-stored-size" : ""} width="${hasSize ? Number(width) : 720}" height="${hasSize ? Number(height) : 480}" />
         ${primaryCaption ? `<figcaption>${html`${primaryCaption}`}</figcaption>` : ""}
       </figure>`
     : "";

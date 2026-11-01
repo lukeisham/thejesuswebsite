@@ -7,6 +7,11 @@
  * `figure--square` class on the parent `<figure>` so the mobile `70vh`
  * portrait rule and portrait centring can target it directly.
  *
+ * Called by evidence-detail.js and the [figure] renderers. The width and height
+ * that classify() leaves or writes on the tag are the box that figures.css
+ * reserves before load: change one, check the other
+ * (setup/ARCHITECTURE/image-display.md, Invariants row 1).
+ *
  * @module utils/figure-orientation
  */
 
@@ -35,11 +40,12 @@ export function classify(img) {
   const orientation = resolveOrientation(img.naturalWidth, img.naturalHeight);
   fig.classList.add(`figure--${orientation}`);
 
-  // Set explicit width/height attributes so fit-content sizing resolves to
-  // the image's intrinsic dimensions rather than the max-width cap (see
-  // setup/PLANS/New/fix-evidence-figure-caption-alignment.md). This also
-  // satisfies the image-display.md invariant and prevents CLS.
-  if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+  // A guessed size (inline [figure] pictures start at 720x480) is replaced by
+  // the loaded size so fit-content sizing resolves to the real picture. A
+  // stored size (data-stored-size, set by evidence-detail.js) is the true
+  // shape and stays: a srcset image reports a smaller density-adjusted
+  // natural size, and overwriting would change the box the page reserved.
+  if (!img.hasAttribute("data-stored-size") && img.naturalWidth > 0 && img.naturalHeight > 0) {
     img.setAttribute("width", img.naturalWidth);
     img.setAttribute("height", img.naturalHeight);
   }

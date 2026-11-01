@@ -4,9 +4,8 @@
 // Uses node:test + node:assert.
 //
 // The real resolveOrientation lives in a frontend ES module and is loaded
-// via dynamic import() so tests always run against the live implementation
-// (Issues.md #110 — a hand-copied "synced copy" in the test file would keep
-// passing after the real implementation changes or is deleted).
+// via dynamic import() so tests always run against the live implementation.
+// A hand-copied replica would keep passing after the real module changes.
 
 const { test, describe } = require("node:test");
 const assert = require("node:assert/strict");
@@ -58,3 +57,51 @@ describe("resolveOrientation", () => {
     assert.equal(resolveOrientation(-100, 200), "portrait");
   });
 });
+
+// classify() only touches closest(), classList, hasAttribute, setAttribute and
+// the natural size, so a hand-built element is enough (TEST-8).
+function fakeImage({ natural, attrs }) {
+  const classes = new Set();
+  const figure = {
+    classList: {
+      remove: (...names) => names.forEach((n) => classes.delete(n)),
+      add: (name) => classes.add(name),
+    },
+  };
+  const attributes = { ...attrs };
+  return {
+    classes,
+    attributes,
+    naturalWidth: natural[0],
+    naturalHeight: natural[1],
+    closest: () => figure,
+    hasAttribute: (name) => name in attributes,
+    setAttribute: (name, value) => {
+      attributes[name] = String(value);
+    },
+  };
+}
+
+describe("classify", () => {
+  test("a picture with a stored size keeps its width and height", async () => {
+    const { classify } = await import("../../frontend/assets/js/utils/figure-orientation.js");
+    const img = fakeImage({
+      natural: [380, 207],
+      attrs: { width: "1440", height: "785", "data-stored-size": "" },
+    });
+    classify(img);
+    assert.equal(img.attributes.width, "1440");
+    assert.equal(img.attributes.height, "785");
+    assert.ok(img.classes.has("figure--landscape"));
+  });
+
+  test("a picture with a guessed size gets the natural size", async () => {
+    const { classify } = await import("../../frontend/assets/js/utils/figure-orientation.js");
+    const img = fakeImage({ natural: [600, 900], attrs: { width: "720", height: "480" } });
+    classify(img);
+    assert.equal(img.attributes.width, "600");
+    assert.equal(img.attributes.height, "900");
+    assert.ok(img.classes.has("figure--portrait"));
+  });
+});
+
