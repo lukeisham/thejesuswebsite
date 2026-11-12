@@ -44,13 +44,13 @@
 
 /* The divider between sections comes from `.evidence-section + .evidence-section`,
    which targets the section element, so hiding the heading keeps the divider. */
-#evidence-pictures-section .evidence-section__heading,
-#evidence-description-section .evidence-section__heading {
+.evidence-section--pictures .evidence-section__heading,
+.evidence-section--description .evidence-section__heading {
     display: none;
 }
 
 /* The first figure's margin already separates it from the verse block above. */
-#evidence-pictures-section {
+.evidence-section--pictures {
     padding-top: 0;
 }
 

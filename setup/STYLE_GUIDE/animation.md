@@ -1,4 +1,8 @@
+# Animation & Transitions
+
 _Part of the [Style Guide](INDEX.md) — §6: animation & transitions._
+
+Look up the duration and easing tokens and each component's motion before you animate anything. You leave knowing which token to use, so no stylesheet sets a literal duration.
 
 ---
 
@@ -15,10 +19,14 @@ Defined in `frontend/assets/css/base/variables.css`.
 | `--duration-fast` | 150ms | Hover states, button feedback, zoom buttons, tooltips |
 | `--duration-base` | 250ms | Sidebar, toasts in, collapsible panels |
 | `--duration-slow` | 400ms | Skeleton → content fade |
+| `--duration-spin` | 1s | Loading spinners |
+| `--duration-shimmer` | 1.5s | Skeleton shimmer |
 | `--ease-out` | `cubic-bezier(0.25, 0.46, 0.45, 0.94)` | Elements entering |
 | `--ease-in-out` | `cubic-bezier(0.45, 0, 0.55, 1)` | Toggles, drawers (smooth both ways) |
 
-Never use bouncy or spring easings. Never use `linear` for a one-shot transition. The infinite loading spinner (`spin`, 1s) is the one `linear` animation.
+Never use bouncy or spring easings. Never use `linear` for a one-shot transition. The infinite loading spinner (`spin`, `--duration-spin`) is the one `linear` animation.
+
+Every time value in a `transition`, `transition-duration`, `animation` or `animation-duration` declaration is a `var(--…)` token. The reduced-motion rule in `animations.css` is the one exception. `api/tests/guide-style-animation.test.js` checks this.
 
 ### §6.2 Per-component motion
 
@@ -27,7 +35,7 @@ Never use bouncy or spring easings. Never use `linear` for a one-shot transition
 | Card hover | `translateY(-2px)` and `--shadow-card-hover`, `--duration-fast` / `--ease-out` |
 | Button hover | `translateY(-1px)` |
 | Modal | Opens with the `fade-in-scale` keyframe (opacity `0 → 1`, scale `0.97 → 1`) over `--duration-base` |
-| Skeleton → content | `fade-in` over `--duration-slow`. The skeleton itself shimmers for `1.5s` |
+| Skeleton → content | `fade-in` over `--duration-slow`. The skeleton itself shimmers for `--duration-shimmer` |
 | Toast | Slides up `12px` while fading in (`--duration-base`). Fades out over `--duration-fast` |
 | Wikipedia grid tooltip | `translateY(4px) → 0` with opacity `0 → 1`, `--duration-fast` / `--ease-out`. Pointer devices only (§9.14) |
 | Timeline, Map and Arbor tooltips | No motion. They appear after a hover delay: 200ms (Timeline, Map) and 300ms (Arbor) |
@@ -48,3 +56,4 @@ Never use bouncy or spring easings. Never use `linear` for a one-shot transition
 - Every page that sets a duration must load `animations.css`.
 - D-021 allows the `!important` (CSS-5).
 - All animation specs in this guide fall under this rule.
+- `!important` appears in no other rule. `api/tests/guide-style-animation.test.js` checks this.

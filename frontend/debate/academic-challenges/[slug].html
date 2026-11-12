@@ -97,10 +97,10 @@
     <p class="empty-state__message">This challenge is forthcoming.</p>
   </section>
 
-  <!-- Challenge detail content (hidden until loaded) -->
+  <!-- Challenge detail content (hidden until loaded). The ids on the title and badge are read by challenge-detail.js; the stylesheet selects the classes. -->
   <div id="challenge-content" class="challenge-detail" hidden>
-    <h2 id="challenge-title"></h2>
-    <span class="badge" id="challenge-category"></span>
+    <h2 class="challenge-title" id="challenge-title"></h2>
+    <span class="badge challenge-category" id="challenge-category"></span>
     <div id="challenge-picture" hidden>
       <!-- Populated by challenge-detail.js -->
     </div>

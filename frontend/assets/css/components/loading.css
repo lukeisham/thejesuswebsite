@@ -16,7 +16,7 @@
     var(--bg-surface-alt) 75%
   );
   background-size: 200% 100%;
-  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+  animation: skeleton-shimmer var(--duration-shimmer) ease-in-out infinite;
   border-radius: var(--radius-sm);
 }
 
@@ -64,7 +64,7 @@
 }
 
 .content-spinner .icon {
-  animation: spin 1s linear infinite;
+  animation: spin var(--duration-spin) linear infinite;
 }
 
 /* -------------------------------------------------------------------------

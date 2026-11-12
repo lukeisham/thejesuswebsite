@@ -1,4 +1,8 @@
+# Pages & Admin
+
 _Part of the [Style Guide](INDEX.md) — §10–13: UX patterns, accessibility & technical notes, print styles, admin page layouts._
+
+Look up how pages behave, what they must provide for accessibility and speed, how they print, and how admin pages are laid out. You leave knowing the pattern to follow for a new page.
 
 ---
 
@@ -84,6 +88,7 @@ The page scrolls smoothly to in-page anchors.
 
 - Vanilla HTML, CSS and JS only: no frameworks, no build tools (SR-2, SR-3).
 - Pages fetch data through the helpers in `api.js`.
+- Stylesheets select by class, never by ID (CSS-5). A script may still find an element by `id`. `api/tests/guide-style-pages-and-admin.test.js` checks this.
 
 ---
 

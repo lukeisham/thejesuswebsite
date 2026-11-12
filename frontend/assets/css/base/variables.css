@@ -145,6 +145,8 @@
     --duration-fast: 150ms;
     --duration-base: 250ms;
     --duration-slow: 400ms;
+    --duration-spin: 1s;
+    --duration-shimmer: 1.5s;
 
     --ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
     --ease-in-out: cubic-bezier(0.45, 0, 0.55, 1);

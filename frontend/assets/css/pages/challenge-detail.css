@@ -20,7 +20,7 @@
    Title & Category Badge
    ------------------------------------------------------------------------- */
 
-#challenge-title {
+.challenge-title {
     font-family: var(--font-heading);
     font-size: var(--text-h1);
     font-weight: 700;
@@ -28,7 +28,7 @@
     margin-bottom: var(--space-sm);
 }
 
-#challenge-category {
+.challenge-category {
     margin-bottom: var(--space-lg);
 }
 
@@ -90,7 +90,7 @@
         padding: var(--space-lg) var(--space-md);
     }
 
-    #challenge-title {
+    .challenge-title {
         font-size: var(--text-h2);
     }
 }

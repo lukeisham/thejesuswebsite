@@ -18,7 +18,7 @@
     padding: var(--space-sm) var(--space-md);
     border-bottom: 1px solid var(--admin-border-light);
     background: var(--admin-surface);
-    transition: background 0.15s;
+    transition: background var(--admin-transition);
     user-select: none;
 }
 
@@ -138,6 +138,6 @@
 }
 
 .publish-toggle-btn--published {
-    background: var(--admin-success) !important;
-    color: var(--admin-accent-text) !important;
+    background: var(--admin-success);
+    color: var(--admin-accent-text);
 }
