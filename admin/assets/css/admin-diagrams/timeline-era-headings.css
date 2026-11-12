@@ -29,7 +29,7 @@
     overflow: hidden;
     background: var(--bg-primary);
     border-bottom: 1px solid var(--border);
-    z-index: 4; /* above the zoomed world, below the zoom bar (z-index 10, timeline-controls.css) */
+    z-index: var(--admin-z-timeline-heading); /* above the zoomed world, below the zoom bar (z-index 10, timeline-controls.css) */
     pointer-events: none; /* never block drag or pan */
 }
 
@@ -50,10 +50,10 @@
     padding: 0;
     font-family: var(--font-sans);
     font-size: var(--timeline-heading-font-size);
-    font-weight: 600;
+    font-weight: var(--admin-font-weight-semibold);
     line-height: var(--timeline-heading-lane-height);
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    letter-spacing: var(--tracking-caps);
     white-space: nowrap;
     color: var(--text-primary);
     transition: left var(--duration-fast) var(--ease-out);
@@ -85,7 +85,7 @@
         3 * var(--timeline-heading-lane-height) + var(--space-xs)
         - (var(--lane) + 1) * var(--timeline-heading-lane-height)
     );
-    border-left: 2px solid var(--timeline-era-color);
+    border-left: var(--timeline-rule-width) solid var(--timeline-era-color);
     transition: left var(--duration-fast) var(--ease-out);
 }
 

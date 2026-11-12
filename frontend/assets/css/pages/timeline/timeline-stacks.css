@@ -17,17 +17,17 @@
    on the spine. */
 .timeline-stack {
     position: absolute;
-    width: 2rem;
-    height: calc(var(--stack-count, 2) * var(--timeline-stack-spacing) + 1.5rem);
+    width: var(--space-xl);
+    height: calc(var(--stack-count, 2) * var(--timeline-stack-spacing) + var(--space-lg));
     padding: 0;
     border: 0;
     background: transparent;
     cursor: pointer;
-    z-index: 3;
+    z-index: var(--z-timeline-stack);
     transform:
         translate(-50%, -50%)
         scale(calc(1 / var(--timeline-zoom-scale, 1)))
-        translateY(-0.75rem);
+        translateY(calc(-1 * var(--timeline-stack-offset)));
 }
 
 /* -------------------------------------------------------------------------
@@ -39,15 +39,15 @@
     top: 0;
     left: 50%;
     transform: translateX(-50%);
-    min-width: 1.25rem;
+    min-width: var(--timeline-stack-size);
     padding: 0 var(--space-xs);
     border: 1px solid var(--border-strong);
     border-radius: var(--radius-md);
     background: var(--bg-surface);
     color: var(--text-primary);
     font-size: var(--text-2xs);
-    font-weight: 600;
-    line-height: 1.125rem;
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--timeline-stack-line-height);
     text-align: center;
 }
 
@@ -60,12 +60,12 @@
 }
 
 .timeline-stack:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
+    outline: var(--focus-ring-width) solid var(--accent);
+    outline-offset: var(--focus-ring-offset);
 }
 
 .timeline-stack.filtered-out {
-    opacity: 0.15;
+    opacity: var(--opacity-faint);
     pointer-events: none;
 }
 

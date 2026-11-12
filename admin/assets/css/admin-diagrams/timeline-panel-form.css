@@ -22,32 +22,32 @@
     gap: var(--space-xs);
 }
 .admin-timeline-panel__field label {
-    font-size: 0.8125rem;
-    font-weight: 500;
+    font-size: var(--admin-text-label);
+    font-weight: var(--admin-font-weight-medium);
     color: var(--admin-text-secondary);
 }
 .admin-timeline-panel__input {
     padding: var(--space-xs) var(--space-sm);
-    font-size: 0.9375rem;
+    font-size: var(--admin-text-input);
     border: 1px solid var(--admin-border);
     border-radius: var(--admin-radius);
     color: var(--admin-text-primary);
     background: var(--admin-bg);
-    min-height: 36px;
+    min-height: var(--admin-control-height);
 }
 .admin-timeline-panel__input:focus {
     outline: none;
     border-color: var(--admin-accent);
-    box-shadow: 0 0 0 2px var(--admin-accent-glow-strong);
+    box-shadow: 0 0 0 var(--admin-ring-focus) var(--admin-accent-glow-strong);
 }
 .admin-timeline-panel__select {
     padding: var(--space-xs) var(--space-sm);
-    font-size: 0.9375rem;
+    font-size: var(--admin-text-input);
     border: 1px solid var(--admin-border);
     border-radius: var(--admin-radius);
     color: var(--admin-text-primary);
     background: var(--admin-bg);
-    min-height: 36px;
+    min-height: var(--admin-control-height);
 }
 .admin-timeline-panel__info {
     font-size: var(--text-small);
@@ -58,9 +58,9 @@
 
 /* Hidden while empty; timeline-events.js writes the failure text into it. */
 .admin-timeline-panel__error {
-    font-size: 0.8125rem;
+    font-size: var(--admin-text-label);
     color: var(--admin-error-color);
-    min-height: 1.2em;
+    min-height: var(--admin-form-error-min-height);
     padding: var(--space-xs) var(--space-sm);
     background: var(--admin-error-bg);
     border: 1px solid var(--admin-error-border);

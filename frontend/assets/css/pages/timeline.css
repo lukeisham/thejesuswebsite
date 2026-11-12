@@ -51,7 +51,7 @@
        overlaps it. CONTAINER_MIN_HEIGHT in timeline-render.js must equal this
        value, or its clipping warning checks the wrong height. Mirrors
        .arbor-canvas. */
-    min-height: 600px;
+    min-height: var(--timeline-container-min-height);
     cursor: grab;
     padding: var(--space-xl) 0 var(--space-3xl);
     background-color: var(--bg-primary);
@@ -60,7 +60,7 @@
         var(--border) 1px,
         transparent 1px
     );
-    background-size: 24px 24px;
+    background-size: var(--timeline-grid-size) var(--timeline-grid-size);
 }
 
 .timeline-container:active {
@@ -92,7 +92,7 @@
 
 .timeline-inner {
     position: relative;
-    min-height: 280px;
+    min-height: var(--timeline-canvas-height);
 }
 
 /* -------------------------------------------------------------------------
@@ -106,7 +106,7 @@
     bottom: 0;
     left: 0;
     right: 0;
-    z-index: 10;
+    z-index: var(--z-timeline-controls);
     display: flex;
     justify-content: center;
     gap: var(--space-sm);
@@ -125,7 +125,7 @@
     position: absolute;
     top: 50%;
     left: 0;
-    height: 2px;
+    height: var(--timeline-rule-width);
     background: var(--border-strong);
     transform: translateY(-50%);
 }
@@ -141,5 +141,5 @@
     bottom: 0;
     width: 1px;
     background: var(--border);
-    opacity: 0.6;
+    opacity: var(--opacity-muted);
 }

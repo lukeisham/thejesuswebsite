@@ -14,13 +14,13 @@
     position: fixed;
     top: 0;
     right: 0;
-    width: 360px;
+    width: var(--admin-panel-width);
     max-width: 100vw;
     height: 100%;
     background: var(--admin-surface);
     border-left: 1px solid var(--admin-border);
     box-shadow: var(--shadow-panel);
-    z-index: 100;
+    z-index: var(--admin-z-panel);
     transform: translateX(100%);
     transition: transform var(--admin-transition);
     display: flex;
@@ -40,15 +40,15 @@
     border-bottom: 1px solid var(--admin-border);
 }
 .admin-timeline-panel__title {
-    font-size: 1.125rem;
-    font-weight: 600;
+    font-size: var(--admin-text-panel-title);
+    font-weight: var(--admin-font-weight-semibold);
     margin: 0;
     color: var(--admin-text-primary);
 }
 .admin-timeline-panel__close {
     background: none;
     border: none;
-    font-size: 1.25rem;
+    font-size: var(--admin-text-heading);
     color: var(--admin-text-secondary);
     cursor: pointer;
     padding: var(--space-xs);
@@ -69,12 +69,12 @@
 }
 .admin-timeline-panel__btn {
     padding: var(--space-xs) var(--space-md);
-    font-size: 0.875rem;
-    font-weight: 500;
+    font-size: var(--admin-text-button);
+    font-weight: var(--admin-font-weight-medium);
     border: none;
     border-radius: var(--admin-radius);
     cursor: pointer;
-    min-height: 36px;
+    min-height: var(--admin-control-height);
     transition: background var(--admin-transition);
 }
 .admin-timeline-panel__btn--primary {
@@ -102,7 +102,7 @@
     position: fixed;
     inset: 0;
     background: var(--overlay-backdrop);
-    z-index: 99;
+    z-index: var(--admin-z-panel-backdrop);
 }
 
 /* ── Responsive ────────────────────────────────────────────────────────── */

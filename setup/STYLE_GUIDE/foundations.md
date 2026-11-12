@@ -147,6 +147,16 @@ The admin root is `14px`. Admin tokens are in px.
 | `--text-2xs` | 9px |
 | Sidebar section labels | 11px, weight 600, uppercase, `letter-spacing: 0.05em` |
 
+### §2.6 Weight, leading, tracking
+
+| Token | Value | Use |
+|---|---|---|
+| `--font-weight-medium` | 500 | Small labels |
+| `--font-weight-semibold` | 600 | Counts, lane headings |
+| `--font-weight-bold` | 700 | Era headings |
+| `--leading-heading` | 1.3 | Headings drawn at a fixed size |
+| `--tracking-caps` | 0.08em | Uppercase headings |
+
 ---
 
 ## §3 Layout & Spacing
@@ -179,6 +189,16 @@ The admin root is `14px`. Admin tokens are in px.
 | `--radius-md` | 8px |
 | `--radius-lg` | 16px |
 | `--radius-round` | 50% |
+
+### §3.4 Focus ring and opacity
+
+| Token | Value | Use |
+|---|---|---|
+| `--focus-ring-width` | 2px | Outline width on a focused control |
+| `--focus-ring-offset` | 2px | Outline gap |
+| `--focus-ring-offset-dot` | 3px | Outline gap on a timeline dot |
+| `--opacity-faint` | 0.15 | A dimmed timeline item |
+| `--opacity-muted` | 0.6 | Era marker lines |
 
 ---
 

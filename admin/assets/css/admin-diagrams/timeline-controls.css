@@ -16,7 +16,7 @@
     bottom: 0;
     left: 0;
     right: 0;
-    z-index: 10;
+    z-index: var(--admin-z-timeline-controls);
     display: flex;
     justify-content: center;
     gap: var(--space-sm);
@@ -27,13 +27,13 @@
 
 .admin-timeline-controls__btn {
     padding: var(--space-xs) var(--space-md);
-    font-size: 1rem;
-    font-weight: 600;
+    font-size: var(--admin-text-control);
+    font-weight: var(--admin-font-weight-semibold);
     border: 1px solid var(--border);
     border-radius: var(--admin-radius);
     cursor: pointer;
-    min-height: 36px;
-    min-width: 44px;
+    min-height: var(--admin-control-height);
+    min-width: var(--admin-touch-target);
     background: var(--bg-surface);
     color: var(--text-primary);
     transition: background var(--duration-fast);

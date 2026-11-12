@@ -56,7 +56,7 @@
         var(--border) 1px,
         transparent 1px
     );
-    background-size: 24px 24px;
+    background-size: var(--timeline-grid-size) var(--timeline-grid-size);
     position: relative;
     border-top: 1px solid var(--admin-border);
     cursor: grab;
@@ -125,6 +125,6 @@
 .admin-timeline-era-divider {
     width: max(1px, calc(1px / var(--timeline-zoom-scale, 1)));
     background: var(--border);
-    opacity: 0.6;
+    opacity: var(--opacity-muted);
     pointer-events: none;
 }

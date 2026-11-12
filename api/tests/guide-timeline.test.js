@@ -606,3 +606,108 @@ describe(`${GUIDE} row 12: the era-to-class conversion is only in admin-era-util
     });
   }
 });
+
+// ── Row 13: sizes that CSS and JS both hold ──────────────────────────────────
+
+describe(`${GUIDE} row 13: timeline size tokens equal their JS constants`, () => {
+  const FRONTEND_TOKENS = "frontend/assets/css/base/variables.css";
+  const PAIRS = [
+    { token: "--timeline-dot-size", file: "frontend/assets/js/timeline/timeline-render.js", constant: "DOT_BOX_PX" },
+    { token: "--timeline-dot-size", file: "frontend/assets/js/timeline/timeline-era-heading-placement.js", constant: "DOT_SIZE" },
+    { token: "--timeline-canvas-height", file: "frontend/assets/js/timeline/timeline-geometry.js", constant: "TIMELINE_CANVAS_HEIGHT_PX" },
+    { token: "--timeline-container-min-height", file: "frontend/assets/js/timeline/timeline-render.js", constant: "CONTAINER_MIN_HEIGHT" },
+  ];
+
+  for (const { token, file, constant } of PAIRS) {
+    test(`${token} equals ${constant} in ${file}`, () => {
+      const css = new RegExp(`${token}:\\s*(\\d+)px;`).exec(blankComments(read(FRONTEND_TOKENS)));
+      assert.ok(css, `${GUIDE} row 13: ${FRONTEND_TOKENS} has no pixel value for ${token}.`);
+      const js = new RegExp(`const ${constant}\\s*=\\s*(\\d+)`).exec(blankComments(read(file)));
+      assert.ok(js, `${GUIDE} row 13: ${file} has no numeric const ${constant}.`);
+      assert.equal(
+        Number(css[1]),
+        Number(js[1]),
+        `${GUIDE} row 13: ${token} is ${css[1]}px but ${constant} in ${file} is ${js[1]}.`,
+      );
+    });
+  }
+});
+
+// ── Row 14: tokens that both token files hold ────────────────────────────────
+
+describe(`${GUIDE} row 14: shared timeline tokens are equal on both pages`, () => {
+  const FRONTEND_TOKENS = "frontend/assets/css/base/variables.css";
+  const ADMIN_TOKENS = "admin/assets/css/admin-diagrams/timeline-tokens.css";
+  const TOKENS = [
+    "--timeline-dot-size",
+    "--timeline-label-max-width",
+    "--timeline-grid-size",
+    "--timeline-rule-width",
+    "--tracking-caps",
+    "--opacity-muted",
+  ];
+
+  function tokenValue(relPath, token) {
+    const m = new RegExp(`${token}:\\s*([^;]+);`).exec(blankComments(read(relPath)));
+    assert.ok(m, `${GUIDE} row 14: ${relPath} does not define ${token}.`);
+    return m[1].trim();
+  }
+
+  for (const token of TOKENS) {
+    test(`${token} is the same in both token files`, () => {
+      assert.equal(
+        tokenValue(ADMIN_TOKENS, token),
+        tokenValue(FRONTEND_TOKENS, token),
+        `${GUIDE} row 14: ${token} differs between ${FRONTEND_TOKENS} and ${ADMIN_TOKENS}.`,
+      );
+    });
+  }
+});
+
+// ── Row 15: no design literals in the timeline stylesheets ───────────────────
+
+describe(`${GUIDE} row 15: timeline stylesheets hold no weight, layer, opacity or size literals`, () => {
+  const STYLESHEETS = [
+    "frontend/assets/css/pages/timeline.css",
+    "frontend/assets/css/pages/timeline/timeline-dots.css",
+    "frontend/assets/css/pages/timeline/timeline-stacks.css",
+    "frontend/assets/css/pages/timeline/timeline-labels.css",
+    "frontend/assets/css/pages/timeline/timeline-responsive.css",
+    "frontend/assets/css/pages/timeline/timeline-detail-panel.css",
+    "frontend/assets/css/components/timeline-era-headings.css",
+    ...fs
+      .readdirSync(path.join(REPO, "admin/assets/css/admin-diagrams"))
+      .filter((n) => /^timeline-.*\.css$/.test(n) && n !== "timeline-tokens.css")
+      .map((n) => `admin/assets/css/admin-diagrams/${n}`),
+  ];
+  // timeline-line-stability.css and timeline-tokens.css are not scanned: the first holds only the
+  // max(1px, calc(Npx / scale)) forms, the second is where the tokens are defined.
+
+  /** CSS with comments, @media conditions and the line-stability max() forms blanked. */
+  function scannable(rel) {
+    const blank = (m) => m.replace(/[^\n]/g, " ");
+    return blankComments(read(rel))
+      .replace(/@media[^{]*/g, blank)
+      .replace(/max\(1px,\s*calc\([^)]*\)\)/g, blank);
+  }
+
+  const BANNED = [
+    { name: "font-weight number", re: /font-weight:\s*\d+/g },
+    { name: "z-index number", re: /z-index:\s*-?\d+/g },
+    { name: "opacity number", re: /opacity:\s*0?\.\d+/g },
+    { name: "px, rem or em size", re: /(?<![\w.-])(?!0?\.?0*(?:px|rem|em)\b)(?!1px\b)\d*\.?\d+(?:px|rem|em)\b/g },
+  ];
+
+  for (const rel of STYLESHEETS) {
+    test(`${rel} holds no banned literal`, () => {
+      const code = scannable(rel);
+      for (const { name, re } of BANNED) {
+        for (const m of code.matchAll(re)) {
+          assert.fail(
+            `${GUIDE} row 15: ${rel}:${lineOf(code, m.index)} has a ${name} ("${m[0]}"). Use a token from variables.css.`,
+          );
+        }
+      }
+    });
+  }
+});

@@ -13,8 +13,8 @@
 
 .timeline-tooltip {
     position: fixed;
-    z-index: 60;
-    max-width: 240px;
+    z-index: var(--z-timeline-tooltip);
+    max-width: var(--timeline-tooltip-width);
     padding: var(--space-sm) var(--space-md);
     background: var(--bg-surface);
     color: var(--text-primary);
@@ -39,14 +39,14 @@
     position: fixed;
     right: var(--space-lg);
     bottom: var(--space-lg);
-    width: 320px;
+    width: var(--timeline-panel-width);
     max-width: calc(100vw - var(--space-2xl));
     background: var(--bg-surface);
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-card-hover);
     padding: var(--space-lg);
-    z-index: 50;
+    z-index: var(--z-timeline-panel);
 }
 
 .timeline-detail-panel[hidden] {

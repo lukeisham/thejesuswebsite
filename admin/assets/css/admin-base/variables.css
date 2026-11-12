@@ -94,9 +94,40 @@
     --text-xs: 11px;
     --text-small: 12px;
 
+    /* Rem sizes for the diagram editors' panels, forms and toolbars. Named
+       --admin-text-* because the frontend --text-* names hold other values. */
+    --admin-text-label: 0.8125rem;
+    --admin-text-button: 0.875rem;
+    --admin-text-input: 0.9375rem;
+    --admin-text-control: 1rem;
+    --admin-text-panel-title: 1.125rem;
+    --admin-text-heading: 1.25rem;
+
     /* ── Radii ────────────────────────────────────────────────────────────── */
     --admin-radius: 6px;
     --admin-radius-sm: 4px;
+    --admin-radius-pill: 999px;
+
+    /* ── Controls, Focus Ring, Rings, Layers ──────────────────────────────── */
+    --admin-control-height: 36px;
+    --admin-control-height-sm: 32px;
+    --admin-touch-target: 44px;
+    --admin-panel-width: 360px;
+    --admin-focus-ring-width: 2px;
+    --admin-focus-ring-offset: 2px;
+    --admin-ring-focus: 2px;
+    --admin-ring-selected: 3px;
+    --admin-ring-hover: 4px;
+    --admin-ring-drag: 6px;
+    --admin-era-chip-gap: 6px;
+    --admin-era-chip-rule: 3px;
+    --admin-form-error-min-height: 1.2em;
+    --admin-z-timeline-dot: 2;
+    --admin-z-timeline-dot-active: 3;
+    --admin-z-timeline-heading: 4;
+    --admin-z-timeline-controls: 10;
+    --admin-z-panel-backdrop: 99;
+    --admin-z-panel: 100;
 
     /* ── Shadows & Transitions ──────────────────────────────────────────────
        Shadow Tokens: Complete Values

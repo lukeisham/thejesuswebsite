@@ -52,6 +52,16 @@
     --timeline-heading-bar-height: 0.3125rem;
     --timeline-heading-band-height: 4.5rem;
 
+    /* Sizes equal the same-named tokens in frontend variables.css. The dot
+       and label sizes are also laid out in JS (guide row 10), and the grid
+       size draws the canvas grid on both pages (guide row 11). */
+    --timeline-dot-size: 10px;
+    --timeline-label-max-width: 100px;
+    --timeline-grid-size: 24px;
+    --timeline-rule-width: 2px;
+    --tracking-caps: 0.08em;
+    --opacity-muted: 0.6;
+
     /* Transitions */
     --duration-fast: 150ms;
     --ease-out: ease;
