@@ -57,6 +57,7 @@
   color: var(--text-muted);
 }
 
+/* 1023px is --bp-lg-max; @media cannot read the token (D-005), so the number is written out. */
 @media (max-width: 1023px) {
   .wikipedia-header-row {
     grid-template-columns: var(--wikipedia-rank-col-sm) 1fr auto auto var(--signal-btn-size);
@@ -82,6 +83,7 @@
   border-bottom: 1px solid var(--border);
 }
 
+/* 1023px is --bp-lg-max; @media cannot read the token (D-005), so the number is written out. */
 @media (max-width: 1023px) {
   .wikipedia-rank-card {
     grid-template-columns: var(--wikipedia-rank-col-sm) 1fr auto auto var(--signal-btn-size);

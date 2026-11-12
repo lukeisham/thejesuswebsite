@@ -95,6 +95,7 @@
 
 /* ── Responsive ────────────────────────────────────────────────────────────── */
 
+/* 767px is --bp-md-max; @media cannot read the token (D-005), so the number is written out. */
 @media (max-width: 767px) {
     .admin-maps-gallery__grid {
         grid-template-columns: 1fr;
