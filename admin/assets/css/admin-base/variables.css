@@ -1,6 +1,7 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    Admin Design Tokens
-   CSS-1: Variables only. Import nothing. All tokens on :root.
+   The one token file for admin stylesheets (CSS-2). Declares tokens on :root
+   and imports nothing; admin.css loads it before every other admin file.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 :root {

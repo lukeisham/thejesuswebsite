@@ -1,7 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    Resources List — shared styles for admin resource pages
-   Extracted from ~10k lines of duplicate inline <style> blocks across
-   16 admin/resources/*.html files (resources-p1-consolidation-draft-fix.md).
+   Shared by every admin/resources/*.html page, so a fix here reaches all of them.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .admin-loading,

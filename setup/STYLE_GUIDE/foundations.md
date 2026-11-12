@@ -1,3 +1,5 @@
+# Foundations
+
 _Part of the [Style Guide](INDEX.md) — §1–5, §7: color palette, typography, layout & spacing, responsive breakpoints, navigation, icon system._
 
 Look up the colour, type, spacing, breakpoint and icon tokens before you style anything. You leave knowing which named value to use, so no stylesheet needs a literal.
