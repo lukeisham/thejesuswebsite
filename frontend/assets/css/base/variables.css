@@ -130,6 +130,7 @@
     --bp-sm-max: 480px;     /* max-width: 480px — specific component rules */
     --bp-admin-sm: 600px;   /* max-width: 600px — admin responsive */
     --bp-md-max: 767px;     /* max-width: 767px — mobile-tablet boundary */
+    --bp-lg-max: 1023px;    /* max-width: 1023px — tablet-desktop boundary */
 
     /* Border Radius */
     --radius-sm: 4px;
@@ -173,19 +174,12 @@
     --wikipedia-rank-number-size: 2rem;
 
     /* -------------------------------------------------------------------------
-       Admin Panel Tokens
+       Badge Tokens
+       Neutral grey badge (badges.css, .badge-draft).
        ------------------------------------------------------------------------- */
 
-    --admin-bg: #f4f6f8;
-    --admin-sidebar-bg: #2c3e50;
-    --admin-sidebar-text: #ecf0f1;
-    --admin-sidebar-active: #3d5a78;
-    --admin-accent: #3d5a78;
-    --admin-accent-hover: #2c4a68;
-    --admin-border: #dde1e7;
-    --admin-surface: #ffffff;
-    --admin-text-primary: #2c3340;
-    --admin-text-secondary: #5a6472;
+    --badge-neutral-bg: #dde1e7;
+    --badge-neutral-text: #5a6472;
 
     /* -------------------------------------------------------------------------
         Shadows

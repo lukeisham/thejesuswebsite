@@ -18,7 +18,7 @@
 }
 
 .admin-arbor-pen__badge--published {
-    background: rgba(40, 167, 69, 0.12);
+    background: var(--admin-success-tint);
     color: var(--admin-success);
 }
 

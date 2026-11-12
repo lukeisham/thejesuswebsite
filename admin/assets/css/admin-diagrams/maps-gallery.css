@@ -95,7 +95,7 @@
 
 /* ── Responsive ────────────────────────────────────────────────────────────── */
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
     .admin-maps-gallery__grid {
         grid-template-columns: 1fr;
     }

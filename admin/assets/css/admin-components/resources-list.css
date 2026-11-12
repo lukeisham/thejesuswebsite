@@ -46,7 +46,7 @@
 
 .draggable-row.dragging {
     opacity: 0.85;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    box-shadow: var(--shadow-node-hover);
 }
 
 .draggable-row--subheading {

@@ -1,9 +1,9 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    Admin News Page (CSS-1)
-   List-page furniture lives in the shared admin-list-page.css component;
-   this file holds only the page's unique remainder. The modal that was
-   duplicated here now uses the shared admin-components/modals.css classes
-   (issue #222). This file holds only the landing-page badge.
+   List-page furniture lives in the shared admin-list-page.css component and
+   the modal uses the shared admin-components/modals.css classes, so a fix to
+   either reaches every admin list page. This file holds only the
+   landing-page badge.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .admin-landing-badge {
@@ -12,6 +12,6 @@
     font-size: 11px;
     border-radius: 10px;
     background: var(--admin-accent);
-    color: #fff;
+    color: var(--admin-accent-text);
     font-weight: 500;
 }

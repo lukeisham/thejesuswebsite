@@ -36,7 +36,7 @@
 }
 
 .badge-draft {
-  background: var(--admin-border, #DDE1E7);
-  color: var(--admin-text-secondary, #5A6472);
-  border-color: var(--admin-border, #DDE1E7);
+  background: var(--badge-neutral-bg);
+  color: var(--badge-neutral-text);
+  border-color: var(--badge-neutral-bg);
 }

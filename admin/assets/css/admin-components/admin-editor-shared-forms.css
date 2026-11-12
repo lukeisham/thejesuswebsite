@@ -50,8 +50,8 @@
 .admin-error {
     padding: var(--space-md);
     color: var(--admin-danger);
-    background: rgba(220, 53, 69, 0.08);
-    border: 1px solid rgba(220, 53, 69, 0.2);
+    background: var(--admin-danger-bg-subtle);
+    border: 1px solid var(--admin-danger-border-soft);
     border-radius: var(--admin-radius);
     margin-bottom: var(--space-md);
 }

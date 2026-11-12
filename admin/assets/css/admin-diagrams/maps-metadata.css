@@ -50,7 +50,7 @@
 .admin-maps-metadata__input:focus {
     outline: none;
     border-color: var(--admin-accent);
-    box-shadow: 0 0 0 2px rgba(61, 90, 120, 0.2);
+    box-shadow: 0 0 0 var(--admin-ring-focus) var(--admin-accent-glow-strong);
 }
 .admin-maps-metadata__textarea {
     resize: vertical;

@@ -25,7 +25,7 @@
 .rank-row.dragging {
     opacity: 0.5;
     background: var(--admin-surface-hover);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 12px var(--shadow-modal-color);
 }
 
 .rank-row.drop-target {
@@ -139,5 +139,5 @@
 
 .publish-toggle-btn--published {
     background: var(--admin-success) !important;
-    color: #fff !important;
+    color: var(--admin-accent-text) !important;
 }

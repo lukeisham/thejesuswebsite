@@ -89,7 +89,7 @@
 }
 
 .map-pin:hover {
-  box-shadow: 0 0 0 4px rgba(92, 64, 51, 0.15);
+  box-shadow: var(--timeline-hover-shadow);
   transform: translate(-50%, -50%) scale(1.3);
 }
 

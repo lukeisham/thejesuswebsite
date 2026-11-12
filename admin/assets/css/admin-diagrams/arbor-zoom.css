@@ -20,7 +20,7 @@
     border: 1px solid var(--admin-border);
     border-radius: 8px;
     padding: 4px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px var(--shadow-panel-color);
 }
 .admin-arbor-zoom-btn {
     padding: 6px 10px;
@@ -44,7 +44,7 @@
 .admin-arbor-panel-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.3);
+    background: var(--overlay-backdrop);
     z-index: 99;
 }
 

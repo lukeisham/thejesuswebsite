@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════════════════
    Admin Sidebar — Fixed 220px
-   CSS-4: Under 100 lines. BEM naming, single selectors, no !important.
+   Class names are BEM (CSS-4) and selectors stay single (CSS-5).
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .admin-sidebar {
@@ -24,7 +24,7 @@
     font-size: 1.1rem;
     font-weight: 600;
     color: var(--admin-accent);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid var(--admin-sidebar-divider);
     flex-shrink: 0;
 }
 
@@ -91,6 +91,6 @@
 
 .admin-sidebar__bottom {
     padding: var(--space-sm) 0;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border-top: 1px solid var(--admin-sidebar-divider);
     flex-shrink: 0;
 }

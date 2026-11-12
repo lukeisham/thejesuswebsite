@@ -412,7 +412,7 @@ Import the real module whenever possible. If a test must recreate source logic (
 
 **TEST-10 — Guide tests guard the text rules of a guide.**
 A guide test reads source files as text and fails when code breaks a rule that a guide in
-`setup/ARCHITECTURE/` states. It does not test behaviour. It catches the drift where one file
+`setup/ARCHITECTURE/` or a section file in `setup/STYLE_GUIDE/` states. It does not test behaviour. It catches the drift where one file
 changes and another file that depends on it silently breaks. See
 `api/tests/guide-error-notification.test.js`.
 
@@ -427,6 +427,9 @@ changes and another file that depends on it silently breaks. See
   fails when an exception names a file that no longer exists. Never add an exception or widen a
   pattern only to make a red test pass (AG-4).
 - The guide names its guide test next to the rows that the test covers.
+- A section file in `setup/STYLE_GUIDE/` may have a guide test too. It is named
+  `api/tests/guide-style-<section-file>.test.js`, scans the CSS under `frontend/` and `admin/`,
+  and the section names it next to the rules it covers. Every other bullet above applies.
 
 ## CSS Rules
 

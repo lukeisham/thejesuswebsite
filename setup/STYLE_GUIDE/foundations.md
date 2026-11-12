@@ -68,6 +68,8 @@ For timeline dots, map pins, era chips and era headings. A label always carries 
 
 ### §1.6 Fixed colors and shadows
 
+A colour literal (`#hex`, `rgb()`, `rgba()`, `hsl()`, `hsla()`) appears only in the two `variables.css` files and the three diagram token files (D-057, D-080). `api/tests/guide-style-foundations.test.js` checks this.
+
 | Token | Value | Use |
 |---|---|---|
 | `--color-white` | `#FFFFFF` | Roundel dots, text on dark fills |
@@ -78,6 +80,8 @@ For timeline dots, map pins, era chips and era headings. A label always carries 
 | `--shadow-sm`, `--shadow-md` | — | Button rest and hover, tooltips |
 
 ### §1.7 Admin panel
+
+No `.css` file under `frontend/` contains `--admin-`, as a definition or a read (D-017). `api/tests/guide-style-foundations.test.js` checks this.
 
 | Token | Value | Use |
 |---|---|---|
@@ -98,6 +102,8 @@ For timeline dots, map pins, era chips and era headings. A label always carries 
 ## §2 Typography
 
 ### §2.1 Font stacks
+
+Every `font-family` value is a `var(--…)` token or `inherit`, print blocks included. `api/tests/guide-style-foundations.test.js` checks this.
 
 | Token | Used for | Stack |
 |---|---|---|
@@ -219,7 +225,8 @@ Mobile-first: base styles target the smallest screen. Each `@media` rule adds la
 | xl | 1280px | `--bp-xl` | Desktop. Container side padding becomes `2rem`. |
 | 2xl | 1536px | `--bp-2xl` | Wide monitors |
 
-- Max-width tokens: `--bp-sm-max` (480px), `--bp-md-max` (767px), `--bp-admin-sm` (600px).
+- Max-width tokens: `--bp-sm-max` (480px), `--bp-md-max` (767px), `--bp-admin-sm` (600px), `--bp-lg-max` (1023px).
+- Every `@media` width is one of `min-width` 480, 768, 1024, 1280, 1536 or `max-width` 480, 600, 767, 1023. `api/tests/guide-style-foundations.test.js` checks this.
 - CSS cannot use custom properties inside `@media`. Each `@media` rule writes the literal number from `variables.css` (D-005).
 
 ### §4.2 Key layout shifts

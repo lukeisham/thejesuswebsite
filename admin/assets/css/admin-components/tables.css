@@ -51,7 +51,7 @@
 }
 
 .admin-badge--published {
-    background: rgba(40, 167, 69, 0.12);
+    background: var(--admin-success-tint);
     color: var(--admin-success);
 }
 
@@ -61,7 +61,7 @@
 }
 
 .admin-badge--type {
-    background: rgba(136, 136, 152, 0.12);
+    background: var(--admin-neutral-tint);
     color: var(--admin-text-muted);
     font-family: var(--admin-font-mono);
     font-size: 10px;

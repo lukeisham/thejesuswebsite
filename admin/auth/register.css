@@ -16,13 +16,7 @@
 }
 
 body {
-    font-family:
-        system-ui,
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        Roboto,
-        sans-serif;
+    font-family: var(--admin-font-auth);
     font-size: 0.9375rem;
     line-height: 1.5;
     color: var(--admin-text-primary);
@@ -44,7 +38,7 @@ body {
     max-width: 420px;
     width: 100%;
     text-align: center;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--admin-shadow);
 }
 
 .auth-card h1 {
@@ -125,7 +119,7 @@ body {
 }
 
 .auth-card__status code {
-    background: rgba(0, 0, 0, 0.06);
+    background: var(--shadow-xs-color);
     padding: 0.125em 0.375em;
     border-radius: 3px;
     font-size: 0.875em;

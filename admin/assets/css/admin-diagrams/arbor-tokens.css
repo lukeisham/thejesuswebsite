@@ -1,0 +1,37 @@
+/* ==========================================================================
+   Arbor Tokens (Admin)
+   The frontend-named tokens that the arbor editor's stylesheets read
+   (arbor-canvas.css and the other arbor-*.css files), because the admin
+   variables.css holds the --admin-* and --era-* tokens only. Values mirror
+   frontend/assets/css/base/variables.css. Loaded by admin/diagrams/arbor.html
+   before arbor.css.
+   ========================================================================== */
+
+:root {
+    /* Backgrounds */
+    --bg-primary: #F8F5F0;
+    --bg-surface: #FFFFFF;
+    --bg-surface-alt: #F1EDE4;
+
+    /* Borders */
+    --border: #D4C9B8;
+    --border-strong: #B8A48A;
+
+    /* Accent */
+    --accent: #5C4033;
+    --accent-gold: #B8976A;
+
+    /* Text */
+    --text-primary: #2C2522;
+    --text-secondary: #5C524A;
+    --text-muted: #7A7066;
+
+    /* Typography */
+    --font-serif: Georgia, serif;
+    --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --text-h4: 1.125rem;
+
+    /* Transitions */
+    --duration-fast: 150ms;
+    --ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}

@@ -10,7 +10,7 @@
     background: var(--admin-surface);
     border: 1px solid var(--admin-border);
     border-radius: var(--admin-radius);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 16px var(--shadow-modal-color);
     padding: var(--space-xs);
     min-width: 160px;
     display: none;
@@ -50,7 +50,7 @@
 
 .admin-arbor-edge-menu__item--danger:hover,
 .admin-arbor-edge-menu__item--danger:focus-visible {
-    background: rgba(220, 53, 69, 0.1);
+    background: var(--admin-danger-bg);
 }
 
 .admin-arbor-edge-menu__backdrop {
