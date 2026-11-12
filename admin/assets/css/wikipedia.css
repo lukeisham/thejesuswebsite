@@ -137,7 +137,8 @@
     min-width: 70px;
 }
 
-.publish-toggle-btn--published {
+/* Two classes outrank `.admin-app button { color: inherit }` in reset.css (CSS-5, no !important). */
+.publish-toggle-btn.publish-toggle-btn--published {
     background: var(--admin-success);
     color: var(--admin-accent-text);
 }
