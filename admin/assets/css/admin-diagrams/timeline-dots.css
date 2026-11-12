@@ -82,8 +82,8 @@
 /* Labels are siblings of the dots in #timeline-axis, like the public
    .timeline-label. timeline-events.js (Events.relayoutLabels) sets `left` and
    `top` in px for the label's top-left corner, so the label starts beside its
-   dot. Size and wrapping follow the public label: at most 100px wide, two
-   lines. */
+   dot. Size and wrapping follow the public label: at most
+   --timeline-label-max-width wide, two lines. */
 .admin-timeline-event-label {
     position: absolute;
     display: -webkit-box;

@@ -7,8 +7,8 @@
 
 /* ── Zoom Bar ──────────────────────────────────────────────────────────── */
 
-/* z-index 10 keeps the bar above the era heading band (z-index 4 in
-   timeline-era-headings.css). admin-canvas-zoom.js ignores a pointerdown that
+/* --admin-z-timeline-controls keeps the bar above the era heading band
+   (--admin-z-timeline-heading in timeline-era-headings.css). admin-canvas-zoom.js ignores a pointerdown that
    starts inside .admin-timeline-controls, so renaming this class makes a button
    click start a pan. */
 .admin-timeline-controls {

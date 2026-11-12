@@ -96,7 +96,7 @@
 
 /* ── Backdrop ──────────────────────────────────────────────────────────── */
 
-/* Sits just under the panel (z-index 100). A click on it closes the panel
+/* Sits just under the panel (--admin-z-panel-backdrop below --admin-z-panel). A click on it closes the panel
    (inline script in timeline.html). */
 .admin-timeline-panel-backdrop {
     position: fixed;

@@ -30,7 +30,7 @@
     letter-spacing: var(--tracking-caps);
     white-space: nowrap;
     pointer-events: none;
-    z-index: var(--z-timeline-heading-label); /* above the dots (z-index 2) and labels (z-index 1) */
+    z-index: var(--z-timeline-heading-label); /* above the dots and labels */
     line-height: var(--leading-heading);
     padding: var(--space-xs) var(--space-sm);
     transition: none; /* JS sets the position; an animation would lag it */
@@ -76,7 +76,7 @@
     overflow: hidden;
     background: var(--bg-primary);
     border-bottom: 1px solid var(--border);
-    z-index: var(--z-timeline-heading); /* above the zoomed world, below the controls (z-index: 10) */
+    z-index: var(--z-timeline-heading); /* above the zoomed world, below the controls */
     pointer-events: none;
 }
 

@@ -7,7 +7,7 @@
 
 /* -------------------------------------------------------------------------
    Event Labels
-   z-index 1 keeps labels under the dots (z-index 2); pointer-events: none
+   --z-timeline-label keeps labels under the dots (--z-timeline-dot); pointer-events: none
    lets a click through to the dot beneath.
    ------------------------------------------------------------------------- */
 

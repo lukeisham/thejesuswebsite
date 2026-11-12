@@ -7,7 +7,10 @@
    Event Dots
    timeline-render.js (createDot) positions each dot with inline `left` and
    `top`, and adds the era--, dot-cat-- and filtered-out classes used below.
-   Dots sit above the labels (z-index 1) and below the stacks (z-index 3).
+   Dots sit above the labels (--z-timeline-label) and below the stacks
+   (--z-timeline-stack). --timeline-dot-size equals DOT_BOX_PX in
+   timeline-render.js and DOT_SIZE in timeline-era-heading-placement.js, which
+   place labels and headings from the dot box (guide row 13).
    ------------------------------------------------------------------------- */
 
 .timeline-dot {
@@ -30,11 +33,11 @@
     transform: translate(-50%, -50%) scale(1.3);
 }
 
-/* WCAG 44×44px minimum touch target — transparent, doesn't affect the
-   visible 10×10px dot. Same-period dots that share a cluster are spaced as
-   little as 12px apart at the tightest density tier (cluster-placement.js
-   SPACING, compact) along whichever axis they stack on, so that axis is
-   capped to 12px — a full 44px there would make adjacent dots' invisible
+/* WCAG 44×44px minimum touch target (--timeline-hit-area) — transparent,
+   doesn't affect the visible dot. Same-period dots that share a cluster are
+   spaced as little as 12px apart at the tightest density tier
+   (cluster-placement.js SPACING, compact) along whichever axis they stack on,
+   so that axis is capped to --timeline-hit-cap (12px) — a full 44px there would make adjacent dots' invisible
    hit areas overlap and steal taps meant for a neighbour. */
 .timeline-dot::before {
     content: "";

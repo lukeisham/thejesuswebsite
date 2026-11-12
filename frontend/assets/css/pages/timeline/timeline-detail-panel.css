@@ -32,7 +32,7 @@
 
 /* -------------------------------------------------------------------------
    Detail Panel
-   z-index 50 keeps the panel below the tooltip (z-index 60).
+   --z-timeline-panel keeps the panel below the tooltip (--z-timeline-tooltip).
    ------------------------------------------------------------------------- */
 
 .timeline-detail-panel {

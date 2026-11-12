@@ -29,7 +29,7 @@
     overflow: hidden;
     background: var(--bg-primary);
     border-bottom: 1px solid var(--border);
-    z-index: var(--admin-z-timeline-heading); /* above the zoomed world, below the zoom bar (z-index 10, timeline-controls.css) */
+    z-index: var(--admin-z-timeline-heading); /* above the zoomed world, below the zoom bar (timeline-controls.css) */
     pointer-events: none; /* never block drag or pan */
 }
 

@@ -12,7 +12,8 @@
    The four --timeline-heading-* tokens must equal the frontend ones, because
    the era heading band is laid out in JS and sized in CSS on both pages. Guide
    row 4 in setup/ARCHITECTURE/timeline.md states this, and
-   api/tests/guide-timeline.test.js enforces it.
+   api/tests/guide-timeline.test.js enforces it. Rows 13 and 14 do the same for
+   the dot, label, grid and rule sizes, the caps tracking and the muted opacity.
    ========================================================================== */
 
 :root {

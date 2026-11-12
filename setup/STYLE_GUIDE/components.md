@@ -1,5 +1,7 @@
 _Part of the [Style Guide](INDEX.md) — §8: core components._
 
+Look up how each shared component should look and behave before you build or change one. You leave with its parts, states and tokens, so the public site and the admin editors match.
+
 ---
 
 ## §8 Core Components
